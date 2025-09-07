@@ -1,0 +1,1128 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.4"
+  }
+  public: {
+    Tables: {
+      app_settings: {
+        Row: {
+          description: string | null
+          id: string
+          is_sensitive: boolean | null
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          is_sensitive?: boolean | null
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          is_sensitive?: boolean | null
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_current: {
+        Row: {
+          batch_id: string | null
+          created_at: string | null
+          expiry_date: string | null
+          id: string
+          last_movement_date: string | null
+          location_id: string | null
+          product_id: string | null
+          quantity_available: number | null
+          quantity_in_transit: number | null
+          quantity_reserved: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          last_movement_date?: string | null
+          location_id?: string | null
+          product_id?: string | null
+          quantity_available?: number | null
+          quantity_in_transit?: number | null
+          quantity_reserved?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          last_movement_date?: string | null
+          location_id?: string | null
+          product_id?: string | null
+          quantity_available?: number | null
+          quantity_in_transit?: number | null
+          quantity_reserved?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_current_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "production_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_current_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_current_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          batch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          from_location_id: string | null
+          id: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes: string | null
+          product_id: string | null
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          to_location_id: string | null
+          total_cost: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          from_location_id?: string | null
+          id?: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          product_id?: string | null
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          to_location_id?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          from_location_id?: string | null
+          id?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          product_id?: string | null
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          to_location_id?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "production_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          address: string | null
+          code: string
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          type?: Database["public"]["Enums"]["location_type"]
+        }
+        Relationships: []
+      }
+      packaging_materials: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_stock_units: number | null
+          id: string
+          is_active: boolean | null
+          lead_time_days: number | null
+          moq_units: number | null
+          name: string
+          price_per_unit: number | null
+          safety_stock_units: number | null
+          supplier_id: string | null
+          type: string | null
+          unit_measure: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_stock_units?: number | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          moq_units?: number | null
+          name: string
+          price_per_unit?: number | null
+          safety_stock_units?: number | null
+          supplier_id?: string | null
+          type?: string | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_stock_units?: number | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          moq_units?: number | null
+          name?: string
+          price_per_unit?: number | null
+          safety_stock_units?: number | null
+          supplier_id?: string | null
+          type?: string | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_materials_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_formulas: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string | null
+          quantity_per_unit: number | null
+          raw_material_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity_per_unit?: number | null
+          raw_material_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity_per_unit?: number | null
+          raw_material_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_formulas_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_formulas_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_packaging: {
+        Row: {
+          created_at: string | null
+          id: string
+          packaging_material_id: string | null
+          product_id: string | null
+          quantity_per_unit: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          packaging_material_id?: string | null
+          product_id?: string | null
+          quantity_per_unit?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          packaging_material_id?: string | null
+          product_id?: string | null
+          quantity_per_unit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_packaging_packaging_material_id_fkey"
+            columns: ["packaging_material_id"]
+            isOneToOne: false
+            referencedRelation: "packaging_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_packaging_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_batches: {
+        Row: {
+          actual_quantity: number | null
+          batch_number: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          expiry_date: string | null
+          id: string
+          location_id: string | null
+          notes: string | null
+          planned_quantity: number
+          product_id: string | null
+          production_date: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["batch_status"] | null
+        }
+        Insert: {
+          actual_quantity?: number | null
+          batch_number: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          planned_quantity: number
+          product_id?: string | null
+          production_date?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["batch_status"] | null
+        }
+        Update: {
+          actual_quantity?: number | null
+          batch_number?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          planned_quantity?: number
+          product_id?: string | null
+          production_date?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["batch_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batches_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batches_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          min_stock_units: number | null
+          name: string
+          safety_stock_units: number | null
+          shelf_life_days: number | null
+          sku: string
+          type: string
+          units_per_box: number | null
+          updated_at: string | null
+          weight_grams: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_stock_units?: number | null
+          name: string
+          safety_stock_units?: number | null
+          shelf_life_days?: number | null
+          sku: string
+          type: string
+          units_per_box?: number | null
+          updated_at?: string | null
+          weight_grams?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_stock_units?: number | null
+          name?: string
+          safety_stock_units?: number | null
+          shelf_life_days?: number | null
+          sku?: string
+          type?: string
+          units_per_box?: number | null
+          updated_at?: string | null
+          weight_grams?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          is_active?: boolean | null
+          last_login?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          item_type: string
+          notes: string | null
+          purchase_order_id: string | null
+          quantity: number
+          total_price: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          notes?: string | null
+          purchase_order_id?: string | null
+          quantity: number
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          notes?: string | null
+          purchase_order_id?: string | null
+          quantity?: number
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          expected_date: string | null
+          id: string
+          notes: string | null
+          order_date: string | null
+          order_number: string
+          status: Database["public"]["Enums"]["order_status"] | null
+          subtotal: number | null
+          supplier_id: string | null
+          tax: number | null
+          total: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          order_number: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          subtotal?: number | null
+          supplier_id?: string | null
+          tax?: number | null
+          total?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          order_number?: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          subtotal?: number | null
+          supplier_id?: string | null
+          tax?: number | null
+          total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      raw_materials: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_stock_kg: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          lead_time_days: number | null
+          moq_kg: number | null
+          name: string
+          price_per_unit: number | null
+          safety_stock_kg: number | null
+          shelf_life_days: number | null
+          supplier_code: string | null
+          supplier_id: string | null
+          unit_measure: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_stock_kg?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          moq_kg?: number | null
+          name: string
+          price_per_unit?: number | null
+          safety_stock_kg?: number | null
+          shelf_life_days?: number | null
+          supplier_code?: string | null
+          supplier_id?: string | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_stock_kg?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          moq_kg?: number | null
+          name?: string
+          price_per_unit?: number | null
+          safety_stock_kg?: number | null
+          shelf_life_days?: number | null
+          supplier_code?: string | null
+          supplier_id?: string | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_materials_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_data: {
+        Row: {
+          channel: string | null
+          customer_name: string | null
+          discount: number | null
+          external_id: string | null
+          id: string
+          invoice_number: string | null
+          order_number: string | null
+          product_id: string | null
+          quantity: number | null
+          sale_date: string | null
+          source: string
+          synced_at: string | null
+          tax: number | null
+          total: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          channel?: string | null
+          customer_name?: string | null
+          discount?: number | null
+          external_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          sale_date?: string | null
+          source: string
+          synced_at?: string | null
+          tax?: number | null
+          total?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          channel?: string | null
+          customer_name?: string | null
+          discount?: number | null
+          external_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          sale_date?: string | null
+          source?: string
+          synced_at?: string | null
+          tax?: number | null
+          total?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_data_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_projections: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          current_stock_units: number | null
+          growth_percentage: number | null
+          historical_avg_units: number | null
+          historical_months: number | null
+          id: string
+          product_id: string | null
+          projected_units: number | null
+          projection_month: string | null
+          safety_stock_units: number | null
+          units_to_produce: number | null
+          units_to_purchase: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          current_stock_units?: number | null
+          growth_percentage?: number | null
+          historical_avg_units?: number | null
+          historical_months?: number | null
+          id?: string
+          product_id?: string | null
+          projected_units?: number | null
+          projection_month?: string | null
+          safety_stock_units?: number | null
+          units_to_produce?: number | null
+          units_to_purchase?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          current_stock_units?: number | null
+          growth_percentage?: number | null
+          historical_avg_units?: number | null
+          historical_months?: number | null
+          id?: string
+          product_id?: string | null
+          projected_units?: number | null
+          projection_month?: string | null
+          safety_stock_units?: number | null
+          units_to_produce?: number | null
+          units_to_purchase?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_projections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_projections_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          code: string
+          contact_name: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          lead_time_days: number | null
+          min_order_value: number | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          contact_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          min_order_value?: number | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          contact_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          min_order_value?: number | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      batch_status: "planned" | "in_production" | "completed" | "cancelled"
+      location_type: "oficina" | "maquila" | "punto_venta" | "transito"
+      movement_type:
+        | "entrada"
+        | "salida"
+        | "produccion"
+        | "ajuste"
+        | "devolucion"
+      order_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "sent"
+        | "received"
+        | "cancelled"
+      user_role: "admin" | "user" | "operator"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      batch_status: ["planned", "in_production", "completed", "cancelled"],
+      location_type: ["oficina", "maquila", "punto_venta", "transito"],
+      movement_type: [
+        "entrada",
+        "salida",
+        "produccion",
+        "ajuste",
+        "devolucion",
+      ],
+      order_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "sent",
+        "received",
+        "cancelled",
+      ],
+      user_role: ["admin", "user", "operator"],
+    },
+  },
+} as const
