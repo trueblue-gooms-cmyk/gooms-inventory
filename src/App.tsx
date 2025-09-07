@@ -1,27 +1,54 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAppStore } from './stores/useAppStore';
+import { NotificationProvider } from './components/ui/NotificationProvider';
+import { MainLayout } from './components/layout/MainLayout';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Inventory } from './pages/Inventory';
+import { Production } from './pages/Production';
+import { Purchases } from './pages/Purchases';
+import { Projections } from './pages/Projections';
+import { Reports } from './pages/Reports';
+import { Settings } from './pages/Settings';
+import { Users } from './pages/Users';
+import { LoadingScreen } from './components/LoadingScreen';
+import { supabase } from './lib/supabase';
 
-const queryClient = new QueryClient();
+function App() {
+  const { checkSession, isLoading } = useAppStore();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  useEffect(() => {
+    checkSession();
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'SIGNED_IN') await checkSession();
+      else if (event === 'SIGNED_OUT') useAppStore.setState({ user: null, profile: null });
+    });
+    return () => authListener?.subscription.unsubscribe();
+  }, []);
+
+  if (isLoading) return <LoadingScreen />;
+
+  return (
+    <BrowserRouter>
+      <NotificationProvider />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="production" element={<Production />} />
+          <Route path="purchases" element={<Purchases />} />
+          <Route path="projections" element={<Projections />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="users" element={<Users />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
 export default App;
