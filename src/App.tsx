@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
 import { NotificationProvider } from './components/ui/NotificationProvider';
 import { MainLayout } from './components/layout/MainLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Inventory } from './pages/Inventory';
@@ -14,30 +15,33 @@ import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/LoadingScreen';
-import { supabase } from './lib/supabase';
+import { supabase } from './integrations/supabase/client';
 
 function App() {
   const { checkSession, isLoading } = useAppStore();
 
   useEffect(() => {
-    // Check session on app load
-    checkSession();
-
-    // Listen for auth state changes
+    // Set up auth state listener FIRST to prevent race conditions
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN') {
-          await checkSession();
+      (event, session) => {
+        // Synchronous state updates only - defer Supabase calls to prevent deadlocks
+        if (event === 'SIGNED_IN' && session) {
+          setTimeout(() => {
+            checkSession();
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           useAppStore.setState({ user: null, profile: null });
         }
       }
     );
 
+    // THEN check for existing session
+    checkSession();
+
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [checkSession]);
 
   if (isLoading) {
     return <LoadingScreen />;
