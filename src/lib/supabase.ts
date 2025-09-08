@@ -1,16 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+// DEPRECATED: Use @/integrations/supabase/client instead
+// This file exists for backward compatibility only
 
-const supabaseUrl = 'https://jhlcmfxrrspnovgkuvya.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpobGNtZnhycnNwbm92Z2t1dnlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyODU4NzMsImV4cCI6MjA3Mjg2MTg3M30.4CKSwP5kRtarGGYECQuGYKNFwfq0w5BwvQeyq1U-7UQ';
+import { supabase } from '@/integrations/supabase/client';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+// Re-export the main client for backward compatibility
+export { supabase };
 
+// Deprecated auth helpers - use supabase.auth directly
 export const auth = {
   async signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({

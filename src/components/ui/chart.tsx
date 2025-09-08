@@ -65,26 +65,28 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
-          .join("\n"),
-      }}
-    />
-  );
+  // Generate safe CSS without dangerouslySetInnerHTML
+  const cssContent = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const sanitizedId = id.replace(/[^a-zA-Z0-9-_]/g, ''); // Only allow safe chars
+      const colorRules = colorConfig
+        .map(([key, itemConfig]) => {
+          const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+          // Validate color format (basic CSS color validation)
+          if (color && /^(#[0-9A-Fa-f]{3,6}|rgb\(|rgba\(|hsl\(|hsla\(|[a-zA-Z]+)/.test(color)) {
+            const sanitizedKey = key.replace(/[^a-zA-Z0-9-_]/g, '');
+            return `  --color-${sanitizedKey}: ${color};`;
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join("\n");
+
+      return `${prefix} [data-chart="${sanitizedId}"] {\n${colorRules}\n}`;
+    })
+    .join("\n");
+
+  return <style>{cssContent}</style>;
 };
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
