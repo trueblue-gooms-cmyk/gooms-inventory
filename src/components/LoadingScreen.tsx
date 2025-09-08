@@ -2,30 +2,24 @@ import { Box } from 'lucide-react';
 
 export function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
-      <div className="text-center">
-        {/* Animated logo */}
-        <div className="relative mb-8">
-          {/* Rotating ring - positioned behind */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin will-change-transform transform-gpu" 
-                 style={{ animationDuration: '1s' }} />
-          </div>
-          {/* Logo - positioned in front */}
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
-            <Box className="w-10 h-10 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 flex items-center justify-center p-6">
+      <div className="text-center max-w-md">
+        {/* Static logo */}
+        <div className="mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+            <Box className="w-10 h-10 text-primary-foreground" />
           </div>
         </div>
         
-        {/* Loading text */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Gooms Inventory</h2>
-        <p className="text-gray-600">Cargando tu espacio de trabajo...</p>
-        
-        {/* Loading dots */}
-        <div className="flex items-center justify-center gap-1 mt-6">
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        {/* Welcome text */}
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold text-foreground">
+            Gooms Inventory
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Bienvenido a tu sistema de gestión
+          </p>
+          <div className="w-16 h-1 bg-primary rounded-full mx-auto opacity-60" />
         </div>
       </div>
     </div>
