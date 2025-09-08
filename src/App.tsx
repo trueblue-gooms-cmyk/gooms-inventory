@@ -1,4 +1,3 @@
-import { ProtectedRoute } from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
@@ -57,12 +56,28 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="inventory" element={<Inventory />} />
-            <Route path="production" element={<Production />} />
-            <Route path="purchases" element={<Purchases />} />
+            <Route path="production" element={
+  <ProtectedRoute requiredRole="operator">
+    <Production />
+  </ProtectedRoute>
+} />
+            <Route path="purchases" element={
+  <ProtectedRoute requiredRole="operator">
+    <Purchases />
+  </ProtectedRoute>
+} />
             <Route path="projections" element={<Projections />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="users" element={<Users />} />
+            <Route path="settings" element={
+  <ProtectedRoute requiredRole="admin">
+    <Settings />
+  </ProtectedRoute>
+} />
+            <Route path="users" element={
+  <ProtectedRoute requiredRole="admin">
+    <Users />
+  </ProtectedRoute>
+} />
           </Route>
           
           {/* Catch all */}
