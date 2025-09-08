@@ -6,12 +6,14 @@ export function LoadingScreen() {
       <div className="text-center">
         {/* Animated logo */}
         <div className="relative mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
-            <Box className="w-10 h-10 text-white" />
+          {/* Rotating ring - positioned behind */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin will-change-transform transform-gpu" 
+                 style={{ animationDuration: '1s' }} />
           </div>
-          {/* Rotating ring */}
-          <div className="absolute inset-0 -m-2">
-            <div className="w-24 h-24 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+          {/* Logo - positioned in front */}
+          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+            <Box className="w-10 h-10 text-white" />
           </div>
         </div>
         
