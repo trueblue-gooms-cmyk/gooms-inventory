@@ -191,23 +191,14 @@ export const useAppStore = create<AppState>()(
                 .update({ last_login: new Date().toISOString() })
                 .eq('id', user.id);
             } else {
-              // Create new profile if it doesn't exist
-              const { data: newProfile } = await supabase
-                .from('profiles')
-                .insert({
-                  id: user.id,
-                  email: user.email!,
-                  full_name: user.user_metadata?.full_name || '',
-                  role: 'user',
-                  is_active: true,
-                })
-                .select()
-                .single();
-              
-              if (newProfile) {
-                set({ profile: newProfile as Profile });
-              }
-            }
+  // NO crear perfil desde cliente - debe hacerse via trigger
+  console.error('Profile not found - check auth trigger');
+  get().addNotification({
+    type: 'error',
+    title: 'Error de perfil',
+    message: 'Contacta al administrador',
+  });
+}
           } catch (error) {
             console.error('Load profile error:', error);
           }
