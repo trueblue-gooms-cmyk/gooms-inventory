@@ -155,6 +155,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventory_current_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inventory_current_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -235,6 +242,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventory_movements_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inventory_movements_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -246,6 +260,13 @@ export type Database = {
             columns: ["to_location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_public"
             referencedColumns: ["id"]
           },
         ]
@@ -488,6 +509,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batches_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations_public"
             referencedColumns: ["id"]
           },
           {
@@ -975,7 +1003,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      locations_public: {
+        Row: {
+          address: string | null
+          code: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          type: Database["public"]["Enums"]["location_type"] | null
+        }
+        Insert: {
+          address?: string | null
+          code?: string | null
+          contact_name?: never
+          contact_phone?: never
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          type?: Database["public"]["Enums"]["location_type"] | null
+        }
+        Update: {
+          address?: string | null
+          code?: string | null
+          contact_name?: never
+          contact_phone?: never
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          type?: Database["public"]["Enums"]["location_type"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_my_role: {
