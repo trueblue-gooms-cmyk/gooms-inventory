@@ -174,16 +174,25 @@ export const useAppStore = create<AppState>()(
           if (!user) return;
           
           try {
-            const { data, error } = await supabase
+            // Cargar perfil
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', user.id)
               .single();
             
-            if (error) throw error;
+            if (profileError) throw profileError;
             
-            if (data) {
-              set({ profile: data as Profile });
+            if (profileData) {
+              // Obtener rol real desde la función RPC (fuente de verdad)
+              const { data: roleData, error: roleError } = await supabase
+                .rpc('get_my_role');
+              
+              if (!roleError && roleData) {
+                profileData.role = roleData as 'admin' | 'operator' | 'user';
+              }
+              
+              set({ profile: profileData as Profile });
               
               // Update last login
               await supabase
@@ -191,16 +200,21 @@ export const useAppStore = create<AppState>()(
                 .update({ last_login: new Date().toISOString() })
                 .eq('id', user.id);
             } else {
-  // NO crear perfil desde cliente - debe hacerse via trigger
-  console.error('Profile not found - check auth trigger');
-  get().addNotification({
-    type: 'error',
-    title: 'Error de perfil',
-    message: 'Contacta al administrador',
-  });
-}
+              // NO crear perfil desde cliente - debe hacerse via trigger
+              console.error('Profile not found - check auth trigger');
+              get().addNotification({
+                type: 'error',
+                title: 'Error de perfil',
+                message: 'Contacta al administrador',
+              });
+            }
           } catch (error) {
             console.error('Load profile error:', error);
+            get().addNotification({
+              type: 'error',
+              title: 'Error al cargar perfil',
+              message: error instanceof Error ? error.message : 'Error desconocido',
+            });
           }
         },
         
@@ -219,6 +233,12 @@ export const useAppStore = create<AppState>()(
             if (error) throw error;
             
             if (data) {
+              // Obtener rol actualizado desde RPC
+              const { data: roleData } = await supabase.rpc('get_my_role');
+              if (roleData) {
+                data.role = roleData as 'admin' | 'operator' | 'user';
+              }
+              
               set({ profile: data as Profile });
               get().addNotification({
                 type: 'success',
