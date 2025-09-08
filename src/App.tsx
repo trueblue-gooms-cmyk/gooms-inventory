@@ -13,6 +13,8 @@ import { Projections } from './pages/Projections';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
+import { Products } from './pages/Products';
+import { RawMaterials } from './pages/RawMaterials';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/LoadingScreen';
 import { supabase } from './integrations/supabase/client';
@@ -60,6 +62,8 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="inventory" element={<Inventory />} />
+            <Route path="products" element={<Products />} />
+            <Route path="raw-materials" element={<RawMaterials />} />
             <Route path="production" element={
   <ProtectedRoute requiredRole="operator">
     <Production />

@@ -5,6 +5,7 @@ import { useCanEdit, useIsAdmin } from '@/hooks/useSecureAuth';
 import {
   Home,
   Package,
+  Package2,
   Factory,
   ShoppingCart,
   TrendingUp,
@@ -33,6 +34,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: Home, permission: 'all' },
   { label: 'Inventario', href: '/inventory', icon: Package, permission: 'all' },
+  { label: 'Productos', href: '/products', icon: Package2, permission: 'all' },
+  { label: 'Materias Primas', href: '/raw-materials', icon: Box, permission: 'all' },
   { label: 'Producción', href: '/production', icon: Factory, permission: 'edit' },
   { label: 'Compras', href: '/purchases', icon: ShoppingCart, permission: 'edit' },
   { label: 'Proyecciones', href: '/projections', icon: TrendingUp, permission: 'all' },
