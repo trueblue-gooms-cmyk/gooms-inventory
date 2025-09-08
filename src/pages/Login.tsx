@@ -1,14 +1,9 @@
-import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAppStore } from '@/stores/useAppStore';
 import { Box, ArrowRight, Shield, BarChart3, Package2 } from 'lucide-react';
 
 export function Login() {
-  const { user, signIn, isLoading, checkSession } = useAppStore();
-
-  useEffect(() => {
-    checkSession();
-  }, []);
+  const { user, signIn, isLoading } = useAppStore();
 
   // If already logged in, redirect to dashboard
   if (user) {

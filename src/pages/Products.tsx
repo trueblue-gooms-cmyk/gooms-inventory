@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Plus, Search, Edit2, Trash2, Package, AlertCircle } from 'lucide-react';
 import { useCanEdit } from '@/stores/useAppStore';
 

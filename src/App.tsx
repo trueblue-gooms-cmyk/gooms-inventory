@@ -1,6 +1,6 @@
 // src/App.tsx - Actualizado con todas las rutas nuevas
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
 import { NotificationProvider } from './components/ui/NotificationProvider';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -17,14 +17,15 @@ import { Users } from './pages/Users';
 import { Products } from './pages/Products';
 import { RawMaterials } from './pages/RawMaterials';
 import { LoadingScreen } from './components/LoadingScreen';
-import { supabase } from './lib/supabase';
+import { supabase } from './integrations/supabase/client';
 
-function App() {
+function AppContent() {
   const { checkSession, isLoading } = useAppStore();
+  const location = useLocation();
 
   useEffect(() => {
     checkSession();
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         setTimeout(() => checkSession(), 0);
       } else if (event === 'SIGNED_OUT') {
@@ -34,10 +35,10 @@ function App() {
     return () => authListener?.subscription.unsubscribe();
   }, []);
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading && location.pathname !== '/login') return <LoadingScreen />;
 
   return (
-    <BrowserRouter>
+    <>
       <NotificationProvider />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -72,6 +73,14 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
