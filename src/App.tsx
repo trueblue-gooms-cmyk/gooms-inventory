@@ -1,3 +1,4 @@
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
