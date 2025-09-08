@@ -14,6 +14,7 @@ import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/LoadingScreen';
+import { supabase } from './lib/supabase';
 
 function App() {
   const { checkSession, isLoading } = useAppStore();

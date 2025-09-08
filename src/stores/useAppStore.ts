@@ -189,4 +189,77 @@ export const useAppStore = create<AppState>()(
               await supabase
                 .from('profiles')
                 .update({ last_login: new Date().toISOString() })
-                .eq('
+                .eq('id', user.id);
+            } else {
+              // Create new profile if it doesn't exist
+              const { data: newProfile } = await supabase
+                .from('profiles')
+                .insert({
+                  id: user.id,
+                  email: user.email!,
+                  full_name: user.user_metadata?.full_name || '',
+                  role: 'user',
+                  is_active: true,
+                })
+                .select()
+                .single();
+              
+              if (newProfile) {
+                set({ profile: newProfile as Profile });
+              }
+            }
+          } catch (error) {
+            console.error('Load profile error:', error);
+          }
+        },
+        
+        updateProfile: async (updates) => {
+          const user = get().user;
+          if (!user) return;
+          
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .update(updates)
+              .eq('id', user.id)
+              .select()
+              .single();
+            
+            if (error) throw error;
+            
+            if (data) {
+              set({ profile: data as Profile });
+              get().addNotification({
+                type: 'success',
+                title: 'Perfil actualizado',
+                message: 'Los cambios se han guardado correctamente',
+              });
+            }
+          } catch (error) {
+            console.error('Update profile error:', error);
+            get().addNotification({
+              type: 'error',
+              title: 'Error al actualizar perfil',
+              message: error instanceof Error ? error.message : 'Error desconocido',
+            });
+          }
+        },
+      }),
+      {
+        name: 'gooms-inventory',
+        partialize: (state) => ({ 
+          sidebarOpen: state.sidebarOpen,
+          dateRange: state.dateRange,
+        }),
+      }
+    ),
+    {
+      name: 'gooms-inventory-store',
+    }
+  )
+);
+
+// Selectors
+export const useProfile = () => useAppStore((state) => state.profile);
+export const useIsAdmin = () => useAppStore((state) => state.profile?.role === 'admin');
+export const useCanEdit = () => useAppStore((state) => ['admin', 'operator'].includes(state.profile?.role || ''));
