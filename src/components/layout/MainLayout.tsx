@@ -2,12 +2,34 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAppStore, useProfile, useCanEdit, useIsAdmin } from '@/stores/useAppStore';
 import {
-  Home, Package, Factory, ShoppingCart, TrendingUp,
-  Settings, Users, FileBarChart, Menu, X, LogOut,
-  Box, ChevronDown
+  Home,
+  Package,
+  Factory,
+  ShoppingCart,
+  TrendingUp,
+  Settings,
+  Users,
+  FileBarChart,
+  Menu,
+  X,
+  LogOut,
+  User,
+  ChevronDown,
+  Box,
+  Calendar,
+  Bell,
+  Search,
 } from 'lucide-react';
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  permission?: 'all' | 'edit' | 'admin';
+}
+
+const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: Home, permission: 'all' },
   { label: 'Inventario', href: '/inventory', icon: Package, permission: 'all' },
   { label: 'Producción', href: '/production', icon: Factory, permission: 'edit' },
@@ -24,10 +46,28 @@ export function MainLayout() {
   const canEdit = useCanEdit();
   const isAdmin = useIsAdmin();
   const { sidebarOpen, toggleSidebar, signOut, user } = useAppStore();
+  const [isMobile, setIsMobile] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  if (!user) return <Navigate to="/login" replace />;
+  // Check if user is authenticated
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        useAppStore.setState({ sidebarOpen: false });
+      }
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Filter nav items based on permissions
   const filteredNavItems = navItems.filter((item) => {
     if (item.permission === 'all') return true;
     if (item.permission === 'edit') return canEdit;
@@ -35,60 +75,197 @@ export function MainLayout() {
     return false;
   });
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  const getInitials = (name?: string, email?: string) => {
+    if (name) return name.charAt(0).toUpperCase();
+    if (email) return email.charAt(0).toUpperCase();
+    return 'U';
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform md:relative md:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b">
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <Link to="/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
               <Box className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Gooms</span>
+            <span className="text-xl font-bold text-gray-900">Gooms</span>
           </Link>
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        
-        <nav className="flex-1 px-4 py-4 space-y-1">
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
+            
             return (
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive ? 'bg-orange-50 text-orange-600' : 'text-gray-600 hover:bg-gray-50'
+                onClick={handleNavClick}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group ${
+                  isActive
+                    ? 'bg-orange-50 text-orange-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-orange-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
                 <span className="font-medium">{item.label}</span>
+                {item.badge && (
+                  <span className={`ml-auto px-2 py-0.5 text-xs rounded-full ${
+                    isActive ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
-        
-        <div className="p-4 border-t">
-          <button onClick={signOut} className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg">
-            <LogOut className="w-4 h-4" />
-            <span>Cerrar sesión</span>
-          </button>
+
+        {/* User info */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <span className="text-sm font-medium text-orange-600">
+                {getInitials(profile?.full_name, profile?.email)}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {profile?.full_name || 'Usuario'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{profile?.email}</p>
+            </div>
+          </div>
         </div>
       </aside>
-      
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b h-16 flex items-center px-6">
-          <button onClick={toggleSidebar} className="md:hidden p-2">
-            <Menu className="w-5 h-5" />
-          </button>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between h-16 px-6">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleSidebar}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              
+              {/* Search */}
+              <div className="relative w-64 lg:w-96">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="search"
+                  placeholder="Buscar productos, órdenes..."
+                  className="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Date range picker */}
+              <button className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm">Últimos 30 días</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+
+              {/* Notifications */}
+              <button className="relative p-2 rounded-lg hover:bg-gray-100">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+              </button>
+
+              {/* User menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-orange-600">
+                      {getInitials(profile?.full_name, profile?.email)}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+
+                {/* Dropdown menu */}
+                {userMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">Mi cuenta</p>
+                      </div>
+                      <div className="py-1">
+                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          <span>Perfil</span>
+                        </button>
+                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                          <Settings className="w-4 h-4" />
+                          <span>Configuración</span>
+                        </button>
+                        <hr className="my-1" />
+                        <button
+                          onClick={signOut}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Cerrar sesión</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         </header>
-        
-        <main className="flex-1 overflow-y-auto">
+
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="container mx-auto px-6 py-8">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Mobile sidebar overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
     </div>
   );
 }
