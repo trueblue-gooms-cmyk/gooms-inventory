@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Search, Edit2, Trash2, Package, AlertCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Upload } from 'lucide-react';
 import { useCanEdit } from '@/stores/useAppStore';
+import { CsvImporter } from '@/components/CsvImporter';
 
 interface Product {
   id: string;
@@ -18,6 +19,7 @@ interface Product {
 }
 
 export function Products() {
+  const [showImporter, setShowImporter] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,13 +165,22 @@ export function Products() {
           <p className="text-gray-600 mt-1">Gestión de SKUs y referencias</p>
         </div>
         {canEdit && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nuevo Producto</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowImporter(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Importar CSV</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nuevo Producto</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -268,6 +279,52 @@ export function Products() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="frasco">Frasco</option>
+                    <option value="sachet">Sachet</option>
+                    <option value="refill">Refill</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Peso (gramos)</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.weight_grams}
+                    onChange={(e) => setFormData({...formData, weight_grams: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidades por caja</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.units_per_box}
+                    onChange={(e) => setFormData({...formData, units_per_box: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Vida útil (días)</label>
@@ -336,52 +393,25 @@ export function Products() {
           </div>
         </div>
       )}
+
+      {/* CSV Importer */}
+      {showImporter && (
+        <CsvImporter
+          tableName="products"
+          columns={[
+            { field: 'sku', label: 'SKU', required: true },
+            { field: 'name', label: 'Nombre', required: true },
+            { field: 'type', label: 'Tipo', required: true },
+            { field: 'weight_grams', label: 'Peso (g)', type: 'number' },
+            { field: 'units_per_box', label: 'Unidades por caja', type: 'number' },
+            { field: 'shelf_life_days', label: 'Vida útil (días)', type: 'number' },
+            { field: 'min_stock_units', label: 'Stock mínimo', type: 'number' },
+            { field: 'safety_stock_units', label: 'Stock seguridad', type: 'number' },
+          ]}
+          onSuccess={loadProducts}
+          onClose={() => setShowImporter(false)}
+        />
+      )}
     </div>
   );
 }
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="frasco">Frasco</option>
-                    <option value="sachet">Sachet</option>
-                    <option value="refill">Refill</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Peso (gramos)</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.weight_grams}
-                    onChange={(e) => setFormData({...formData, weight_grams: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidades por caja</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.units_per_box}
-                    onChange={(e) => setFormData({...formData, units_per_box: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
