@@ -272,5 +272,7 @@ export const useAppStore = create<AppState>()(
 
 // Selectors
 export const useProfile = () => useAppStore((state) => state.profile);
+
+// Legacy role checking - DEPRECATED: Use hooks from useSecureAuth instead
 export const useIsAdmin = () => useAppStore((state) => state.profile?.role === 'admin');
 export const useCanEdit = () => useAppStore((state) => ['admin', 'operator'].includes(state.profile?.role || ''));

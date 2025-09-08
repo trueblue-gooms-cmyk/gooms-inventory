@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore';
 import { LoadingScreen } from './LoadingScreen';
-import { supabase } from '../integrations/supabase/client';
+import { useUserRole } from '../hooks/useSecureAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,32 +11,10 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, isLoading } = useAppStore();
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [roleLoading, setRoleLoading] = useState(true);
+  const userRole = useUserRole();
   
-  useEffect(() => {
-    async function fetchRole() {
-      if (!user) {
-        setRoleLoading(false);
-        return;
-      }
-      
-      try {
-        const { data, error } = await supabase.rpc('get_my_role');
-        if (error) throw error;
-        setUserRole(data);
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        setUserRole(null);
-      } finally {
-        setRoleLoading(false);
-      }
-    }
-    
-    fetchRole();
-  }, [user]);
-  
-  if (isLoading || roleLoading) return <LoadingScreen />;
+  // Show loading while checking auth or role
+  if (isLoading || (user && userRole === null)) return <LoadingScreen />;
   
   if (!user) return <Navigate to="/login" replace />;
   
