@@ -42,6 +42,7 @@ function AppContent() {
       <NotificationProvider />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
