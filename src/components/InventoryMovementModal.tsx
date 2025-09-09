@@ -1,123 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+// src/components/InventoryMovementModal.tsx
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { X, Package, ArrowRight, AlertCircle } from 'lucide-react';
+import { useAppStore } from '@/stores/useAppStore';
 
-type MovementType = Database['public']['Enums']['movement_type'];
-type Product = Database['public']['Tables']['products']['Row'];
-type Location = Database['public']['Tables']['locations']['Row'];
-
-interface InventoryMovementModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess: () => void;
+  productId?: string;
 }
 
-export const InventoryMovementModal: React.FC<InventoryMovementModalProps> = ({
-  isOpen,
-  onClose,
-  onSuccess
-}) => {
-  
-  const [loading, setLoading] = useState(false);
+interface Product {
+  id: string;
+  sku: string;
+  name: string;
+}
+
+interface Location {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface Batch {
+  id: string;
+  batch_number: string;
+  expiry_date: string;
+  quantity_available: number;
+}
+
+export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { profile } = useAppStore();
+
   const [formData, setFormData] = useState({
-    product_id: '',
-    movement_type: '' as MovementType,
-    quantity: '',
-    unit_cost: '',
+    movement_type: 'entrada',
+    product_id: productId || '',
+    batch_id: '',
     from_location_id: '',
     to_location_id: '',
+    quantity: '',
+    unit_cost: '',
+    reference_type: '',
+    reference_id: '',
     notes: ''
   });
 
   useEffect(() => {
     if (isOpen) {
-      fetchProducts();
-      fetchLocations();
+      loadData();
     }
   }, [isOpen]);
 
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Error cargando productos');
-      return;
+  useEffect(() => {
+    if (formData.product_id && formData.from_location_id) {
+      loadBatches();
     }
+  }, [formData.product_id, formData.from_location_id]);
 
-    setProducts(data || []);
-  };
-
-  const fetchLocations = async () => {
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
-
-    if (error) {
-      console.error('Error fetching locations:', error);
-      toast.error('Error cargando ubicaciones');
-      return;
-    }
-
-    setLocations(data || []);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const loadData = async () => {
     try {
-      const quantity = parseInt(formData.quantity);
-      const unitCost = formData.unit_cost ? parseFloat(formData.unit_cost) : null;
-      
-      if (isNaN(quantity) || quantity <= 0) {
-        toast.error('La cantidad debe ser un número positivo');
-        return;
-      }
+      const [productsRes, locationsRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, sku, name')
+          .eq('is_active', true)
+          .order('name'),
+        supabase
+          .from('locations')
+          .select('*')
+          .eq('is_active', true)
+          .order('name')
+      ]);
 
+      if (productsRes.data) setProducts(productsRes.data);
+      if (locationsRes.data) setLocations(locationsRes.data);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  const loadBatches = async () => {
+    try {
+      const { data } = await supabase
+        .from('inventory_current')
+        .select(`
+          batch_id,
+          quantity_available,
+          production_batches!inner (
+            id,
+            batch_number,
+            expiry_date
+          )
+        `)
+        .eq('product_id', formData.product_id)
+        .eq('location_id', formData.from_location_id)
+        .gt('quantity_available', 0);
+
+      if (data) {
+        const formattedBatches = data.map((item: any) => ({
+          id: item.batch_id,
+          batch_number: item.production_batches.batch_number,
+          expiry_date: item.production_batches.expiry_date,
+          quantity_available: item.quantity_available
+        }));
+        setBatches(formattedBatches);
+      }
+    } catch (error) {
+      console.error('Error loading batches:', error);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    
+    try {
+      // Registrar movimiento
       const movementData = {
-        product_id: formData.product_id,
         movement_type: formData.movement_type,
-        quantity,
-        unit_cost: unitCost,
-        total_cost: unitCost ? unitCost * quantity : null,
+        product_id: formData.product_id,
+        batch_id: formData.batch_id || null,
         from_location_id: formData.from_location_id || null,
         to_location_id: formData.to_location_id || null,
-        notes: formData.notes || null
+        quantity: parseInt(formData.quantity),
+        unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
+        total_cost: formData.unit_cost ? parseFloat(formData.unit_cost) * parseInt(formData.quantity) : null,
+        reference_type: formData.reference_type || null,
+        reference_id: formData.reference_id || null,
+        notes: formData.notes,
+        created_by: profile?.id
       };
 
-      const { error } = await supabase
+      const { error: movementError } = await supabase
         .from('inventory_movements')
         .insert([movementData]);
 
-      if (error) {
-        console.error('Error creating movement:', error);
-        toast.error('Error creando movimiento de inventario');
-        return;
+      if (movementError) throw movementError;
+
+      // Actualizar inventario actual
+      if (formData.movement_type === 'salida' && formData.from_location_id) {
+        // Reducir inventario en ubicación origen
+        const { data: currentInventory } = await supabase
+          .from('inventory_current')
+          .select('*')
+          .eq('product_id', formData.product_id)
+          .eq('location_id', formData.from_location_id)
+          .eq('batch_id', formData.batch_id)
+          .single();
+
+        if (currentInventory) {
+          const newQuantity = currentInventory.quantity_available - parseInt(formData.quantity);
+          await supabase
+            .from('inventory_current')
+            .update({ 
+              quantity_available: newQuantity,
+              last_movement_date: new Date().toISOString()
+            })
+            .eq('id', currentInventory.id);
+        }
       }
 
-      toast.success('Movimiento de inventario creado exitosamente');
-      onSuccess?.();
+      if (formData.movement_type === 'entrada' && formData.to_location_id) {
+        // Aumentar inventario en ubicación destino
+        const { data: currentInventory } = await supabase
+          .from('inventory_current')
+          .select('*')
+          .eq('product_id', formData.product_id)
+          .eq('location_id', formData.to_location_id)
+          .eq('batch_id', formData.batch_id)
+          .single();
+
+        if (currentInventory) {
+          const newQuantity = currentInventory.quantity_available + parseInt(formData.quantity);
+          await supabase
+            .from('inventory_current')
+            .update({ 
+              quantity_available: newQuantity,
+              last_movement_date: new Date().toISOString()
+            })
+            .eq('id', currentInventory.id);
+        } else {
+          // Crear nuevo registro si no existe
+          await supabase
+            .from('inventory_current')
+            .insert({
+              product_id: formData.product_id,
+              location_id: formData.to_location_id,
+              batch_id: formData.batch_id || null,
+              quantity_available: parseInt(formData.quantity),
+              quantity_reserved: 0,
+              quantity_in_transit: 0,
+              last_movement_date: new Date().toISOString()
+            });
+        }
+      }
+
+      onSuccess();
       onClose();
       resetForm();
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error inesperado');
+      console.error('Error registering movement:', error);
+      alert('Error al registrar el movimiento');
     } finally {
       setLoading(false);
     }
@@ -125,184 +212,207 @@ export const InventoryMovementModal: React.FC<InventoryMovementModalProps> = ({
 
   const resetForm = () => {
     setFormData({
-      product_id: '',
-      movement_type: '' as MovementType,
-      quantity: '',
-      unit_cost: '',
+      movement_type: 'entrada',
+      product_id: productId || '',
+      batch_id: '',
       from_location_id: '',
       to_location_id: '',
+      quantity: '',
+      unit_cost: '',
+      reference_type: '',
+      reference_id: '',
       notes: ''
     });
+    setBatches([]);
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Nuevo Movimiento de Inventario</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="product">Producto *</Label>
-            <Select
-              value={formData.product_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, product_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar producto" />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name} ({product.sku})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold">Registrar Movimiento de Inventario</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="movement_type">Tipo de Movimiento *</Label>
-            <Select
-              value={formData.movement_type}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, movement_type: value as MovementType }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entrada">Entrada</SelectItem>
-                <SelectItem value="salida">Salida</SelectItem>
-                <SelectItem value="produccion">Producción</SelectItem>
-                <SelectItem value="ajuste">Ajuste</SelectItem>
-                <SelectItem value="devolucion">Devolución</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="quantity">Cantidad *</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              value={formData.quantity}
-              onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-              placeholder="Cantidad"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="unit_cost">Costo Unitario</Label>
-            <Input
-              id="unit_cost"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.unit_cost}
-              onChange={(e) => setFormData(prev => ({ ...prev, unit_cost: e.target.value }))}
-              placeholder="0.00"
-            />
-          </div>
-
-          {formData.movement_type === 'produccion' ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="from_location">Ubicación Origen</Label>
-                <Select
-                  value={formData.from_location_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, from_location_id: value }))}
+        <div className="space-y-4">
+          {/* Tipo de Movimiento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de Movimiento
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {['entrada', 'salida', 'ajuste', 'devolucion'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFormData({...formData, movement_type: type})}
+                  className={`px-3 py-2 rounded-lg border capitalize ${
+                    formData.movement_type === type
+                      ? 'bg-orange-600 text-white border-orange-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar origen" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.id}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="to_location">Ubicación Destino</Label>
-                <Select
-                  value={formData.to_location_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, to_location_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar destino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.id}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="location">Ubicación</Label>
-              <Select
-                value={formData.to_location_id || formData.from_location_id}
-                onValueChange={(value) => {
-                  if (formData.movement_type === 'entrada') {
-                    setFormData(prev => ({ ...prev, to_location_id: value, from_location_id: '' }));
-                  } else {
-                    setFormData(prev => ({ ...prev, from_location_id: value, to_location_id: '' }));
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar ubicación" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map((location) => (
-                    <SelectItem key={location.id} value={location.id}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  {type}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
-            <Textarea
-              id="notes"
+          <div className="grid grid-cols-2 gap-4">
+            {/* Producto */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Producto
+              </label>
+              <select
+                value={formData.product_id}
+                onChange={(e) => setFormData({...formData, product_id: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                required
+              >
+                <option value="">Seleccionar producto</option>
+                {products.map(product => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} ({product.sku})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Cantidad */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Cantidad
+              </label>
+              <input
+                type="number"
+                value={formData.quantity}
+                onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="0"
+                required
+              />
+            </div>
+
+            {/* Ubicación Origen */}
+            {(formData.movement_type === 'salida' || formData.movement_type === 'ajuste') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ubicación Origen
+                </label>
+                <select
+                  value={formData.from_location_id}
+                  onChange={(e) => setFormData({...formData, from_location_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                >
+                  <option value="">Seleccionar ubicación</option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>
+                      {location.name} ({location.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Ubicación Destino */}
+            {(formData.movement_type === 'entrada' || formData.movement_type === 'devolucion') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ubicación Destino
+                </label>
+                <select
+                  value={formData.to_location_id}
+                  onChange={(e) => setFormData({...formData, to_location_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                >
+                  <option value="">Seleccionar ubicación</option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>
+                      {location.name} ({location.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Lote */}
+            {batches.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lote
+                </label>
+                <select
+                  value={formData.batch_id}
+                  onChange={(e) => setFormData({...formData, batch_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="">Seleccionar lote</option>
+                  {batches.map(batch => (
+                    <option key={batch.id} value={batch.id}>
+                      {batch.batch_number} (Disponible: {batch.quantity_available})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Costo Unitario */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Costo Unitario (opcional)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.unit_cost}
+                onChange={(e) => setFormData({...formData, unit_cost: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notas
+            </label>
+            <textarea
               value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Notas adicionales..."
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               rows={3}
+              placeholder="Observaciones adicionales..."
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || !formData.product_id || !formData.movement_type || !formData.quantity}
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              {loading ? 'Creando...' : 'Crear Movimiento'}
-            </Button>
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !formData.product_id || !formData.quantity}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+            >
+              {loading ? 'Registrando...' : 'Registrar Movimiento'}
+            </button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
-};
+}
