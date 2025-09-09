@@ -116,8 +116,7 @@ export function Products() {
 
       if (error) {
         // Manejar diferentes tipos de errores (por ejemplo, violación de clave única)
-        // @ts-expect-error: SupabaseError puede traer code dependiendo del driver
-        if (error.code === '23505') {
+        if ((error as any).code === '23505') {
           toast.error(`El SKU "${productData.sku}" ya está en uso. Por favor usa un SKU diferente.`);
         } else {
           console.error('Error creating product:', error);
@@ -178,8 +177,7 @@ export function Products() {
 
         const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
         if (error) {
-          // @ts-expect-error
-          if (error.code === '23505') {
+          if ((error as any).code === '23505') {
             toast.error(`El SKU "${productData.sku}" ya está en uso.`);
           } else {
             console.error('Error updating product:', error);
