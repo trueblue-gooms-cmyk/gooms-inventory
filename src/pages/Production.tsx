@@ -69,7 +69,7 @@ export function Production() {
     planned_quantity: '',
     actual_quantity: '',
     location_id: '',
-    status: 'planned' as const,
+    status: 'planned' as 'planned' | 'in_production' | 'completed' | 'cancelled',
     production_date: new Date().toISOString().split('T')[0],
     notes: ''
   });
