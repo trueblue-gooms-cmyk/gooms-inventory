@@ -398,16 +398,7 @@ export function Products() {
       {showImporter && (
         <CsvImporter
           tableName="products"
-          columns={[
-            { field: 'sku', label: 'SKU', required: true },
-            { field: 'name', label: 'Nombre', required: true },
-            { field: 'type', label: 'Tipo', required: true },
-            { field: 'weight_grams', label: 'Peso (g)', type: 'number' },
-            { field: 'units_per_box', label: 'Unidades por caja', type: 'number' },
-            { field: 'shelf_life_days', label: 'Vida útil (días)', type: 'number' },
-            { field: 'min_stock_units', label: 'Stock mínimo', type: 'number' },
-            { field: 'safety_stock_units', label: 'Stock seguridad', type: 'number' },
-          ]}
+          columns={['sku', 'name', 'type', 'weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'safety_stock_units']}
           onSuccess={loadProducts}
           onClose={() => setShowImporter(false)}
         />
