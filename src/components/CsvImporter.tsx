@@ -113,8 +113,8 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         return;
       }
       
-      // Insertar en la base de datos usando el tipo any para evitar error de tipos
-      const { error } = await (supabase.from(tableName) as any).insert(mappedData);
+      // Insertar en la base de datos usando casting para tabla dinámica
+      const { error } = await (supabase as any).from(tableName).insert(mappedData);
       
       if (error) throw error;
       

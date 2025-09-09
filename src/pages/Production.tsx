@@ -145,30 +145,6 @@ export function Production() {
         started_at: formData.status === 'in_production' ? new Date().toISOString() : null,
         completed_at: formData.status === 'completed' ? new Date().toISOString() : null
       };
-
-// En src/pages/Production.tsx, busca las líneas 145-150 y reemplaza con:
-
-            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between">
-              {batch.status === 'planned' && (
-                <button
-                  onClick={() => handleStatusChange(batch.id, 'in_production')}
-                  className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
-                >
-                  Iniciar Producción
-                </button>
-              )}
-              {batch.status === 'in_production' && (
-                <button
-                  onClick={() => handleStatusChange(batch.id, 'completed')}
-                  className="text-sm px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
-                >
-                  Completar
-                </button>
-              )}
-              <button className="text-gray-400 hover:text-gray-600">
-                <FileText className="w-4 h-4" />
-              </button>
-            </div>
       
       if (editingBatch) {
         const { error } = await supabase
