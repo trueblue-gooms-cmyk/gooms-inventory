@@ -112,7 +112,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
       
       // Insertar en la base de datos
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .insert(mappedData);
       
       if (error) throw error;

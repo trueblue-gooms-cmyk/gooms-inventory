@@ -22,7 +22,7 @@ interface ProductionBatch {
   planned_quantity: number;
   actual_quantity: number | null;
   location_id: string;
-  status: 'planned' | 'in_production' | 'completed' | 'cancelled';
+  status: string;
   production_date: string;
   expiry_date: string;
   notes: string;
@@ -69,7 +69,7 @@ export function Production() {
     planned_quantity: '',
     actual_quantity: '',
     location_id: '',
-    status: 'planned' as const,
+    status: 'planned',
     production_date: new Date().toISOString().split('T')[0],
     notes: ''
   });
@@ -137,7 +137,7 @@ export function Production() {
         planned_quantity: parseInt(formData.planned_quantity),
         actual_quantity: formData.actual_quantity ? parseInt(formData.actual_quantity) : null,
         location_id: formData.location_id,
-        status: formData.status,
+        status: formData.status as 'planned' | 'in_production' | 'completed' | 'cancelled',
         production_date: formData.production_date,
         expiry_date: expiryDate.toISOString().split('T')[0],
         notes: formData.notes,
