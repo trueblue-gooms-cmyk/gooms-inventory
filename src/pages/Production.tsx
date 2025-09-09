@@ -22,7 +22,7 @@ interface ProductionBatch {
   planned_quantity: number;
   actual_quantity: number | null;
   location_id: string;
-  status: string;
+  status: 'planned' | 'in_production' | 'completed' | 'cancelled';
   production_date: string;
   expiry_date: string;
   notes: string;
@@ -69,7 +69,7 @@ export function Production() {
     planned_quantity: '',
     actual_quantity: '',
     location_id: '',
-    status: 'planned',
+    status: 'planned' as const,
     production_date: new Date().toISOString().split('T')[0],
     notes: ''
   });
@@ -137,7 +137,7 @@ export function Production() {
         planned_quantity: parseInt(formData.planned_quantity),
         actual_quantity: formData.actual_quantity ? parseInt(formData.actual_quantity) : null,
         location_id: formData.location_id,
-        status: formData.status as 'planned' | 'in_production' | 'completed' | 'cancelled',
+        status: formData.status,
         production_date: formData.production_date,
         expiry_date: expiryDate.toISOString().split('T')[0],
         notes: formData.notes,
@@ -146,6 +146,30 @@ export function Production() {
         completed_at: formData.status === 'completed' ? new Date().toISOString() : null
       };
 
+// En src/pages/Production.tsx, busca las líneas 145-150 y reemplaza con:
+
+            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between">
+              {batch.status === 'planned' && (
+                <button
+                  onClick={() => handleStatusChange(batch.id, 'in_production')}
+                  className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                >
+                  Iniciar Producción
+                </button>
+              )}
+              {batch.status === 'in_production' && (
+                <button
+                  onClick={() => handleStatusChange(batch.id, 'completed')}
+                  className="text-sm px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                >
+                  Completar
+                </button>
+              )}
+              <button className="text-gray-400 hover:text-gray-600">
+                <FileText className="w-4 h-4" />
+              </button>
+            </div>
+      
       if (editingBatch) {
         const { error } = await supabase
           .from('production_batches')
