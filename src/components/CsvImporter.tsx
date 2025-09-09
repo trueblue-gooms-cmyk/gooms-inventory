@@ -1,9 +1,7 @@
 // src/components/CsvImporter.tsx
 import { useState } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, FileText } from 'lucide-react';
-import Papa from 'papaparse';
 import { supabase } from '@/lib/supabase';
-import { useNotification } from '@/components/ui/NotificationProvider';
 
 interface CsvImporterProps {
   tableName: string;
@@ -24,14 +22,13 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
   const [preview, setPreview] = useState<any[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
-  const notify = useNotification();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
     
     if (!selectedFile.name.endsWith('.csv')) {
-      notify.error('Error', 'Por favor selecciona un archivo CSV');
+      alert('Por favor selecciona un archivo CSV');
       return;
     }
     
@@ -43,23 +40,28 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
     setParsing(true);
     setErrors([]);
     
-    Papa.parse(file, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        if (results.errors.length > 0) {
-          setErrors(results.errors.map(e => e.message));
-        }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.trim());
         
-        // Auto-mapear columnas si coinciden
-        const csvHeaders = Object.keys(results.data[0] || {});
+        const data = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim());
+          const row: any = {};
+          headers.forEach((header, index) => {
+            row[header] = values[index] || '';
+          });
+          return row;
+        });
+        
+        // Auto-mapear columnas
         const autoMapping: Record<string, string> = {};
-        
         columns.forEach(col => {
-          const match = csvHeaders.find(header => 
-            header.toLowerCase().trim() === col.label.toLowerCase().trim() ||
-            header.toLowerCase().trim() === col.field.toLowerCase().trim()
+          const match = headers.find(header => 
+            header.toLowerCase() === col.label.toLowerCase() ||
+            header.toLowerCase() === col.field.toLowerCase()
           );
           if (match) {
             autoMapping[col.field] = match;
@@ -67,14 +69,15 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         });
         
         setMapping(autoMapping);
-        setPreview(results.data.slice(0, 5));
+        setPreview(data.slice(0, 5));
         setParsing(false);
-      },
-      error: (error) => {
-        setErrors([error.message]);
+      } catch (error) {
+        setErrors(['Error al procesar el archivo']);
         setParsing(false);
       }
-    });
+    };
+    
+    reader.readAsText(file);
   };
 
   const handleImport = async () => {
@@ -99,7 +102,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
       const invalidRows = mappedData.filter((row, index) => {
         const missingFields = requiredFields.filter(field => !row[field]);
         if (missingFields.length > 0) {
-          setErrors(prev => [...prev, `Fila ${index + 1}: Faltan campos requeridos: ${missingFields.join(', ')}`]);
+          setErrors(prev => [...prev, `Fila ${index + 1}: Faltan campos requeridos`]);
           return true;
         }
         return false;
@@ -110,22 +113,27 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         return;
       }
       
-      // Insertar en la base de datos
-      const { error } = await supabase
-        .from(tableName as any)
-        .insert(mappedData);
+      // Insertar en la base de datos usando el tipo any para evitar error de tipos
+      const { error } = await (supabase.from(tableName) as any).insert(mappedData);
       
       if (error) throw error;
       
-      notify.success('Importación exitosa', `Se importaron ${mappedData.length} registros`);
+      alert(`Se importaron ${mappedData.length} registros exitosamente`);
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Error importing:', error);
-      notify.error('Error al importar', error instanceof Error ? error.message : 'Error desconocido');
+      alert('Error al importar datos');
     } finally {
       setUploading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFile(null);
+    setPreview([]);
+    setMapping({});
+    setErrors([]);
   };
 
   const csvHeaders = preview.length > 0 ? Object.keys(preview[0]) : [];
@@ -172,12 +180,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
                 </p>
               </div>
               <button
-                onClick={() => {
-                  setFile(null);
-                  setPreview([]);
-                  setMapping({});
-                  setErrors([]);
-                }}
+                onClick={resetForm}
                 className="p-2 hover:bg-gray-200 rounded"
               >
                 <X className="w-4 h-4" />
