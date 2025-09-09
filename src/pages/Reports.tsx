@@ -125,28 +125,28 @@ export function Reports() {
       case 'sales':
         csvContent = 'Fecha,Cliente,Producto,Cantidad,Total,Canal\n';
         reportData.sales.forEach(sale => {
-          csvContent += `"${new Date(sale.sale_date).toLocaleDateString()}","${sale.customer_name || ''}","${sale.product_id || ''}",${sale.quantity || 0},${sale.total || 0},"${sale.channel || ''}"\n`;
+          csvContent += `${escapeCsvValue(new Date(sale.sale_date).toLocaleDateString())},${escapeCsvValue(sale.customer_name)},${escapeCsvValue(sale.product_id)},${sale.quantity || 0},${sale.total || 0},${escapeCsvValue(sale.channel)}\n`;
         });
         break;
         
       case 'production':
         csvContent = 'Lote,Producto,Cantidad,Fecha Producción,Fecha Vencimiento,Estado\n';
         reportData.production.forEach(batch => {
-          csvContent += `"${batch.batch_number || ''}","${batch.products?.name || ''}",${batch.actual_quantity || batch.planned_quantity || 0},"${new Date(batch.production_date).toLocaleDateString()}","${new Date(batch.expiry_date).toLocaleDateString()}","${batch.status || ''}"\n`;
+          csvContent += `${escapeCsvValue(batch.batch_number)},${escapeCsvValue(batch.products?.name)},${batch.actual_quantity || batch.planned_quantity || 0},${escapeCsvValue(new Date(batch.production_date).toLocaleDateString())},${escapeCsvValue(new Date(batch.expiry_date).toLocaleDateString())},${escapeCsvValue(batch.status)}\n`;
         });
         break;
         
       case 'purchases':
         csvContent = 'Número Orden,Proveedor,Fecha,Total,Estado\n';
         reportData.purchases.forEach(order => {
-          csvContent += `"${order.order_number || ''}","${order.suppliers?.name || ''}","${new Date(order.order_date).toLocaleDateString()}",${order.total || 0},"${order.status || ''}"\n`;
+          csvContent += `${escapeCsvValue(order.order_number)},${escapeCsvValue(order.suppliers?.name)},${escapeCsvValue(new Date(order.order_date).toLocaleDateString())},${order.total || 0},${escapeCsvValue(order.status)}\n`;
         });
         break;
         
       case 'movements':
         csvContent = 'Fecha,Tipo,Producto,Cantidad,Desde,Hacia\n';
         reportData.movements.forEach(movement => {
-          csvContent += `"${new Date(movement.created_at).toLocaleDateString()}","${movement.movement_type || ''}","${movement.products?.name || ''}",${movement.quantity || 0},"${movement.from_location_id || ''}","${movement.to_location_id || ''}"\n`;
+          csvContent += `${escapeCsvValue(new Date(movement.created_at).toLocaleDateString())},${escapeCsvValue(movement.movement_type)},${escapeCsvValue(movement.products?.name)},${movement.quantity || 0},${escapeCsvValue(movement.from_location_id)},${escapeCsvValue(movement.to_location_id)}\n`;
         });
         break;
     }
