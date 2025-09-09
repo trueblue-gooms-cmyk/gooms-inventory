@@ -1,5 +1,5 @@
 // src/pages/Products.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Plus, Search, Edit2, Trash2, Upload } from 'lucide-react';
 import { useCanEdit } from '@/stores/useAppStore';
@@ -18,6 +18,12 @@ interface Product {
   is_active: boolean;
   created_at: string;
 }
+
+// Helper de toast seguro (reemplaza por tu lib si la tienes: sonner/shadcn)
+const toast = {
+  success: (msg: string) => (window as any)?.__toast?.success ? (window as any).__toast.success(msg) : alert(msg),
+  error: (msg: string) => (window as any)?.__toast?.error ? (window as any).__toast.error(msg) : alert(msg),
+};
 
 export function Products() {
   const [showImporter, setShowImporter] = useState(false);
@@ -39,6 +45,10 @@ export function Products() {
     safety_stock_units: '',
     is_active: true,
   });
+
+  // Estado para validación de SKU
+  const [skuError, setSkuError] = useState('');
+  const skuValidationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -63,6 +73,69 @@ export function Products() {
     return Number.isFinite(n) ? n : null;
   };
 
+  // === NUEVO: validación de SKU en tiempo real ===
+  const validateSKU = async (sku: string) => {
+    setSkuError('');
+    const normalized = sku?.trim();
+    if (!normalized || normalized.length < 2) return;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('sku')
+      .eq('sku', normalized)
+      .maybeSingle(); // evita lanzar error si no hay fila
+
+    if (error) {
+      console.warn('SKU check error:', error);
+      return;
+    }
+    // Si estamos editando y el SKU coincide con el del registro actual, no marcar error
+    if (editingProduct && editingProduct.sku === normalized) return;
+
+    if (data) setSkuError('Este SKU ya existe');
+    else setSkuError('');
+  };
+
+  // === NUEVO: crear producto con verificación de unicidad y manejo de 23505 ===
+  const createProduct = async (productData: any) => {
+    try {
+      // Verificar si el SKU ya existe antes de crear
+      const { data: existingProduct } = await supabase
+        .from('products')
+        .select('sku')
+        .eq('sku', productData.sku)
+        .maybeSingle();
+
+      if (existingProduct) {
+        toast.error(`Ya existe un producto con el SKU "${productData.sku}"`);
+        return;
+      }
+
+      // Crear el producto si el SKU es único
+      const { error } = await supabase.from('products').insert([productData]).select().single();
+
+      if (error) {
+        // Manejar diferentes tipos de errores (por ejemplo, violación de clave única)
+        // @ts-expect-error: SupabaseError puede traer code dependiendo del driver
+        if (error.code === '23505') {
+          toast.error(`El SKU "${productData.sku}" ya está en uso. Por favor usa un SKU diferente.`);
+        } else {
+          console.error('Error creating product:', error);
+          toast.error('Error creando producto: ' + (error as any).message);
+        }
+        return;
+      }
+
+      toast.success('Producto creado exitosamente');
+      setShowModal(false);
+      resetForm();
+      loadProducts();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Error inesperado al crear producto');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -70,6 +143,10 @@ export function Products() {
       // Validaciones mínimas
       if (!formData.sku.trim() || !formData.name.trim() || !formData.type.trim()) {
         alert('SKU, Nombre y Tipo son obligatorios');
+        return;
+      }
+      if (skuError) {
+        alert('Corrige el SKU antes de continuar');
         return;
       }
 
@@ -86,16 +163,39 @@ export function Products() {
       };
 
       if (editingProduct) {
-        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('products').insert([productData]);
-        if (error) throw error;
-      }
+        // Si cambia el SKU en edición, validarlo contra otros registros
+        if (editingProduct.sku !== productData.sku) {
+          const { data: skuTaken } = await supabase
+            .from('products')
+            .select('id')
+            .eq('sku', productData.sku)
+            .maybeSingle();
+          if (skuTaken) {
+            toast.error(`El SKU "${productData.sku}" ya está en uso.`);
+            return;
+          }
+        }
 
-      setShowModal(false);
-      resetForm();
-      loadProducts();
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
+        if (error) {
+          // @ts-expect-error
+          if (error.code === '23505') {
+            toast.error(`El SKU "${productData.sku}" ya está en uso.`);
+          } else {
+            console.error('Error updating product:', error);
+            toast.error('Error actualizando producto');
+          }
+          return;
+        }
+
+        toast.success('Cambios guardados');
+        setShowModal(false);
+        resetForm();
+        loadProducts();
+      } else {
+        // Crear
+        await createProduct(productData);
+      }
     } catch (e: any) {
       console.error('Error saving product:', e);
       alert(e?.message || 'Error al guardar el producto');
@@ -115,6 +215,7 @@ export function Products() {
       safety_stock_units: product.safety_stock_units?.toString() ?? '',
       is_active: product.is_active ?? true,
     });
+    setSkuError('');
     setShowModal(true);
   };
 
@@ -141,7 +242,12 @@ export function Products() {
       safety_stock_units: '',
       is_active: true,
     });
+    setSkuError('');
     setEditingProduct(null);
+    if (skuValidationTimeout.current) {
+      clearTimeout(skuValidationTimeout.current);
+      skuValidationTimeout.current = null;
+    }
   };
 
   const filteredProducts = products.filter((product) =>
@@ -260,7 +366,7 @@ export function Products() {
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
 
-            <div className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
@@ -268,9 +374,19 @@ export function Products() {
                     type="text"
                     required
                     value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setFormData({ ...formData, sku: next });
+                      if (skuValidationTimeout.current) clearTimeout(skuValidationTimeout.current);
+                      skuValidationTimeout.current = setTimeout(() => validateSKU(next), 500);
+                    }}
+                    onBlur={() => validateSKU(formData.sku)}
+                    className={`w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                      skuError ? 'border border-red-300 bg-red-50' : 'border border-gray-300'
+                    }`}
+                    placeholder="Ej: GOOM-PROD-001"
                   />
+                  {skuError && <p className="text-red-600 text-sm mt-1">{skuError}</p>}
                 </div>
 
                 <div>
@@ -370,11 +486,11 @@ export function Products() {
                 >
                   Cancelar
                 </button>
-                <button onClick={handleSubmit} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+                <button type="submit" className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
                   {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -400,3 +516,4 @@ export function Products() {
     </div>
   );
 }
+
