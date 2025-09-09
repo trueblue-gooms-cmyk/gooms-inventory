@@ -978,6 +978,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_locations_public: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          code: string
+          id: string
+          is_active: boolean
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+        }[]
+      }
       get_my_role: {
         Args: Record<PropertyKey, never>
         Returns: string
