@@ -17,7 +17,6 @@ import {
   Activity
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import * as XLSX from 'xlsx';
 
 interface ReportData {
   inventory: any[];
@@ -111,58 +110,57 @@ export function Reports() {
     }
   };
 
+  // Función de exportación CSV nativa (reemplaza la dependencia de XLSX)
   const exportToExcel = () => {
-    const ws_data = [];
+    let csvContent = '';
     
     switch (reportType) {
       case 'inventory':
-        ws_data.push(['SKU', 'Producto', 'Ubicación', 'Disponible', 'Reservado', 'En Tránsito', 'Total']);
+        csvContent = 'SKU,Producto,Ubicación,Disponible,Reservado,En Tránsito,Total\n';
         reportData.inventory.forEach(item => {
-          ws_data.push([
-            item.products?.sku || '',
-            item.products?.name || '',
-            item.locations?.name || '',
-            item.quantity_available || 0,
-            item.quantity_reserved || 0,
-            item.quantity_in_transit || 0,
-            (item.quantity_available + item.quantity_reserved + item.quantity_in_transit) || 0
-          ]);
+          csvContent += `"${item.products?.sku || ''}","${item.products?.name || ''}","${item.locations?.name || ''}",${item.quantity_available || 0},${item.quantity_reserved || 0},${item.quantity_in_transit || 0},${(item.quantity_available + item.quantity_reserved + item.quantity_in_transit) || 0}\n`;
         });
         break;
         
       case 'sales':
-        ws_data.push(['Fecha', 'Cliente', 'Producto', 'Cantidad', 'Total', 'Canal']);
+        csvContent = 'Fecha,Cliente,Producto,Cantidad,Total,Canal\n';
         reportData.sales.forEach(sale => {
-          ws_data.push([
-            new Date(sale.sale_date).toLocaleDateString(),
-            sale.customer_name || '',
-            sale.product_id || '',
-            sale.quantity || 0,
-            sale.total || 0,
-            sale.channel || ''
-          ]);
+          csvContent += `"${new Date(sale.sale_date).toLocaleDateString()}","${sale.customer_name || ''}","${sale.product_id || ''}",${sale.quantity || 0},${sale.total || 0},"${sale.channel || ''}"\n`;
         });
         break;
         
       case 'production':
-        ws_data.push(['Lote', 'Producto', 'Cantidad', 'Fecha Producción', 'Fecha Vencimiento', 'Estado']);
+        csvContent = 'Lote,Producto,Cantidad,Fecha Producción,Fecha Vencimiento,Estado\n';
         reportData.production.forEach(batch => {
-          ws_data.push([
-            batch.batch_number || '',
-            batch.products?.name || '',
-            batch.actual_quantity || batch.planned_quantity || 0,
-            new Date(batch.production_date).toLocaleDateString(),
-            new Date(batch.expiry_date).toLocaleDateString(),
-            batch.status || ''
-          ]);
+          csvContent += `"${batch.batch_number || ''}","${batch.products?.name || ''}",${batch.actual_quantity || batch.planned_quantity || 0},"${new Date(batch.production_date).toLocaleDateString()}","${new Date(batch.expiry_date).toLocaleDateString()}","${batch.status || ''}"\n`;
+        });
+        break;
+        
+      case 'purchases':
+        csvContent = 'Número Orden,Proveedor,Fecha,Total,Estado\n';
+        reportData.purchases.forEach(order => {
+          csvContent += `"${order.order_number || ''}","${order.suppliers?.name || ''}","${new Date(order.order_date).toLocaleDateString()}",${order.total || 0},"${order.status || ''}"\n`;
+        });
+        break;
+        
+      case 'movements':
+        csvContent = 'Fecha,Tipo,Producto,Cantidad,Desde,Hacia\n';
+        reportData.movements.forEach(movement => {
+          csvContent += `"${new Date(movement.created_at).toLocaleDateString()}","${movement.movement_type || ''}","${movement.products?.name || ''}",${movement.quantity || 0},"${movement.from_location_id || ''}","${movement.to_location_id || ''}"\n`;
         });
         break;
     }
-
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
-    XLSX.writeFile(wb, `reporte_${reportType}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reporte_${reportType}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const exportToPDF = () => {
@@ -283,7 +281,7 @@ export function Reports() {
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             <Download className="w-4 h-4" />
-            <span>Excel</span>
+            <span>CSV</span>
           </button>
           <button
             onClick={exportToPDF}
@@ -443,6 +441,24 @@ export function Reports() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                   </>
                 )}
+                {reportType === 'purchases' && (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orden</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                  </>
+                )}
+                {reportType === 'movements' && (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -487,6 +503,42 @@ export function Reports() {
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {batch.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {reportType === 'purchases' && reportData.purchases.slice(0, 10).map((order, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.order_number}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{order.suppliers?.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {new Date(order.order_date).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    ${order.total?.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {reportType === 'movements' && reportData.movements.slice(0, 10).map((movement, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {new Date(movement.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{movement.movement_type}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{movement.products?.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{movement.quantity}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                      {movement.movement_type}
                     </span>
                   </td>
                 </tr>
