@@ -1,3 +1,4 @@
+// src/components/layout/GlobalHeader.tsx
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
