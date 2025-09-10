@@ -1250,6 +1250,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_security_audit_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          action_count: number
+          last_action: string
+          table_name: string
+          unique_users: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
