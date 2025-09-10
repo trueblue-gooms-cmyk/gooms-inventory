@@ -159,7 +159,12 @@ export function MainLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Global Header integrado */}
         <GlobalHeader
-          user={profile}
+          user={{
+            id: profile.id,
+            email: profile.email,
+            full_name: profile.full_name,
+            role: profile.role as 'admin' | 'operator' | 'user'
+          }}
           onTimeFilterChange={(days) => {
             console.log('Filtro cambiado a:', days, 'días');
           }}
