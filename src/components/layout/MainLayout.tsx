@@ -1,3 +1,4 @@
+import { GlobalHeader } from './GlobalHeader';
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAppStore, useProfile } from '@/stores/useAppStore';
