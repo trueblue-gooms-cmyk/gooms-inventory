@@ -1,28 +1,10 @@
-import { GlobalHeader } from './GlobalHeader';
+// src/components/layout/MainLayout.tsx
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAppStore, useProfile } from '@/stores/useAppStore';
 import { useCanEdit, useIsAdmin } from '@/hooks/useSecureAuth';
-import {
-  Home,
-  Package,
-  Package2,
-  Factory,
-  ShoppingCart,
-  TrendingUp,
-  Settings,
-  Users,
-  FileBarChart,
-  Menu,
-  X,
-  LogOut,
-  User,
-  ChevronDown,
-  Box,
-  Calendar,
-  Bell,
-  Search,
-} from 'lucide-react';
+import { Box, X } from 'lucide-react';
+import { GlobalHeader } from './GlobalHeader';
 
 interface NavItem {
   label: string;
@@ -33,16 +15,16 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: Home, permission: 'all' },
-  { label: 'Productos', href: '/products', icon: Package, permission: 'all' },
-  { label: 'Materias Primas', href: '/raw-materials', icon: Package, permission: 'all' },
-  { label: 'Inventario', href: '/inventory', icon: Package, permission: 'all' },
-  { label: 'Producción', href: '/production', icon: Factory, permission: 'edit' },
-  { label: 'Compras', href: '/purchases', icon: ShoppingCart, permission: 'edit' },
-  { label: 'Proyecciones', href: '/projections', icon: TrendingUp, permission: 'all' },
-  { label: 'Reportes', href: '/reports', icon: FileBarChart, permission: 'all' },
-  { label: 'Configuración', href: '/settings', icon: Settings, permission: 'admin' },
-  { label: 'Usuarios', href: '/users', icon: Users, permission: 'admin' },
+  { label: 'Dashboard', href: '/dashboard', icon: Box, permission: 'all' },
+  { label: 'Productos', href: '/products', icon: Box, permission: 'all' },
+  { label: 'Materias Primas', href: '/raw-materials', icon: Box, permission: 'all' },
+  { label: 'Inventario', href: '/inventory', icon: Box, permission: 'all' },
+  { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
+  { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },
+  { label: 'Proyecciones', href: '/projections', icon: Box, permission: 'all' },
+  { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
+  { label: 'Configuración', href: '/settings', icon: Box, permission: 'admin' },
+  { label: 'Usuarios', href: '/users', icon: Box, permission: 'admin' },
 ];
 
 export function MainLayout() {
@@ -52,9 +34,7 @@ export function MainLayout() {
   const isAdmin = useIsAdmin();
   const { sidebarOpen, toggleSidebar, signOut, user } = useAppStore();
   const [isMobile, setIsMobile] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Check if user is authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -72,7 +52,6 @@ export function MainLayout() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Filter nav items based on permissions
   const filteredNavItems = navItems.filter((item) => {
     if (item.permission === 'all') return true;
     if (item.permission === 'edit') return canEdit;
@@ -123,7 +102,6 @@ export function MainLayout() {
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
-            
             return (
               <Link
                 key={item.href}
@@ -135,12 +113,22 @@ export function MainLayout() {
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-orange-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                <Icon
+                  className={`w-5 h-5 ${
+                    isActive
+                      ? 'text-orange-600'
+                      : 'text-gray-400 group-hover:text-gray-600'
+                  }`}
+                />
                 <span className="font-medium">{item.label}</span>
                 {item.badge && (
-                  <span className={`ml-auto px-2 py-0.5 text-xs rounded-full ${
-                    isActive ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}>
+                  <span
+                    className={`ml-auto px-2 py-0.5 text-xs rounded-full ${
+                      isActive
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
                     {item.badge}
                   </span>
                 )}
@@ -169,92 +157,21 @@ export function MainLayout() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleSidebar}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              
-              {/* Search */}
-              <div className="relative w-64 lg:w-96">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="search"
-                  placeholder="Buscar productos, órdenes..."
-                  className="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* Date range picker */}
-              <button className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Calendar className="w-4 h-4" />
-                <span className="text-sm">Últimos 30 días</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-
-              {/* Notifications */}
-              <button className="relative p-2 rounded-lg hover:bg-gray-100">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
-              </button>
-
-              {/* User menu */}
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
-                >
-                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                    <span className="text-sm font-medium text-orange-600">
-                      {getInitials(profile?.full_name, profile?.email)}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-
-                {/* Dropdown menu */}
-                {userMenuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setUserMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                      <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">Mi cuenta</p>
-                      </div>
-                      <div className="py-1">
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          <span>Perfil</span>
-                        </button>
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                          <Settings className="w-4 h-4" />
-                          <span>Configuración</span>
-                        </button>
-                        <hr className="my-1" />
-                        <button
-                          onClick={signOut}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Cerrar sesión</span>
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        {/* Global Header integrado */}
+        <GlobalHeader
+          user={profile}
+          onTimeFilterChange={(days) => {
+            console.log('Filtro cambiado a:', days, 'días');
+          }}
+          onRefresh={() => {
+            window.location.reload();
+          }}
+          onSearch={(query) => {
+            console.log('Buscar:', query);
+          }}
+          notifications={0}
+          isLoading={false}
+        />
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
