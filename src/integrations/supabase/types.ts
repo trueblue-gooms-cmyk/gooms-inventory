@@ -164,6 +164,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inventory_current_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
+            referencedColumns: ["id"]
+          },
         ]
       }
       inventory_movements: {
@@ -182,6 +189,7 @@ export type Database = {
           to_location_id: string | null
           total_cost: number | null
           unit_cost: number | null
+          updated_at: string | null
         }
         Insert: {
           batch_id?: string | null
@@ -198,6 +206,7 @@ export type Database = {
           to_location_id?: string | null
           total_cost?: number | null
           unit_cost?: number | null
+          updated_at?: string | null
         }
         Update: {
           batch_id?: string | null
@@ -214,6 +223,7 @@ export type Database = {
           to_location_id?: string | null
           total_cost?: number | null
           unit_cost?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -245,6 +255,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inventory_movements_to_location_id_fkey"
             columns: ["to_location_id"]
             isOneToOne: false
@@ -265,6 +282,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           type: Database["public"]["Enums"]["location_type"]
+          updated_at: string | null
         }
         Insert: {
           address?: string | null
@@ -277,6 +295,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           type: Database["public"]["Enums"]["location_type"]
+          updated_at?: string | null
         }
         Update: {
           address?: string | null
@@ -289,6 +308,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           type?: Database["public"]["Enums"]["location_type"]
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -424,10 +444,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "product_formulas_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "product_formulas_raw_material_id_fkey"
             columns: ["raw_material_id"]
             isOneToOne: false
             referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_formulas_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials_basic"
             referencedColumns: ["id"]
           },
           {
@@ -476,6 +510,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "product_packaging_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
+            referencedColumns: ["id"]
+          },
         ]
       }
       production_batches: {
@@ -494,6 +535,7 @@ export type Database = {
           production_date: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["batch_status"] | null
+          updated_at: string | null
         }
         Insert: {
           actual_quantity?: number | null
@@ -510,6 +552,7 @@ export type Database = {
           production_date?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["batch_status"] | null
+          updated_at?: string | null
         }
         Update: {
           actual_quantity?: number | null
@@ -526,6 +569,7 @@ export type Database = {
           production_date?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["batch_status"] | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -547,6 +591,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batches_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
         ]
@@ -698,6 +749,7 @@ export type Database = {
           supplier_id: string | null
           tax: number | null
           total: number | null
+          updated_at: string | null
         }
         Insert: {
           approved_at?: string | null
@@ -714,6 +766,7 @@ export type Database = {
           supplier_id?: string | null
           tax?: number | null
           total?: number | null
+          updated_at?: string | null
         }
         Update: {
           approved_at?: string | null
@@ -730,6 +783,7 @@ export type Database = {
           supplier_id?: string | null
           tax?: number | null
           total?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -883,6 +937,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sales_data_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
+            referencedColumns: ["id"]
+          },
         ]
       }
       sales_projections: {
@@ -944,6 +1005,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_projections_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
         ]
@@ -1015,24 +1083,84 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
           role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
       }
     }
     Views: {
+      products_basic: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          sku: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          sku?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          sku?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      raw_materials_basic: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          unit_measure: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          unit_measure?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          unit_measure?: string | null
+        }
+        Relationships: []
+      }
       raw_materials_public: {
         Row: {
           code: string | null
