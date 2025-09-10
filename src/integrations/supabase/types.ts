@@ -1057,6 +1057,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_inventory_movement: {
+        Args: {
+          p_batch_id?: string
+          p_from_location_id?: string
+          p_movement_type: Database["public"]["Enums"]["movement_type"]
+          p_notes?: string
+          p_product_id: string
+          p_quantity: number
+          p_reference_id?: string
+          p_reference_type?: string
+          p_to_location_id?: string
+          p_unit_cost?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "operator" | "user"
