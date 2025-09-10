@@ -1,7 +1,7 @@
 // src/pages/Dashboard.tsx - Versión corregida con datos reales
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-// Removed non-existent imports
+import { DateFilter, useDateFilter } from '@/components/DateFilter';
 import { 
   Package, 
   DollarSign, 
@@ -50,11 +50,11 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<string>('');
 
-  const [dateRange] = useState({ label: 'Últimos 30 días' });
+  const { dateRange, updateRange, startDate, endDate } = useDateFilter(30);
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [dateRange]);
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -116,14 +116,11 @@ export function Dashboard() {
         .eq('status', 'pending_approval');
 
       // Ventas en el período
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
       const { data: sales } = await supabase
         .from('sales_data')
         .select('total, quantity')
-        .gte('sale_date', thirtyDaysAgo.toISOString().split('T')[0])
-        .lte('sale_date', new Date().toISOString().split('T')[0]);
+        .gte('sale_date', startDate)
+        .lte('sale_date', endDate);
 
       const totalSalesAmount = sales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
       const totalSalesUnits = sales?.reduce((sum, sale) => sum + (sale.quantity || 0), 0) || 0;
@@ -159,14 +156,11 @@ export function Dashboard() {
 
   const loadSalesTrend = async () => {
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
       const { data: sales } = await supabase
         .from('sales_data')
         .select('sale_date, total, quantity')
-        .gte('sale_date', thirtyDaysAgo.toISOString().split('T')[0])
-        .lte('sale_date', new Date().toISOString().split('T')[0])
+        .gte('sale_date', startDate)
+        .lte('sale_date', endDate)
         .order('sale_date');
 
       const salesByDate = sales?.reduce((acc, sale) => {
@@ -215,9 +209,6 @@ export function Dashboard() {
 
   const loadTopProducts = async () => {
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
       const { data: sales } = await supabase
         .from('sales_data')
         .select(`
@@ -225,8 +216,8 @@ export function Dashboard() {
           total,
           products (name, sku)
         `)
-        .gte('sale_date', thirtyDaysAgo.toISOString().split('T')[0])
-        .lte('sale_date', new Date().toISOString().split('T')[0]);
+        .gte('sale_date', startDate)
+        .lte('sale_date', endDate);
 
       const productSales = sales?.reduce((acc, sale) => {
         const productName = sale.products?.name || 'Producto desconocido';
@@ -336,6 +327,11 @@ export function Dashboard() {
         </div>
         
         <div className="flex items-center gap-4">
+          <DateFilter 
+            onRangeChange={updateRange} 
+            currentRange={dateRange.label}
+          />
+          
           <button
             onClick={loadDashboardData}
             disabled={loading}
