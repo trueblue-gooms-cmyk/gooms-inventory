@@ -119,85 +119,21 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     setLoading(true);
     
     try {
-      // Registrar movimiento
-      const movementData = {
-        movement_type: formData.movement_type,
-        product_id: formData.product_id,
-        batch_id: formData.batch_id || null,
-        from_location_id: formData.from_location_id || null,
-        to_location_id: formData.to_location_id || null,
-        quantity: parseInt(formData.quantity),
-        unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
-        total_cost: formData.unit_cost ? parseFloat(formData.unit_cost) * parseInt(formData.quantity) : null,
-        reference_type: formData.reference_type || null,
-        reference_id: formData.reference_id || null,
-        notes: formData.notes,
-        created_by: profile?.id
-      };
+      // Use the new RPC function for transactional inventory movements
+      const { data: movementId, error } = await supabase.rpc('register_inventory_movement', {
+        p_movement_type: formData.movement_type as any,
+        p_product_id: formData.product_id,
+        p_quantity: parseInt(formData.quantity),
+        p_batch_id: formData.batch_id || null,
+        p_from_location_id: formData.from_location_id || null,
+        p_to_location_id: formData.to_location_id || null,
+        p_unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
+        p_reference_type: formData.reference_type || null,
+        p_reference_id: formData.reference_id || null,
+        p_notes: formData.notes
+      });
 
-      const { error: movementError } = await supabase
-        .from('inventory_movements')
-        .insert([movementData as any]);
-
-      if (movementError) throw movementError;
-
-      // Actualizar inventario actual
-      if (formData.movement_type === 'salida' && formData.from_location_id) {
-        // Reducir inventario en ubicación origen
-        const { data: currentInventory } = await supabase
-          .from('inventory_current')
-          .select('*')
-          .eq('product_id', formData.product_id)
-          .eq('location_id', formData.from_location_id)
-          .eq('batch_id', formData.batch_id)
-          .single();
-
-        if (currentInventory) {
-          const newQuantity = currentInventory.quantity_available - parseInt(formData.quantity);
-          await supabase
-            .from('inventory_current')
-            .update({ 
-              quantity_available: newQuantity,
-              last_movement_date: new Date().toISOString()
-            })
-            .eq('id', currentInventory.id);
-        }
-      }
-
-      if (formData.movement_type === 'entrada' && formData.to_location_id) {
-        // Aumentar inventario en ubicación destino
-        const { data: currentInventory } = await supabase
-          .from('inventory_current')
-          .select('*')
-          .eq('product_id', formData.product_id)
-          .eq('location_id', formData.to_location_id)
-          .eq('batch_id', formData.batch_id)
-          .single();
-
-        if (currentInventory) {
-          const newQuantity = currentInventory.quantity_available + parseInt(formData.quantity);
-          await supabase
-            .from('inventory_current')
-            .update({ 
-              quantity_available: newQuantity,
-              last_movement_date: new Date().toISOString()
-            })
-            .eq('id', currentInventory.id);
-        } else {
-          // Crear nuevo registro si no existe
-          await supabase
-            .from('inventory_current')
-            .insert({
-              product_id: formData.product_id,
-              location_id: formData.to_location_id,
-              batch_id: formData.batch_id || null,
-              quantity_available: parseInt(formData.quantity),
-              quantity_reserved: 0,
-              quantity_in_transit: 0,
-              last_movement_date: new Date().toISOString()
-            });
-        }
-      }
+      if (error) throw error;
 
       onSuccess();
       onClose();

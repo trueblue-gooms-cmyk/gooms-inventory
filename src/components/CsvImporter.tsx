@@ -69,7 +69,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         });
         
         setMapping(autoMapping);
-        setPreview(data.slice(0, 5));
+        setPreview(data); // Use all data, not just first 5 rows
         setParsing(false);
       } catch (error) {
         setErrors(['Error al procesar el archivo']);
@@ -80,10 +80,17 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
     reader.readAsText(file);
   };
 
+  const sanitizeForCsv = (value: string) => {
+    // Prevent CSV injection by removing dangerous characters
+    if (typeof value !== 'string') return value;
+    return value.replace(/^[=@+\-]/, "'").replace(/[\r\n]/g, ' ');
+  };
+
   const handleImport = async () => {
     if (!file || preview.length === 0) return;
     
     setUploading(true);
+    setErrors([]);
     
     try {
       // Mapear datos según la configuración
@@ -91,7 +98,12 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         const newRow: any = {};
         Object.entries(mapping).forEach(([field, csvColumn]) => {
           if (csvColumn && row[csvColumn] !== undefined) {
-            newRow[field] = row[csvColumn];
+            let value = row[csvColumn];
+            // Sanitize for CSV injection
+            if (typeof value === 'string') {
+              value = sanitizeForCsv(value);
+            }
+            newRow[field] = value;
           }
         });
         return newRow;
@@ -99,16 +111,19 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
       
       // Validar campos requeridos
       const requiredFields = columns.filter(c => c.required).map(c => c.field);
-      const invalidRows = mappedData.filter((row, index) => {
+      const invalidRows: number[] = [];
+      const newErrors: string[] = [];
+      
+      mappedData.forEach((row, index) => {
         const missingFields = requiredFields.filter(field => !row[field]);
         if (missingFields.length > 0) {
-          setErrors(prev => [...prev, `Fila ${index + 1}: Faltan campos requeridos`]);
-          return true;
+          newErrors.push(`Fila ${index + 1}: Faltan campos requeridos: ${missingFields.join(', ')}`);
+          invalidRows.push(index);
         }
-        return false;
       });
       
-      if (invalidRows.length > 0) {
+      if (newErrors.length > 0) {
+        setErrors(newErrors);
         setUploading(false);
         return;
       }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, Package, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
   id: string;
@@ -55,11 +56,22 @@ export function NotificationBell() {
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      // Por ahora usar datos de prueba hasta que se implemente la tabla notifications
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simular carga
-      setNotifications(mockNotifications);
+      // Load notifications from the database
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error loading notifications:', error);
+        setNotifications(mockNotifications);
+      } else {
+        setNotifications((data || []) as Notification[]);
+      }
     } catch (error) {
-      console.log('Error cargando notificaciones, usando datos de prueba');
+      console.error('Error loading notifications:', error);
       setNotifications(mockNotifications);
     } finally {
       setLoading(false);
@@ -67,7 +79,17 @@ export function NotificationBell() {
   };
 
   const markAsRead = async (id: string) => {
-    // Por ahora solo actualizar estado local
+    try {
+      // Update in database
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
+    } catch (error) {
+      console.error('Error updating notification:', error);
+    }
+    
+    // Update local state
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
