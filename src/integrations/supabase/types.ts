@@ -106,6 +106,7 @@ export type Database = {
           expiry_date: string | null
           id: string
           last_movement_date: string | null
+          last_updated: string | null
           location_id: string | null
           product_id: string | null
           quantity_available: number | null
@@ -119,6 +120,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           last_movement_date?: string | null
+          last_updated?: string | null
           location_id?: string | null
           product_id?: string | null
           quantity_available?: number | null
@@ -132,6 +134,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           last_movement_date?: string | null
+          last_updated?: string | null
           location_id?: string | null
           product_id?: string | null
           quantity_available?: number | null
@@ -254,6 +257,7 @@ export type Database = {
         Row: {
           address: string | null
           code: string
+          contact_info: Json | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string | null
@@ -265,6 +269,7 @@ export type Database = {
         Insert: {
           address?: string | null
           code: string
+          contact_info?: Json | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string | null
@@ -276,6 +281,7 @@ export type Database = {
         Update: {
           address?: string | null
           code?: string
+          contact_info?: Json | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string | null
@@ -350,6 +356,7 @@ export type Database = {
           created_at: string | null
           id: string
           product_id: string | null
+          quantity_needed: number | null
           quantity_per_unit: number | null
           raw_material_id: string | null
           updated_at: string | null
@@ -358,6 +365,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           product_id?: string | null
+          quantity_needed?: number | null
           quantity_per_unit?: number | null
           raw_material_id?: string | null
           updated_at?: string | null
@@ -366,6 +374,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           product_id?: string | null
+          quantity_needed?: number | null
           quantity_per_unit?: number | null
           raw_material_id?: string | null
           updated_at?: string | null
@@ -383,6 +392,13 @@ export type Database = {
             columns: ["raw_material_id"]
             isOneToOne: false
             referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_formulas_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials_public"
             referencedColumns: ["id"]
           },
         ]
@@ -510,6 +526,7 @@ export type Database = {
           shelf_life_days: number | null
           sku: string
           type: string
+          unit_cost: number | null
           units_per_box: number | null
           updated_at: string | null
           weight_grams: number | null
@@ -524,6 +541,7 @@ export type Database = {
           shelf_life_days?: number | null
           sku: string
           type: string
+          unit_cost?: number | null
           units_per_box?: number | null
           updated_at?: string | null
           weight_grams?: number | null
@@ -538,6 +556,7 @@ export type Database = {
           shelf_life_days?: number | null
           sku?: string
           type?: string
+          unit_cost?: number | null
           units_per_box?: number | null
           updated_at?: string | null
           weight_grams?: number | null
@@ -709,6 +728,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           lead_time_days: number | null
+          min_stock_units: number | null
           moq_kg: number | null
           name: string
           price_per_unit: number | null
@@ -727,6 +747,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           lead_time_days?: number | null
+          min_stock_units?: number | null
           moq_kg?: number | null
           name: string
           price_per_unit?: number | null
@@ -745,6 +766,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           lead_time_days?: number | null
+          min_stock_units?: number | null
           moq_kg?: number | null
           name?: string
           price_per_unit?: number | null
@@ -975,7 +997,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      raw_materials_public: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          shelf_life_days: number | null
+          unit_measure: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          shelf_life_days?: number | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          shelf_life_days?: number | null
+          unit_measure?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_locations_public: {
