@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DateFilter, useDateFilter } from '@/components/DateFilter';
+import { NotificationBell } from '@/components/NotificationBell';
 import { 
   Package, 
   DollarSign, 
@@ -340,6 +341,8 @@ export function Dashboard() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
           </button>
+          
+          <NotificationBell />
         </div>
       </div>
 
