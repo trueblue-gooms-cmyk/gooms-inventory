@@ -173,7 +173,7 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
         if (error) throw error;
         return data;
       },
-      'lotes de producción',
+      'batches',
       'Lote de producción creado exitosamente'
     );
 
