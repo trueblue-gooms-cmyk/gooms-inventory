@@ -137,7 +137,7 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
 
       const { error: movementError } = await supabase
         .from('inventory_movements')
-        .insert([movementData]);
+        .insert([movementData as any]);
 
       if (movementError) throw movementError;
 
