@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, 
+  Users as UsersIcon, 
   UserPlus, 
   Shield, 
   Edit2, 
@@ -256,7 +256,7 @@ export function Users() {
               <p className="text-sm text-gray-600">Total Usuarios</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
-            <Users className="w-8 h-8 text-orange-500" />
+            <UsersIcon className="w-8 h-8 text-orange-500" />
           </div>
         </div>
         

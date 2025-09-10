@@ -19,7 +19,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'operator' | 'viewer';
+  role: 'admin' | 'operator' | 'user';
   avatar_url?: string;
 }
 
@@ -96,7 +96,7 @@ export function GlobalHeader({
     const labels = {
       admin: 'Administrador',
       operator: 'Operador',
-      viewer: 'Visualizador'
+      user: 'Usuario'
     };
     return labels[role as keyof typeof labels] || role;
   };
@@ -105,7 +105,7 @@ export function GlobalHeader({
     const colors = {
       admin: 'bg-purple-100 text-purple-700',
       operator: 'bg-blue-100 text-blue-700',
-      viewer: 'bg-gray-100 text-gray-700'
+      user: 'bg-gray-100 text-gray-700'
     };
     return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-700';
   };
