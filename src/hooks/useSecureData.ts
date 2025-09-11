@@ -169,7 +169,7 @@ export const useSecureData = () => {
     return { rawMaterials, loading, error };
   };
 
-  // Full locations access for admin/operators (includes sensitive details)
+  // Full location access for admin/operators (includes sensitive details)
   const useLocationsDetailed = () => {
     const [locations, setLocations] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -184,7 +184,6 @@ export const useSecureData = () => {
 
       const fetchLocations = async () => {
         try {
-          // Includes sensitive details like addresses and contact info
           const { data, error } = await supabase.rpc('get_locations_detailed');
           if (error) throw error;
           setLocations(data || []);
@@ -283,14 +282,14 @@ export const useSecureData = () => {
   };
 
   return {
-    // Safe data hooks (all authenticated users)
+    // Safe data hooks (all authenticated users) - basic info only
     useProductsSafe,
     useRawMaterialsSafe,
     useLocationsSafe,
     useInventorySafe,
     useSuppliersSafe,
     
-    // Full data hooks (admin/operator only)
+    // Full data hooks (admin/operator only) - includes sensitive details
     useProductsFull,
     useRawMaterialsFull,
     useLocationsDetailed,
