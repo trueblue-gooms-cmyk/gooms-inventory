@@ -1235,6 +1235,18 @@ export type Database = {
       }
     }
     Functions: {
+      get_inventory_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          expiry_date: string
+          id: string
+          last_movement_date: string
+          location_id: string
+          product_id: string
+          quantity_available: number
+          quantity_reserved: number
+        }[]
+      }
       get_locations_public: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1249,6 +1261,33 @@ export type Database = {
       get_my_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_products_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          shelf_life_days: number
+          sku: string
+          type: string
+          units_per_box: number
+          weight_grams: number
+        }[]
+      }
+      get_raw_materials_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          shelf_life_days: number
+          unit_measure: string
+        }[]
       }
       get_security_audit_summary: {
         Args: Record<PropertyKey, never>
