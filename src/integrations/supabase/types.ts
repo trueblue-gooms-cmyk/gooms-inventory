@@ -164,13 +164,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "inventory_current_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
-            referencedColumns: ["id"]
-          },
         ]
       }
       inventory_movements: {
@@ -252,13 +245,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inventory_movements_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
           {
@@ -444,31 +430,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "product_formulas_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "product_formulas_raw_material_id_fkey"
             columns: ["raw_material_id"]
             isOneToOne: false
             referencedRelation: "raw_materials"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_formulas_raw_material_id_fkey"
-            columns: ["raw_material_id"]
-            isOneToOne: false
-            referencedRelation: "raw_materials_basic"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_formulas_raw_material_id_fkey"
-            columns: ["raw_material_id"]
-            isOneToOne: false
-            referencedRelation: "raw_materials_public"
             referencedColumns: ["id"]
           },
         ]
@@ -508,13 +473,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_packaging_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
         ]
@@ -591,13 +549,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "production_batches_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
         ]
@@ -937,13 +888,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "sales_data_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
-            referencedColumns: ["id"]
-          },
         ]
       }
       sales_projections: {
@@ -1005,13 +949,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_projections_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products_basic"
             referencedColumns: ["id"]
           },
         ]
@@ -1140,99 +1077,7 @@ export type Database = {
       }
     }
     Views: {
-      products_basic: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          is_active: boolean | null
-          name: string | null
-          sku: string | null
-          type: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          sku?: string | null
-          type?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          sku?: string | null
-          type?: string | null
-        }
-        Relationships: []
-      }
-      raw_materials_basic: {
-        Row: {
-          code: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          is_active: boolean | null
-          name: string | null
-          unit_measure: string | null
-        }
-        Insert: {
-          code?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          unit_measure?: string | null
-        }
-        Update: {
-          code?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          unit_measure?: string | null
-        }
-        Relationships: []
-      }
-      raw_materials_public: {
-        Row: {
-          code: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          is_active: boolean | null
-          name: string | null
-          shelf_life_days: number | null
-          unit_measure: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          code?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          shelf_life_days?: number | null
-          unit_measure?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          name?: string | null
-          shelf_life_days?: number | null
-          unit_measure?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_inventory_safe: {
@@ -1251,6 +1096,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           address: string
+          code: string
+          id: string
+          is_active: boolean
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+        }[]
+      }
+      get_locations_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
           code: string
           id: string
           is_active: boolean
