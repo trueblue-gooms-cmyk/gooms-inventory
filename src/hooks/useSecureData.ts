@@ -63,6 +63,7 @@ export const useSecureData = () => {
     useEffect(() => {
       const fetchLocations = async () => {
         try {
+          // Only basic location info (no sensitive details like addresses/contacts)
           const { data, error } = await supabase.rpc('get_locations_safe');
           if (error) throw error;
           setLocations(data || []);
@@ -168,6 +169,38 @@ export const useSecureData = () => {
     return { rawMaterials, loading, error };
   };
 
+  // Full locations access for admin/operators (includes sensitive details)
+  const useLocationsDetailed = () => {
+    const [locations, setLocations] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      if (!['admin', 'operator'].includes(userRole || '')) {
+        setError('Insufficient permissions for detailed location data');
+        setLoading(false);
+        return;
+      }
+
+      const fetchLocations = async () => {
+        try {
+          // Includes sensitive details like addresses and contact info
+          const { data, error } = await supabase.rpc('get_locations_detailed');
+          if (error) throw error;
+          setLocations(data || []);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch detailed locations');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchLocations();
+    }, [userRole]);
+
+    return { locations, loading, error };
+  };
+
   // Secure external API integration
   const useAlegraIntegration = () => {
     const [loading, setLoading] = useState(false);
@@ -260,6 +293,7 @@ export const useSecureData = () => {
     // Full data hooks (admin/operator only)
     useProductsFull,
     useRawMaterialsFull,
+    useLocationsDetailed,
     
     // External integrations (admin/operator only)
     useAlegraIntegration,

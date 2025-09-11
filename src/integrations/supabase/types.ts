@@ -1092,15 +1092,30 @@ export type Database = {
           quantity_reserved: number
         }[]
       }
-      get_locations_public: {
+      get_locations_basic: {
         Args: Record<PropertyKey, never>
         Returns: {
-          address: string
           code: string
           id: string
           is_active: boolean
           name: string
           type: Database["public"]["Enums"]["location_type"]
+        }[]
+      }
+      get_locations_detailed: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          code: string
+          contact_info: Json
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+          updated_at: string
         }[]
       }
       get_locations_safe: {
