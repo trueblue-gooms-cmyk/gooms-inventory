@@ -224,12 +224,38 @@ export const useSecureData = () => {
     return { syncSales, createPurchaseOrder, loading, error };
   };
 
+  // Suppliers safe access
+  const useSuppliersSafe = () => {
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      const fetchSuppliers = async () => {
+        try {
+          const { data, error } = await supabase.rpc('get_suppliers_safe');
+          if (error) throw error;
+          setSuppliers(data || []);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch suppliers');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSuppliers();
+    }, []);
+
+    return { suppliers, loading, error };
+  };
+
   return {
     // Safe data hooks (all authenticated users)
     useProductsSafe,
     useRawMaterialsSafe,
     useLocationsSafe,
     useInventorySafe,
+    useSuppliersSafe,
     
     // Full data hooks (admin/operator only)
     useProductsFull,

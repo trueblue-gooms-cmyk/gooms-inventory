@@ -1154,12 +1154,29 @@ export type Database = {
           unique_users: number
         }[]
       }
+      get_suppliers_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          contact_name: string
+          email: string
+          id: string
+          is_active: boolean
+          lead_time_days: number
+          name: string
+          phone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      log_sensitive_access: {
+        Args: { operation: string; record_id?: string; table_name: string }
+        Returns: undefined
       }
       register_inventory_movement: {
         Args: {

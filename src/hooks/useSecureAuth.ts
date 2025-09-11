@@ -72,6 +72,12 @@ export const useUserRole = () => {
         const { data, error } = await supabase.rpc('get_my_role');
         if (error) throw error;
         setRole(data);
+        
+        // Log role access for security monitoring
+        await supabase.rpc('log_sensitive_access', {
+          table_name: 'user_roles',
+          operation: 'ROLE_CHECK'
+        });
       } catch (error) {
         console.error('Error fetching user role:', error);
         setRole(null);
@@ -82,4 +88,25 @@ export const useUserRole = () => {
   }, [user]);
   
   return role;
+};
+
+// Security monitoring hook
+export const useSecurityMonitoring = () => {
+  const { user } = useAppStore();
+  
+  const logSensitiveOperation = async (tableName: string, operation: string, recordId?: string) => {
+    try {
+      await supabase.rpc('log_sensitive_access', {
+        table_name: tableName,
+        operation,
+        record_id: recordId
+      });
+    } catch (error) {
+      console.warn('Failed to log sensitive operation:', error);
+    }
+  };
+  
+  return {
+    logSensitiveOperation
+  };
 };
