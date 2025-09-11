@@ -1,533 +1,515 @@
-// src/pages/Dashboard.tsx - Versión corregida con datos reales
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { DateFilter, useDateFilter } from '@/components/DateFilter';
-import { NotificationBell } from '@/components/NotificationBell';
-import { 
-  Package, 
-  DollarSign, 
-  TrendingUp, 
+import React, { useState, useEffect } from 'react';
+import {
+  Package,
   AlertTriangle,
-  Clock,
+  TrendingUp,
   ShoppingCart,
+  DollarSign,
+  MapPin,
   BarChart3,
+  PieChart,
   Activity,
-  RefreshCw,
-  Users,
-  FileText,
-  MapPin
+  Clock,
+  ArrowUp,
+  ArrowDown,
+  Box,
+  Truck,
+  Factory,
+  Users
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { toast } from 'sonner';
 
-interface DashboardMetrics {
-  totalProducts: number;
-  lowStockItems: number;
-  expiringItems: number;
-  pendingOrders: number;
-  totalSalesAmount: number;
-  totalSalesUnits: number;
-  inventoryValue: number;
-  productionBatches: number;
-  activeLocations: number;
+// Tipos para el dashboard
+interface InventoryByLocation {
+  location: string;
+  products: number;
+  value: number;
+  percentage: number;
+  items: {
+    materia_prima: number;
+    empaques: number;
+    gomas_granel: number;
+    producto_final: number;
+  };
 }
 
-export function Dashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
+interface InventoryByType {
+  type: string;
+  label: string;
+  value: number;
+  quantity: number;
+  color: string;
+  icon: React.ReactNode;
+}
+
+interface Alert {
+  id: string;
+  type: 'critical' | 'warning' | 'info';
+  title: string;
+  description: string;
+  action?: string;
+}
+
+interface TrendData {
+  date: string;
+  ventas: number;
+  produccion: number;
+}
+
+const LOCATIONS = [
+  { id: 'bodega-central', name: 'Bodega Central', color: 'bg-blue-500' },
+  { id: 'pos-colina', name: 'POS-Colina', color: 'bg-green-500' },
+  { id: 'pos-fontanar', name: 'POS-Fontanar', color: 'bg-purple-500' },
+  { id: 'pos-eventos', name: 'POS-Eventos', color: 'bg-orange-500' }
+];
+
+export default function Dashboard() {
+  const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [inventoryByLocation, setInventoryByLocation] = useState<InventoryByLocation[]>([]);
+  const [inventoryByType, setInventoryByType] = useState<InventoryByType[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+  
+  // Métricas principales
+  const [metrics, setMetrics] = useState({
     totalProducts: 0,
     lowStockItems: 0,
     expiringItems: 0,
     pendingOrders: 0,
-    totalSalesAmount: 0,
-    totalSalesUnits: 0,
-    inventoryValue: 0,
-    productionBatches: 0,
-    activeLocations: 0
+    totalInventoryValue: 0,
+    monthlyGrowth: 0,
+    totalLocations: 4,
+    activeUsers: 0
   });
-
-  const [salesTrend, setSalesTrend] = useState<any[]>([]);
-  const [inventoryByLocation, setInventoryByLocation] = useState<any[]>([]);
-  const [topProducts, setTopProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<string>('');
-
-  const { dateRange, updateRange, startDate, endDate } = useDateFilter(30);
 
   useEffect(() => {
     loadDashboardData();
-  }, [dateRange]);
+  }, [selectedPeriod]);
 
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        loadMetrics(),
-        loadSalesTrend(),
-        loadInventoryByLocation(),
-        loadTopProducts()
+      // Simulación de carga de datos
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Datos de inventario por ubicación
+      setInventoryByLocation([
+        {
+          location: 'Bodega Central',
+          products: 450,
+          value: 2500000,
+          percentage: 45,
+          items: {
+            materia_prima: 200,
+            empaques: 100,
+            gomas_granel: 50,
+            producto_final: 100
+          }
+        },
+        {
+          location: 'POS-Colina',
+          products: 280,
+          value: 1200000,
+          percentage: 25,
+          items: {
+            materia_prima: 0,
+            empaques: 30,
+            gomas_granel: 50,
+            producto_final: 200
+          }
+        },
+        {
+          location: 'POS-Fontanar',
+          products: 220,
+          value: 980000,
+          percentage: 20,
+          items: {
+            materia_prima: 0,
+            empaques: 20,
+            gomas_granel: 40,
+            producto_final: 160
+          }
+        },
+        {
+          location: 'POS-Eventos',
+          products: 120,
+          value: 520000,
+          percentage: 10,
+          items: {
+            materia_prima: 0,
+            empaques: 20,
+            gomas_granel: 20,
+            producto_final: 80
+          }
+        }
       ]);
-      setLastUpdate(new Date().toLocaleTimeString());
-      toast.success('Dashboard actualizado');
+
+      // Datos de inventario por tipo
+      setInventoryByType([
+        {
+          type: 'materia_prima',
+          label: 'Materia Prima',
+          value: 850000,
+          quantity: 200,
+          color: 'bg-blue-500',
+          icon: <Factory className="w-5 h-5" />
+        },
+        {
+          type: 'empaques',
+          label: 'Empaques',
+          value: 320000,
+          quantity: 170,
+          color: 'bg-green-500',
+          icon: <Package className="w-5 h-5" />
+        },
+        {
+          type: 'gomas_granel',
+          label: 'Gomas al Granel',
+          value: 450000,
+          quantity: 160,
+          color: 'bg-purple-500',
+          icon: <Box className="w-5 h-5" />
+        },
+        {
+          type: 'producto_final',
+          label: 'Producto Final',
+          value: 3580000,
+          quantity: 540,
+          color: 'bg-orange-500',
+          icon: <ShoppingCart className="w-5 h-5" />
+        }
+      ]);
+
+      // Alertas críticas
+      setAlerts([
+        {
+          id: '1',
+          type: 'critical',
+          title: '2 lotes próximos a vencer',
+          description: 'Lotes #2024-045 y #2024-046 vencen en 5 días',
+          action: 'Ver detalles'
+        },
+        {
+          id: '2',
+          type: 'warning',
+          title: '5 productos bajo stock mínimo',
+          description: 'Requieren reabastecimiento urgente',
+          action: 'Generar orden'
+        },
+        {
+          id: '3',
+          type: 'warning',
+          title: 'Empaques con lead time alto',
+          description: 'Considerar orden anticipada (90 días)',
+          action: 'Revisar'
+        },
+        {
+          id: '4',
+          type: 'info',
+          title: '3 órdenes pendientes de recepción',
+          description: 'Llegada estimada esta semana',
+          action: 'Ver órdenes'
+        }
+      ]);
+
+      // Datos de tendencia
+      const trend = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        trend.push({
+          date: date.toISOString().split('T')[0],
+          ventas: Math.floor(Math.random() * 50) + 100,
+          produccion: Math.floor(Math.random() * 40) + 80
+        });
+      }
+      setTrendData(trend);
+
+      // Métricas
+      setMetrics({
+        totalProducts: 1070,
+        lowStockItems: 5,
+        expiringItems: 2,
+        pendingOrders: 3,
+        totalInventoryValue: 5200000,
+        monthlyGrowth: 12.5,
+        totalLocations: 4,
+        activeUsers: 8
+      });
+
+      setLoading(false);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast.error('Error cargando datos del dashboard');
-    } finally {
+      console.error('Error loading dashboard:', error);
       setLoading(false);
     }
   };
 
-  const loadMetrics = async () => {
-    try {
-      // Total de productos únicos
-      const { data: products } = await supabase
-        .from('products')
-        .select('id')
-        .eq('is_active', true);
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
 
-      // Inventario actual con alertas de stock bajo
-      const { data: inventory } = await supabase
-        .from('inventory_current')
-        .select(`
-          *,
-          products (id, name, sku)
-        `);
-
-      const lowStockItems = inventory?.filter(item => 
-        item.quantity_available < 10 // Simplified threshold
-      ).length || 0;
-
-      const inventoryValue = inventory?.reduce((sum, item) => 
-        sum + (item.quantity_available * 10), 0 // Simplified calculation
-      ) || 0;
-
-      // Lotes próximos a vencer (30 días)
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30);
-
-      const { data: expiringBatches } = await supabase
-        .from('production_batches')
-        .select('id')
-        .lt('expiry_date', expiryDate.toISOString())
-        .eq('status', 'completed');
-
-      // Órdenes pendientes
-      const { data: pendingOrders } = await supabase
-        .from('purchase_orders')
-        .select('id')
-        .eq('status', 'pending_approval');
-
-      // Ventas en el período
-      const { data: sales } = await supabase
-        .from('sales_data')
-        .select('total, quantity')
-        .gte('sale_date', startDate)
-        .lte('sale_date', endDate);
-
-      const totalSalesAmount = sales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
-      const totalSalesUnits = sales?.reduce((sum, sale) => sum + (sale.quantity || 0), 0) || 0;
-
-      // Lotes en producción
-      const { data: productionBatches } = await supabase
-        .from('production_batches')
-        .select('id')
-        .in('status', ['planned', 'in_production']);
-
-      // Ubicaciones activas
-      const { data: locations } = await supabase
-        .from('locations')
-        .select('id')
-        .eq('is_active', true);
-
-      setMetrics({
-        totalProducts: products?.length || 0,
-        lowStockItems,
-        expiringItems: expiringBatches?.length || 0,
-        pendingOrders: pendingOrders?.length || 0,
-        totalSalesAmount,
-        totalSalesUnits,
-        inventoryValue,
-        productionBatches: productionBatches?.length || 0,
-        activeLocations: locations?.length || 0
-      });
-
-    } catch (error) {
-      console.error('Error loading metrics:', error);
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case 'critical':
+        return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      case 'warning':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <Activity className="w-5 h-5 text-blue-500" />;
     }
   };
 
-  const loadSalesTrend = async () => {
-    try {
-      const { data: sales } = await supabase
-        .from('sales_data')
-        .select('sale_date, total, quantity')
-        .gte('sale_date', startDate)
-        .lte('sale_date', endDate)
-        .order('sale_date');
-
-      const salesByDate = sales?.reduce((acc, sale) => {
-        const date = new Date(sale.sale_date).toLocaleDateString();
-        if (!acc[date]) {
-          acc[date] = { date, ventas: 0, cantidad: 0 };
-        }
-        acc[date].ventas += sale.total || 0;
-        acc[date].cantidad += sale.quantity || 0;
-        return acc;
-      }, {} as Record<string, any>);
-
-      setSalesTrend(Object.values(salesByDate || {}));
-    } catch (error) {
-      console.error('Error loading sales trend:', error);
-      setSalesTrend([]);
+  const getAlertBgColor = (type: string) => {
+    switch (type) {
+      case 'critical':
+        return 'bg-red-50 border-red-200';
+      case 'warning':
+        return 'bg-yellow-50 border-yellow-200';
+      default:
+        return 'bg-blue-50 border-blue-200';
     }
   };
 
-  const loadInventoryByLocation = async () => {
-    try {
-      const { data: inventory } = await supabase
-        .from('inventory_current')
-        .select(`
-          quantity_available,
-          quantity_reserved,
-          locations (name)
-        `);
-
-      const locationData = inventory?.reduce((acc, item) => {
-        const location = item.locations?.name || 'Sin ubicación';
-        if (!acc[location]) {
-          acc[location] = { name: location, disponible: 0, reservado: 0 };
-        }
-        acc[location].disponible += item.quantity_available || 0;
-        acc[location].reservado += item.quantity_reserved || 0;
-        return acc;
-      }, {} as Record<string, any>);
-
-      setInventoryByLocation(Object.values(locationData || {}));
-    } catch (error) {
-      console.error('Error loading inventory by location:', error);
-      setInventoryByLocation([]);
-    }
-  };
-
-  const loadTopProducts = async () => {
-    try {
-      const { data: sales } = await supabase
-        .from('sales_data')
-        .select(`
-          quantity,
-          total,
-          products (name, sku)
-        `)
-        .gte('sale_date', startDate)
-        .lte('sale_date', endDate);
-
-      const productSales = sales?.reduce((acc, sale) => {
-        const productName = sale.products?.name || 'Producto desconocido';
-        if (!acc[productName]) {
-          acc[productName] = { name: productName, cantidad: 0, ventas: 0 };
-        }
-        acc[productName].cantidad += sale.quantity || 0;
-        acc[productName].ventas += sale.total || 0;
-        return acc;
-      }, {} as Record<string, any>);
-
-      const sortedProducts = Object.values(productSales || {})
-        .sort((a: any, b: any) => b.cantidad - a.cantidad)
-        .slice(0, 5);
-
-      setTopProducts(sortedProducts);
-    } catch (error) {
-      console.error('Error loading top products:', error);
-      setTopProducts([]);
-    }
-  };
-
-  const metricCards = [
-    {
-      title: 'Productos Activos',
-      value: metrics.totalProducts,
-      icon: Package,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Stock Bajo',
-      value: metrics.lowStockItems,
-      icon: AlertTriangle,
-      color: metrics.lowStockItems > 0 ? 'text-red-600' : 'text-green-600',
-      bgColor: metrics.lowStockItems > 0 ? 'bg-red-50' : 'bg-green-50'
-    },
-    {
-      title: 'Próximos a Vencer',
-      value: metrics.expiringItems,
-      icon: Clock,
-      color: metrics.expiringItems > 0 ? 'text-orange-600' : 'text-green-600',
-      bgColor: metrics.expiringItems > 0 ? 'bg-orange-50' : 'bg-green-50'
-    },
-    {
-      title: 'Órdenes Pendientes',
-      value: metrics.pendingOrders,
-      icon: ShoppingCart,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    },
-    {
-      title: 'Ventas Período',
-      value: `$${(metrics.totalSalesAmount / 1000).toFixed(0)}K`,
-      icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Unidades Vendidas',
-      value: metrics.totalSalesUnits,
-      icon: TrendingUp,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
-    },
-    {
-      title: 'Valor Inventario',
-      value: `$${(metrics.inventoryValue / 1000000).toFixed(1)}M`,
-      icon: BarChart3,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50'
-    },
-    {
-      title: 'Ubicaciones',
-      value: metrics.activeLocations,
-      icon: MapPin,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    }
-  ];
-
-  const COLORS = ['#f97316', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444'];
-
-  if (loading && metrics.totalProducts === 0) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Vista general del inventario</p>
-          {lastUpdate && (
-            <p className="text-xs text-gray-500 mt-1">
-              Última actualización: {lastUpdate}
-            </p>
-          )}
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Vista general del inventario multi-ubicación</p>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <DateFilter 
-            onRangeChange={updateRange} 
-            currentRange={dateRange.label}
-          />
-          
-          <button
-            onClick={loadDashboardData}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+        <div className="flex gap-2">
+          <select
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </button>
-          
-          <NotificationBell />
+            <option value="7d">Últimos 7 días</option>
+            <option value="30d">Últimos 30 días</option>
+            <option value="90d">Últimos 90 días</option>
+          </select>
         </div>
       </div>
 
       {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metricCards.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <div key={index} className={`${metric.bgColor} rounded-lg p-6 border border-gray-200 transition-all hover:shadow-md`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{metric.title}</p>
-                  <p className={`text-3xl font-bold ${metric.color} mt-1`}>
-                    {metric.value}
-                  </p>
-                </div>
-                <Icon className={`w-8 h-8 ${metric.color}`} />
-              </div>
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Productos Activos</p>
+              <p className="text-2xl font-bold text-gray-900">{metrics.totalProducts}</p>
+              <p className="text-xs text-gray-500 mt-1">SKUs disponibles</p>
             </div>
-          );
-        })}
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Package className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Stock Bajo</p>
+              <p className="text-2xl font-bold text-red-600">{metrics.lowStockItems}</p>
+              <p className="text-xs text-gray-500 mt-1">Requieren atención</p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Próximos a Vencer</p>
+              <p className="text-2xl font-bold text-yellow-600">{metrics.expiringItems}</p>
+              <p className="text-xs text-gray-500 mt-1">En los próximos 30 días</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Órdenes Pendientes</p>
+              <p className="text-2xl font-bold text-purple-600">{metrics.pendingOrders}</p>
+              <p className="text-xs text-gray-500 mt-1">Por recibir</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Truck className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Alertas críticas */}
-      {(metrics.lowStockItems > 0 || metrics.expiringItems > 0 || metrics.pendingOrders > 0) && (
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="text-lg font-semibold text-red-800">Alertas Críticas</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            {metrics.lowStockItems > 0 && (
-              <div className="flex items-center gap-2 text-red-700">
-                <Package className="w-4 h-4" />
-                <strong>{metrics.lowStockItems}</strong> productos con stock bajo
-              </div>
-            )}
-            {metrics.expiringItems > 0 && (
-              <div className="flex items-center gap-2 text-orange-700">
-                <Clock className="w-4 h-4" />
-                <strong>{metrics.expiringItems}</strong> lotes próximos a vencer
-              </div>
-            )}
-            {metrics.pendingOrders > 0 && (
-              <div className="flex items-center gap-2 text-purple-700">
-                <ShoppingCart className="w-4 h-4" />
-                <strong>{metrics.pendingOrders}</strong> órdenes esperando aprobación
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tendencia de ventas */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Tendencia de Ventas ({dateRange.label})</h3>
-          {salesTrend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="date" tick={{fontSize: 12}} />
-                <YAxis tick={{fontSize: 12}} />
-                <Tooltip 
-                  formatter={(value: any, name: string) => [
-                    name === 'ventas' ? `$${value.toLocaleString()}` : value,
-                    name === 'ventas' ? 'Ventas' : 'Cantidad'
-                  ]}
-                />
-                <Line type="monotone" dataKey="ventas" stroke="#f97316" strokeWidth={2} name="ventas" />
-                <Line type="monotone" dataKey="cantidad" stroke="#10b981" strokeWidth={2} name="cantidad" />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-300 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <BarChart3 className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No hay datos de ventas en este período</p>
-              </div>
+      {/* Valor del inventario */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Valor Total del Inventario</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-gray-900">
+              {formatCurrency(metrics.totalInventoryValue)}
+            </span>
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              metrics.monthlyGrowth > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+              {metrics.monthlyGrowth > 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+              {Math.abs(metrics.monthlyGrowth)}%
             </div>
-          )}
+          </div>
         </div>
+        
+        {/* Desglose por tipo */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {inventoryByType.map((type) => (
+            <div key={type.type} className="p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-8 h-8 ${type.color} bg-opacity-20 rounded-lg flex items-center justify-center`}>
+                  {type.icon}
+                </div>
+                <span className="text-sm font-medium text-gray-700">{type.label}</span>
+              </div>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(type.value)}</p>
+              <p className="text-xs text-gray-500">{type.quantity} unidades</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
+      {/* Grid de ubicaciones y alertas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Inventario por ubicación */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Inventario por Ubicación</h3>
-          {inventoryByLocation.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={inventoryByLocation}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{fontSize: 12}} />
-                <YAxis tick={{fontSize: 12}} />
-                <Tooltip />
-                <Bar dataKey="disponible" stackId="a" fill="#f97316" name="Disponible" />
-                <Bar dataKey="reservado" stackId="a" fill="#10b981" name="Reservado" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-300 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <Package className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No hay datos de inventario</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Top productos */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Top Productos ({dateRange.label})</h3>
-          {topProducts.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topProducts} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis type="number" tick={{fontSize: 12}} />
-                <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 12}} />
-                <Tooltip />
-                <Bar dataKey="cantidad" fill="#3b82f6" name="Unidades Vendidas" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-300 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <TrendingUp className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No hay datos de productos en este período</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Estado general */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Estado del Sistema</h3>
+        <div className="lg:col-span-2 bg-white p-6 rounded-lg border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Inventario por Ubicación</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Productos activos</span>
-              <span className="font-medium">{metrics.totalProducts}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Ubicaciones</span>
-              <span className="font-medium">{metrics.activeLocations}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Lotes en producción</span>
-              <span className="font-medium">{metrics.productionBatches}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Estado del inventario</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                metrics.lowStockItems === 0 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}>
-                {metrics.lowStockItems === 0 ? 'Óptimo' : 'Requiere atención'}
+            {inventoryByLocation.map((location, index) => (
+              <div key={index} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <span className="font-medium text-gray-900">{location.location}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">
+                    {formatCurrency(location.value)}
+                  </span>
+                </div>
+                
+                {/* Barra de progreso */}
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div 
+                    className={`h-2 rounded-full ${LOCATIONS[index].color}`}
+                    style={{ width: `${location.percentage}%` }}
+                  ></div>
+                </div>
+                
+                {/* Desglose por tipo */}
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="text-gray-600">
+                    <span className="block font-medium">Mat. Prima</span>
+                    <span>{location.items.materia_prima}</span>
+                  </div>
+                  <div className="text-gray-600">
+                    <span className="block font-medium">Empaques</span>
+                    <span>{location.items.empaques}</span>
+                  </div>
+                  <div className="text-gray-600">
+                    <span className="block font-medium">Gomas</span>
+                    <span>{location.items.gomas_granel}</span>
+                  </div>
+                  <div className="text-gray-600">
+                    <span className="block font-medium">P. Final</span>
+                    <span>{location.items.producto_final}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Resumen */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total productos en todas las ubicaciones:</span>
+              <span className="font-bold text-gray-900">
+                {inventoryByLocation.reduce((sum, loc) => sum + loc.products, 0)} items
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Alertas críticas */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Alertas Críticas</h2>
+          <div className="space-y-3">
+            {alerts.map((alert) => (
+              <div 
+                key={alert.id} 
+                className={`p-3 rounded-lg border ${getAlertBgColor(alert.type)}`}
+              >
+                <div className="flex items-start gap-2">
+                  {getAlertIcon(alert.type)}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{alert.title}</p>
+                    <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                    {alert.action && (
+                      <button className="text-xs text-blue-600 hover:text-blue-700 mt-2 font-medium">
+                        {alert.action} →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tendencia de ventas vs producción */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Tendencia Mensual</h2>
+        <div className="h-64 flex items-center justify-center text-gray-500">
+          <div className="text-center">
+            <BarChart3 className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+            <p>Gráfico de tendencias</p>
+            <p className="text-xs mt-1">Ventas vs Producción</p>
           </div>
         </div>
       </div>
 
       {/* Acciones rápidas */}
-      <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Acciones Rápidas</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="flex items-center justify-center gap-2 p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors">
-            <Package className="w-5 h-5" />
-            <span>Ver Inventario</span>
-          </button>
-          
-          <button className="flex items-center justify-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
-            <ShoppingCart className="w-5 h-5" />
-            <span>Nueva Orden</span>
-          </button>
-          
-          <button className="flex items-center justify-center gap-2 p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-            <BarChart3 className="w-5 h-5" />
-            <span>Producción</span>
-          </button>
-          
-          <button className="flex items-center justify-center gap-2 p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
-            <FileText className="w-5 h-5" />
-            <span>Reportes</span>
-          </button>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button className="p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
+          <Package className="w-5 h-5" />
+          <span>Nuevo Producto</span>
+        </button>
+        <button className="p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2">
+          <ShoppingCart className="w-5 h-5" />
+          <span>Crear Orden</span>
+        </button>
+        <button className="p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
+          <Truck className="w-5 h-5" />
+          <span>Recibir Mercancía</span>
+        </button>
+        <button className="p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-2">
+          <BarChart3 className="w-5 h-5" />
+          <span>Ver Reportes</span>
+        </button>
       </div>
     </div>
   );
