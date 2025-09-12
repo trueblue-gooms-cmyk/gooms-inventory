@@ -71,10 +71,11 @@ export function MainLayout() {
     return 'U';
   };
 
-  // Safety check for profile
-  if (!profile) {
-    return <Navigate to="/login" replace />;
-  }
+  // Safety: si no hay profile aún, continuamos con la app y mostramos placeholders
+  // (evitar redirección que causa pantallas en blanco mientras carga el perfil)
+  // if (!profile) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return (
     <div className="flex h-screen bg-gray-50">

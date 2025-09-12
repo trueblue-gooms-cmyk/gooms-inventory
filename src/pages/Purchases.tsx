@@ -343,31 +343,66 @@ export default function Purchases() {
     }));
   };
 
-  const handleCreateOrderFromSuggestions = () => {
+  const handleCreateOrderFromSuggestions = async () => {
     if (selectedSuggestions.length === 0) return;
-    
-    // Agrupar por proveedor
-    const ordersBySupplier: { [key: string]: SmartSuggestion[] } = {};
-    
-    selectedSuggestions.forEach(suggId => {
-      const suggestion = suggestions.find(s => s.id === suggId);
-      if (suggestion) {
-        const supplierId = suggestion.product.supplier_id;
-        if (!ordersBySupplier[supplierId]) {
-          ordersBySupplier[supplierId] = [];
-        }
-        ordersBySupplier[supplierId].push(suggestion);
-      }
-    });
-    
-    // Crear órdenes por proveedor
-    Object.entries(ordersBySupplier).forEach(([supplierId, items]) => {
-      console.log('Crear orden para proveedor:', supplierId, 'con items:', items);
-      // Aquí iría la lógica para crear la orden
-    });
-    
-    setSelectedSuggestions([]);
-    setShowCreateModal(false);
+
+    try {
+      // Tomar las sugerencias seleccionadas
+      const selected = suggestions.filter(s => selectedSuggestions.includes(s.id));
+      if (selected.length === 0) return;
+
+      // Calcular totales
+      const subtotal = selected.reduce((sum, s) => sum + (s.optimal_quantity * (s.product.unit_cost || 0)), 0);
+
+      // Generar número de orden simple
+      const generateOrderNumber = () => {
+        const date = new Date();
+        const yyyymmdd = date.toISOString().slice(0,10).replace(/-/g, '');
+        const rnd = Math.floor(1000 + Math.random() * 9000);
+        return `PO-${yyyymmdd}-${rnd}`;
+      };
+
+      // Crear la orden (sin proveedor por ahora para evitar IDs inválidos)
+      const { data: order, error: orderError } = await supabase
+        .from('purchase_orders')
+        .insert({
+          order_number: generateOrderNumber(),
+          supplier_id: null, // Proveedor por definir
+          status: 'draft',
+          subtotal,
+          tax: 0,
+          total: subtotal,
+          notes: 'Generado automáticamente a partir de sugerencias'
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Crear ítems de la orden
+      const itemsPayload = selected.map((s) => ({
+        purchase_order_id: order.id,
+        item_type: 'product',
+        item_id: s.product.id,
+        quantity: s.optimal_quantity,
+        unit_price: s.product.unit_cost || 0,
+        total_price: (s.optimal_quantity) * (s.product.unit_cost || 0),
+        notes: s.reason
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('purchase_order_items')
+        .insert(itemsPayload);
+
+      if (itemsError) throw itemsError;
+
+      // Refrescar lista y cerrar modal
+      await loadPurchaseOrders();
+      setSelectedSuggestions([]);
+      setShowCreateModal(false);
+    } catch (err) {
+      console.error('Error creando orden de compra:', err);
+    }
   };
 
   const calculateOptimalOrder = (product: Product) => {

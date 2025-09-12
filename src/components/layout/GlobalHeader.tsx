@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Package
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAppStore } from '@/stores/useAppStore';
 
 // Tipos para el sistema
 interface UserProfile {
@@ -62,6 +64,17 @@ export function GlobalHeader({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const navigate = useNavigate();
+  const { signOut } = useAppStore();
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } finally {
+      setShowUserMenu(false);
+      navigate('/login', { replace: true });
+    }
+  };
 
   // Cerrar menús al hacer click fuera
   useEffect(() => {
@@ -274,7 +287,7 @@ export function GlobalHeader({
                   </button>
                   
                   <div className="border-t border-gray-200 mt-2 pt-2">
-                    <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                    <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
                       <LogOut className="w-4 h-4" />
                       Cerrar Sesión
                     </button>
