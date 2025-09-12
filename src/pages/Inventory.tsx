@@ -1,6 +1,3 @@
-// src/pages/Inventory.tsx
-// REEMPLAZAR TODO EL CONTENIDO DEL ARCHIVO Inventory.tsx CON ESTE CÓDIGO
-
 import React, { useState, useEffect } from 'react';
 import {
   Package,
@@ -25,6 +22,9 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { useSecureData } from '@/hooks/useSecureData';
+import { supabase } from '@/integrations/supabase/client';
+import { InventoryMovementModal } from '@/components/InventoryMovementModal';
 
 // Tipos para el inventario
 interface InventoryItem {
@@ -83,13 +83,19 @@ export function Inventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [productionNeeds, setProductionNeeds] = useState<ProductionNeed[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+
+  // Real data from Supabase using secure hooks
+  const { products, loading: loadingProducts } = useSecureData().useProductsFull();
+  const { locations, loading: loadingLocations } = useSecureData().useLocationsSafe();
+  const { inventory: inventoryData, loading: loadingInventory } = useSecureData().useInventorySafe();
+  
+  const loading = loadingProducts || loadingLocations || loadingInventory;
 
   // Estados para el modal de movimiento
   const [movementData, setMovementData] = useState({
@@ -107,150 +113,81 @@ export function Inventory() {
   });
 
   useEffect(() => {
-    loadInventoryData();
-  }, [selectedLocation, selectedCategory]);
+    if (!loading && products && locations && inventoryData) {
+      processRealInventoryData();
+      loadMovements();
+    }
+  }, [products, locations, inventoryData, selectedLocation, selectedCategory, loading]);
 
-  const loadInventoryData = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  const processRealInventoryData = () => {
+    if (!products || !locations || !inventoryData) return;
+
+    const processedInventory: InventoryItem[] = inventoryData.map(item => {
+      const product = products.find(p => p.id === item.product_id);
+      const location = locations.find(l => l.id === item.location_id);
       
-      // Datos de ejemplo
-      setInventory([
-        {
-          id: '1',
-          sku: 'MP-001',
-          name: 'Azúcar refinada',
-          category: 'materia_prima',
-          location: 'Bodega Central',
-          quantity: 500,
-          min_stock: 100,
-          max_stock: 1000,
-          unit: 'kg',
-          unit_cost: 2500,
-          total_value: 1250000,
-          status: 'optimal',
-          last_movement: '2025-09-10',
-          expiry_date: '2026-03-15'
-        },
-        {
-          id: '2',
-          sku: 'EMP-001',
-          name: 'Bolsas 100g',
-          category: 'empaques',
-          location: 'Bodega Central',
-          quantity: 50,
-          min_stock: 200,
-          max_stock: 1000,
-          unit: 'unidades',
-          unit_cost: 150,
-          total_value: 7500,
-          status: 'critical',
-          last_movement: '2025-09-09'
-        },
-        {
-          id: '3',
-          sku: 'GG-001',
-          name: 'Gomas Fresa 5kg',
-          category: 'gomas_granel',
-          location: 'POS-Colina',
-          quantity: 25,
-          min_stock: 10,
-          max_stock: 50,
-          unit: 'bolsas',
-          unit_cost: 45000,
-          total_value: 1125000,
-          status: 'optimal',
-          last_movement: '2025-09-08'
-        },
-        {
-          id: '4',
-          sku: 'PF-001',
-          name: 'Gomas Surtidas 100g',
-          category: 'producto_final',
-          location: 'POS-Fontanar',
-          quantity: 150,
-          min_stock: 50,
-          max_stock: 200,
-          unit: 'unidades',
-          unit_cost: 8500,
-          total_value: 1275000,
-          status: 'optimal',
-          last_movement: '2025-09-10'
-        },
-        {
-          id: '5',
-          sku: 'MP-002',
-          name: 'Gelatina sin sabor',
-          category: 'materia_prima',
-          location: 'Bodega Central',
-          quantity: 15,
-          min_stock: 50,
-          max_stock: 200,
-          unit: 'kg',
-          unit_cost: 18000,
-          total_value: 270000,
-          status: 'low',
-          last_movement: '2025-09-07',
-          expiry_date: '2025-10-20'
-        }
-      ]);
+      if (!product || !location) return null;
 
-      setMovements([
-        {
-          id: '1',
-          date: '2025-09-10T10:30:00',
-          type: 'entrada',
-          product: 'Azúcar refinada',
-          quantity: 200,
-          to_location: 'Bodega Central',
-          user: 'Sebastian Canal',
-          notes: 'Recepción orden #OC-2025-045'
-        },
-        {
-          id: '2',
-          date: '2025-09-09T15:45:00',
-          type: 'transferencia',
-          product: 'Gomas Surtidas 100g',
-          quantity: 50,
-          from_location: 'Bodega Central',
-          to_location: 'POS-Fontanar',
-          user: 'Sebastian Alape',
-          notes: 'Reabastecimiento punto de venta'
-        }
-      ]);
+      const quantity = item.quantity_available || 0;
+      const minStock = product.min_stock_units || 0;
+      const unitCost = product.unit_cost || 0;
+      const totalValue = quantity * unitCost;
+      
+      return {
+        id: item.id,
+        sku: product.sku,
+        name: product.name,
+        category: product.type as any,
+        location: location.name,
+        quantity,
+        min_stock: minStock,
+        max_stock: Math.max(minStock * 5, 1000), // Estimate max stock
+        unit: 'unidades', // Default unit
+        unit_cost: unitCost,
+        total_value: totalValue,
+        status: getStockStatus(quantity, minStock, Math.max(minStock * 5, 1000)),
+        last_movement: item.last_movement_date ? 
+          new Date(item.last_movement_date).toISOString().split('T')[0] : 
+          new Date().toISOString().split('T')[0],
+        expiry_date: item.expiry_date || undefined
+      };
+    }).filter(Boolean) as InventoryItem[];
 
-      setProductionNeeds([
-        {
-          id: '1',
-          product: 'Gomas Surtidas 100g',
-          required: 100,
-          available: 150,
-          missing: 0,
-          suggestions: ['Stock óptimo disponible']
-        },
-        {
-          id: '2',
-          product: 'Bolsas 100g',
-          required: 200,
-          available: 50,
-          missing: 150,
-          suggestions: ['Ordenar 500 unidades (MOQ)', 'Lead time: 90 días', 'Proveedor: Empaques Colombia']
-        },
-        {
-          id: '3',
-          product: 'Gelatina sin sabor',
-          required: 30,
-          available: 15,
-          missing: 15,
-          suggestions: ['Ordenar 50kg (MOQ)', 'Stock crítico - ordenar urgente']
-        }
-      ]);
+    setInventory(processedInventory);
+  };
 
-      setLoading(false);
+  const loadMovements = async () => {
+    try {
+      const { data: movementsData } = await supabase
+        .from('inventory_movements')
+        .select(`
+          *,
+          products:product_id (name),
+          from_location:from_location_id (name),
+          to_location:to_location_id (name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (movementsData) {
+        const formattedMovements: Movement[] = movementsData.map(movement => ({
+          id: movement.id,
+          date: movement.created_at,
+          type: movement.movement_type === 'entry' ? 'entrada' : 
+                movement.movement_type === 'exit' ? 'salida' :
+                movement.movement_type === 'transfer' ? 'transferencia' : 'ajuste',
+          product: movement.products?.name || 'Unknown Product',
+          quantity: movement.quantity,
+          from_location: movement.from_location?.name,
+          to_location: movement.to_location?.name,
+          user: 'System User', // Would need to join with user data
+          notes: movement.notes || ''
+        }));
+
+        setMovements(formattedMovements);
+      }
     } catch (error) {
-      console.error('Error loading inventory:', error);
-      setLoading(false);
+      console.error('Error loading movements:', error);
     }
   };
 

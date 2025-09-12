@@ -66,9 +66,12 @@ export function NotificationBell() {
 
       if (error) {
         console.error('Error loading notifications:', error);
+        // Fallback to mock data
         setNotifications(mockNotifications);
       } else {
-        setNotifications((data || []) as Notification[]);
+        const realNotifications = (data || []) as Notification[];
+        // If no real notifications, show mock data for demo
+        setNotifications(realNotifications.length > 0 ? realNotifications : mockNotifications);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);

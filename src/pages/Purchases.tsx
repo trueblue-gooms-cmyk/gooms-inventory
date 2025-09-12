@@ -29,6 +29,8 @@ import {
   TrendingDown,
   RefreshCw
 } from 'lucide-react';
+import { useSecureData } from '@/hooks/useSecureData';
+import { supabase } from '@/integrations/supabase/client';
 
 // Tipos para órdenes de compra
 interface Supplier {
@@ -133,14 +135,20 @@ const PRIORITY_CONFIG = {
 export default function Purchases() {
   const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [selectedSuggestions, setSelectedSuggestions] = useState<string[]>([]);
   const [analysisData, setAnalysisData] = useState<any>(null);
+  
+  // Real data from Supabase using secure hooks
+  const { products, loading: loadingProducts } = useSecureData().useProductsFull();
+  const { rawMaterials, loading: loadingRawMaterials } = useSecureData().useRawMaterialsFull();
+  const { suppliers, loading: loadingSuppliers } = useSecureData().useSuppliersSafe();
+  const { inventory, loading: loadingInventory } = useSecureData().useInventorySafe();
+  
+  const loading = loadingProducts || loadingRawMaterials || loadingSuppliers || loadingInventory;
   
   // Métricas del sistema
   const [metrics, setMetrics] = useState({
@@ -153,220 +161,164 @@ export default function Purchases() {
   });
 
   useEffect(() => {
-    loadPurchaseData();
-    generateSmartSuggestions();
-  }, []);
+    if (!loading && products && inventory) {
+      loadPurchaseOrders();
+      generateSmartSuggestionsFromRealData();
+    }
+  }, [products, inventory, suppliers, rawMaterials, loading]);
 
-  const loadPurchaseData = async () => {
-    setLoading(true);
+  const loadPurchaseOrders = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Productos con información completa
-      const sampleProducts: Product[] = [
-        {
-          id: '1',
-          sku: 'EMP-001',
-          name: 'Bolsas 100g',
-          category: 'empaques',
-          current_stock: 50,
-          min_stock: 200,
-          max_stock: 1000,
-          unit_cost: 150,
-          moq: 500,
-          lead_time: 90, // 90 días para empaques
-          supplier_id: '1',
-          supplier_name: 'Empaques Colombia S.A.',
-          consumption_rate: 5, // 5 por día
-          last_purchase_date: '2025-06-01',
-          last_purchase_price: 145
-        },
-        {
-          id: '2',
-          sku: 'MP-001',
-          name: 'Azúcar refinada',
-          category: 'materia_prima',
-          current_stock: 500,
-          min_stock: 100,
-          max_stock: 2000,
-          unit_cost: 2500,
-          moq: 500,
-          lead_time: 15,
-          supplier_id: '2',
-          supplier_name: 'Materias Primas del Valle',
-          consumption_rate: 20,
-          last_purchase_date: '2025-08-15',
-          last_purchase_price: 2400
-        },
-        {
-          id: '3',
-          sku: 'MP-002',
-          name: 'Gelatina sin sabor',
-          category: 'materia_prima',
-          current_stock: 15,
-          min_stock: 50,
-          max_stock: 200,
-          unit_cost: 18000,
-          moq: 50,
-          lead_time: 30,
-          supplier_id: '3',
-          supplier_name: 'Insumos Industriales',
-          consumption_rate: 2,
-          last_purchase_date: '2025-07-20',
-          last_purchase_price: 17500
-        },
-        {
-          id: '4',
-          sku: 'EMP-002',
-          name: 'Bolsas 250g',
-          category: 'empaques',
-          current_stock: 300,
-          min_stock: 150,
-          max_stock: 800,
-          unit_cost: 250,
-          moq: 300,
-          lead_time: 90,
-          supplier_id: '1',
-          supplier_name: 'Empaques Colombia S.A.',
-          consumption_rate: 3,
-          last_purchase_date: '2025-06-01',
-          last_purchase_price: 240
-        }
-      ];
+      const { data: purchaseOrders } = await supabase
+        .from('purchase_orders')
+        .select(`
+          *,
+          suppliers:supplier_id (
+            id, name, email, phone, lead_time_days, payment_terms
+          ),
+          purchase_order_items (
+            *
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-      setProducts(sampleProducts);
-
-      // Órdenes existentes
-      const sampleOrders: PurchaseOrder[] = [
-        {
-          id: '1',
-          order_number: 'OC-2025-001',
+      if (purchaseOrders) {
+        const formattedOrders: PurchaseOrder[] = purchaseOrders.map(order => ({
+          id: order.id,
+          order_number: order.order_number,
           supplier: {
-            id: '1',
-            name: 'Empaques Colombia S.A.',
-            email: 'ventas@empaquescol.com',
-            phone: '(601) 234-5678',
-            lead_time_days: 90,
-            payment_terms: '30 días',
-            reliability_score: 95,
-            discount_volume: 15
+            id: order.suppliers?.id || '',
+            name: order.suppliers?.name || '',
+            email: order.suppliers?.email || '',
+            phone: order.suppliers?.phone || '',
+            lead_time_days: order.suppliers?.lead_time_days || 0,
+            payment_terms: order.suppliers?.payment_terms || '',
+            reliability_score: 90, // Default value
+            discount_volume: 0
           },
-          status: 'pending',
-          items: [
-            {
-              id: '1',
-              product_id: '1',
-              product_name: 'Bolsas 100g',
-              sku: 'EMP-001',
-              quantity: 500,
-              unit_price: 150,
-              total: 75000,
-              moq: 500,
-              current_stock: 50
-            }
-          ],
-          subtotal: 75000,
+          status: order.status,
+          items: order.purchase_order_items?.map(item => ({
+            id: item.id,
+            product_id: item.item_id,
+            product_name: item.item_type === 'product' ? 
+              products?.find(p => p.id === item.item_id)?.name || 'Unknown Product' :
+              rawMaterials?.find(rm => rm.id === item.item_id)?.name || 'Unknown Raw Material',
+            sku: item.item_type === 'product' ? 
+              products?.find(p => p.id === item.item_id)?.sku || '' :
+              rawMaterials?.find(rm => rm.id === item.item_id)?.code || '',
+            quantity: item.quantity,
+            unit_price: item.unit_price || 0,
+            total: item.total_price || 0,
+            moq: 1, // Default value
+            current_stock: inventory?.find(inv => inv.product_id === item.item_id)?.quantity_available || 0
+          })) || [],
+          subtotal: order.subtotal || 0,
           discount: 0,
-          tax: 14250,
-          total: 89250,
-          created_date: '2025-09-01',
-          expected_date: '2025-11-30',
-          auto_generated: true,
-          notes: 'Orden automática - Stock crítico detectado'
-        }
-      ];
+          tax: order.tax || 0,
+          total: order.total || 0,
+          created_date: order.created_at?.split('T')[0] || '',
+          expected_date: order.expected_date || '',
+          auto_generated: false,
+          notes: order.notes || ''
+        }));
 
-      setOrders(sampleOrders);
-
-      // Calcular métricas
-      setMetrics({
-        criticalItems: sampleProducts.filter(p => p.current_stock < p.min_stock * 0.5).length,
-        totalSavings: 125000,
-        pendingOrders: sampleOrders.filter(o => o.status === 'pending').length,
-        averageLeadTime: Math.round(sampleProducts.reduce((sum, p) => sum + p.lead_time, 0) / sampleProducts.length),
-        nextDelivery: '2025-09-15',
-        optimizationScore: 78
-      });
-
-      setLoading(false);
+        setOrders(formattedOrders);
+        
+        // Calculate metrics
+        setMetrics(prev => ({
+          ...prev,
+          pendingOrders: formattedOrders.filter(o => o.status === 'pending').length
+        }));
+      }
     } catch (error) {
-      console.error('Error loading data:', error);
-      setLoading(false);
+      console.error('Error loading purchase orders:', error);
     }
   };
 
-  const generateSmartSuggestions = () => {
+  const generateSmartSuggestionsFromRealData = () => {
+    if (!products || !inventory) return;
+    
     const suggestions: SmartSuggestion[] = [];
     
     // Analizar cada producto
     products.forEach(product => {
-      const daysOfStock = product.current_stock / product.consumption_rate;
-      const daysToMinStock = (product.current_stock - product.min_stock) / product.consumption_rate;
+      const inventoryItem = inventory.find(inv => inv.product_id === product.id);
+      const currentStock = inventoryItem?.quantity_available || 0;
+      const minStock = product.min_stock_units || 0;
+      const unitCost = product.unit_cost || 0;
       
-      // CRÍTICO: Stock muy bajo considerando lead time
-      if (daysOfStock < product.lead_time && product.current_stock < product.min_stock) {
+      // Estimate consumption rate (simplified calculation)
+      const consumptionRate = Math.max(1, Math.floor(minStock / 30)); // Estimate based on min stock
+      const daysOfStock = currentStock / consumptionRate;
+      const daysToMinStock = (currentStock - minStock) / consumptionRate;
+      
+      // Estimate MOQ and lead time based on product type
+      const isPackaging = product.type === 'empaques';
+      const estimatedMOQ = isPackaging ? Math.max(100, minStock) : Math.max(50, minStock);
+      const estimatedLeadTime = isPackaging ? 90 : product.type === 'materia_prima' ? 15 : 30;
+      
+      const productForSuggestion: Product = {
+        id: product.id,
+        sku: product.sku,
+        name: product.name,
+        category: product.type as any,
+        current_stock: currentStock,
+        min_stock: minStock,
+        max_stock: Math.max(minStock * 5, 1000),
+        unit_cost: unitCost,
+        moq: estimatedMOQ,
+        lead_time: estimatedLeadTime,
+        supplier_id: '1', // Default supplier
+        supplier_name: 'Default Supplier',
+        consumption_rate: consumptionRate
+      };
+      
+      // CRÍTICO: Stock muy bajo
+      if (currentStock <= minStock * 0.5) {
         suggestions.push({
           id: `${product.id}-critical`,
           priority: 'critical',
           type: 'stock_critical',
-          product: product,
-          reason: `⚠️ CRÍTICO: Solo ${Math.floor(daysOfStock)} días de stock. Lead time: ${product.lead_time} días. Ordenar URGENTE o habrá quiebre de stock.`,
-          suggested_quantity: product.moq * Math.ceil((product.min_stock * 2 - product.current_stock) / product.moq),
-          optimal_quantity: product.moq * 2, // Pedir el doble del MOQ para cubrir el lead time largo
-          estimated_cost: product.moq * 2 * product.unit_cost,
+          product: productForSuggestion,
+          reason: `⚠️ CRÍTICO: Solo ${currentStock} unidades en stock. Mínimo: ${minStock}. Ordenar URGENTE.`,
+          suggested_quantity: estimatedMOQ,
+          optimal_quantity: estimatedMOQ * 2,
+          estimated_cost: estimatedMOQ * 2 * unitCost,
           days_until_stockout: Math.floor(daysOfStock),
           action_deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           confidence_score: 95
         });
       }
       
-      // LEAD TIME ALERT: Empaques con 90 días de lead time
-      else if (product.category === 'empaques' && daysToMinStock < product.lead_time + 30) {
+      // STOCK BAJO
+      else if (currentStock <= minStock) {
         suggestions.push({
-          id: `${product.id}-leadtime`,
+          id: `${product.id}-low`,
           priority: 'high',
-          type: 'lead_time_alert',
-          product: product,
-          reason: `📦 EMPAQUES: Lead time de ${product.lead_time} días. Stock llegará a mínimo antes de recibir orden. Ordenar preventivamente.`,
-          suggested_quantity: product.moq * 2,
-          optimal_quantity: product.moq * 3, // Para empaques, pedir más por el lead time largo
-          estimated_cost: product.moq * 3 * product.unit_cost,
-          savings: product.moq * 3 * product.unit_cost * 0.15, // 15% descuento por volumen
+          type: 'stock_critical',
+          product: productForSuggestion,
+          reason: `📦 STOCK BAJO: ${currentStock} unidades. Mínimo: ${minStock}. Reabastecer pronto.`,
+          suggested_quantity: estimatedMOQ,
+          optimal_quantity: estimatedMOQ * 2,
+          estimated_cost: estimatedMOQ * unitCost,
           days_until_stockout: Math.floor(daysOfStock),
           action_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          confidence_score: 88
+          confidence_score: 85
         });
       }
       
-      // OPTIMIZACIÓN: Oportunidad de ahorro por volumen
-      else if (product.current_stock > product.min_stock && product.last_purchase_price && product.unit_cost < product.last_purchase_price) {
-        suggestions.push({
-          id: `${product.id}-optimization`,
-          priority: 'medium',
-          type: 'optimization',
-          product: product,
-          reason: `💰 OPORTUNIDAD: Precio actual ${((product.last_purchase_price - product.unit_cost) / product.last_purchase_price * 100).toFixed(1)}% menor. Aprovechar para reabastecer.`,
-          suggested_quantity: product.moq * 2,
-          optimal_quantity: product.max_stock - product.current_stock,
-          estimated_cost: (product.max_stock - product.current_stock) * product.unit_cost,
-          savings: (product.max_stock - product.current_stock) * (product.last_purchase_price - product.unit_cost),
-          confidence_score: 72
-        });
-      }
-      
-      // FORECAST: Proyección de demanda
-      else if (daysToMinStock > 0 && daysToMinStock < 60) {
+      // PROYECCIÓN: Para productos con stock medio
+      else if (currentStock <= minStock * 2) {
         suggestions.push({
           id: `${product.id}-forecast`,
-          priority: 'low',
+          priority: 'medium',
           type: 'forecast',
-          product: product,
-          reason: `📊 PROYECCIÓN: Stock llegará al mínimo en ${Math.floor(daysToMinStock)} días. Planificar orden considerando lead time de ${product.lead_time} días.`,
-          suggested_quantity: product.moq,
-          optimal_quantity: product.moq * Math.ceil((product.max_stock - product.current_stock) / product.moq),
-          estimated_cost: product.moq * product.unit_cost,
-          days_until_stockout: Math.floor(daysOfStock),
-          confidence_score: 65
+          product: productForSuggestion,
+          reason: `📊 PROYECCIÓN: Stock medio (${currentStock} unidades). Considerar orden preventiva.`,
+          suggested_quantity: estimatedMOQ,
+          optimal_quantity: estimatedMOQ,
+          estimated_cost: estimatedMOQ * unitCost,
+          confidence_score: 70
         });
       }
     });
@@ -381,6 +333,14 @@ export default function Purchases() {
     });
     
     setSuggestions(suggestions);
+    
+    // Update metrics
+    setMetrics(prev => ({
+      ...prev,
+      criticalItems: suggestions.filter(s => s.priority === 'critical').length,
+      totalSavings: suggestions.reduce((sum, s) => sum + (s.savings || 0), 0),
+      optimizationScore: Math.min(95, 60 + (suggestions.length > 0 ? 20 : 0))
+    }));
   };
 
   const handleCreateOrderFromSuggestions = () => {
