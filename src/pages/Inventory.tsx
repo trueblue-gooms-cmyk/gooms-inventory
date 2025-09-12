@@ -47,7 +47,7 @@ interface InventoryItem {
 interface Movement {
   id: string;
   date: string;
-  type: 'entrada' | 'salida' | 'transferencia' | 'ajuste';
+  type: 'entrada' | 'salida' | 'transferencia' | 'ajuste' | 'producción' | 'devolución';
   product: string;
   quantity: number;
   from_location?: string;
@@ -162,9 +162,7 @@ export function Inventory() {
         .from('inventory_movements')
         .select(`
           *,
-          products:product_id (name),
-          from_location:from_location_id (name),
-          to_location:to_location_id (name)
+          products:product_id(name, sku)
         `)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -173,13 +171,14 @@ export function Inventory() {
         const formattedMovements: Movement[] = movementsData.map(movement => ({
           id: movement.id,
           date: movement.created_at,
-          type: movement.movement_type === 'entry' ? 'entrada' : 
-                movement.movement_type === 'exit' ? 'salida' :
-                movement.movement_type === 'transfer' ? 'transferencia' : 'ajuste',
+          type: movement.movement_type === 'entrada' ? 'entrada' : 
+                movement.movement_type === 'salida' ? 'salida' :
+                movement.movement_type === 'produccion' ? 'producción' : 
+                movement.movement_type === 'ajuste' ? 'ajuste' : 'devolución',
           product: movement.products?.name || 'Unknown Product',
           quantity: movement.quantity,
-          from_location: movement.from_location?.name,
-          to_location: movement.to_location?.name,
+          from_location: movement.from_location_id ? 'Ubicación Origen' : undefined,
+          to_location: movement.to_location_id ? 'Ubicación Destino' : undefined,
           user: 'System User', // Would need to join with user data
           notes: movement.notes || ''
         }));
@@ -385,7 +384,7 @@ export function Inventory() {
           </select>
 
           <button 
-            onClick={loadInventoryData}
+            onClick={() => window.location.reload()}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />

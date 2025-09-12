@@ -196,7 +196,7 @@ export default function Purchases() {
             reliability_score: 90, // Default value
             discount_volume: 0
           },
-          status: order.status,
+          status: order.status === 'pending_approval' ? 'pending' : order.status as any,
           items: order.purchase_order_items?.map(item => ({
             id: item.id,
             product_id: item.item_id,
@@ -417,7 +417,7 @@ export default function Purchases() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => generateSmartSuggestions()}
+            onClick={() => window.location.reload()}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             <RefreshCw className="w-4 h-4" />

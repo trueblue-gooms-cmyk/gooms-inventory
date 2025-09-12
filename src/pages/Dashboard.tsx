@@ -135,7 +135,7 @@ export default function Dashboard() {
         if (product.type) {
           const validTypes = ['materia_prima', 'empaques', 'gomas_granel', 'producto_final'];
           if (validTypes.includes(product.type)) {
-            const typeKey = product.type as keyof typeof locationStats[locationName]['items'];
+            const typeKey = product.type as keyof typeof locationStats[typeof locationName]['items'];
             locationStats[locationName].items[typeKey] += item.quantity_available;
           }
         }
