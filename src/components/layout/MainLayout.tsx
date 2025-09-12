@@ -71,6 +71,11 @@ export function MainLayout() {
     return 'U';
   };
 
+  // Safety check for profile
+  if (!profile) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -160,10 +165,10 @@ export function MainLayout() {
         {/* Global Header integrado */}
         <GlobalHeader
           user={{
-            id: profile.id,
-            email: profile.email,
-            full_name: profile.full_name,
-            role: profile.role as 'admin' | 'operator' | 'user'
+            id: profile?.id || '',
+            email: profile?.email || '',
+            full_name: profile?.full_name || '',
+            role: (profile?.role as 'admin' | 'operator' | 'user') || 'user'
           }}
           onTimeFilterChange={(days) => {
             console.log('Filtro cambiado a:', days, 'días');

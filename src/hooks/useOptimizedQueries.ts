@@ -18,7 +18,7 @@ export const QUERY_KEYS = {
 // Optimized inventory query with pagination
 export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
   return useQuery({
-    queryKey: QUERY_KEYS.movements(page, limit),
+    queryKey: ['inventory', page, limit],
     queryFn: async () => {
       const offset = (page - 1) * limit;
       

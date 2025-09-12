@@ -5,6 +5,7 @@ import { useAppStore } from './stores/useAppStore';
 import { NotificationProvider } from './components/ui/NotificationProvider';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import { Inventory } from './pages/Inventory';
@@ -38,7 +39,7 @@ function AppContent() {
   if (isLoading && location.pathname !== '/login') return <LoadingScreen />;
 
   return (
-    <>
+    <ErrorBoundary>
       <NotificationProvider />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -47,7 +48,11 @@ function AppContent() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="raw-materials" element={<RawMaterials />} />
-          <Route path="inventory" element={<Inventory />} />
+          <Route path="inventory" element={
+            <ErrorBoundary>
+              <Inventory />
+            </ErrorBoundary>
+          } />
           <Route path="production" element={
             <ProtectedRoute requiredRole="operator">
               <Production />
@@ -73,7 +78,7 @@ function AppContent() {
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </>
+    </ErrorBoundary>
   );
 }
 
