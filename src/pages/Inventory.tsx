@@ -384,7 +384,11 @@ export function Inventory() {
           </select>
 
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              // Force refresh real data
+              processRealInventoryData();
+              loadMovements();
+            }}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
