@@ -1080,6 +1080,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      detect_suspicious_access: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          activity_count: number
+          first_occurrence: string
+          last_occurrence: string
+          suspicious_activity: string
+          user_id: string
+        }[]
+      }
       get_inventory_safe: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1169,6 +1179,22 @@ export type Database = {
           unique_users: number
         }[]
       }
+      get_suppliers_admin_only: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          code: string
+          contact_name: string
+          email: string
+          id: string
+          is_active: boolean
+          lead_time_days: number
+          min_order_value: number
+          name: string
+          payment_terms: string
+          phone: string
+        }[]
+      }
       get_suppliers_safe: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1189,9 +1215,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_security_event: {
+        Args: {
+          description: string
+          event_type: string
+          metadata?: Json
+          severity: string
+        }
+        Returns: undefined
+      }
       log_sensitive_access: {
         Args: { operation: string; record_id?: string; table_name: string }
         Returns: undefined
+      }
+      mask_sensitive_data: {
+        Args: { data_type: string; original_value: string }
+        Returns: string
       }
       register_inventory_movement: {
         Args: {
