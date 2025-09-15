@@ -1112,6 +1112,16 @@ export type Database = {
           type: Database["public"]["Enums"]["location_type"]
         }[]
       }
+      get_locations_basic_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          id: string
+          is_active: boolean
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
+        }[]
+      }
       get_locations_detailed: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1214,6 +1224,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_admin_access: {
+        Args: { operation_type: string; table_accessed: string }
+        Returns: undefined
       }
       log_security_event: {
         Args: {

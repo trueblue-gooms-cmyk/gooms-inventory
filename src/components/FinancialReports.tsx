@@ -310,26 +310,26 @@ export const FinancialReports = ({
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Score</span>
-                        <Badge variant={data.status === 'excellent' || data.status === 'good' ? 'default' : 'destructive'}>
-                          {data.score.toFixed(0)}/100
-                        </Badge>
+                         <Badge variant={(data as any).status === 'excellent' || (data as any).status === 'good' ? 'default' : 'destructive'}>
+                           {(data as any).score?.toFixed(0) || 0}/100
+                         </Badge>
                       </div>
                       
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
-                          className={`h-2 rounded-full ${
-                            data.status === 'excellent' ? 'bg-green-500' :
-                            data.status === 'good' ? 'bg-blue-500' :
-                            data.status === 'fair' ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${Math.min(data.score, 100)}%` }}
+                           className={`h-2 rounded-full ${
+                             (data as any).status === 'excellent' ? 'bg-green-500' :
+                             (data as any).status === 'good' ? 'bg-blue-500' :
+                             (data as any).status === 'fair' ? 'bg-yellow-500' : 'bg-red-500'
+                           }`}
+                           style={{ width: `${Math.min((data as any).score || 0, 100)}%` }}
                         />
                       </div>
                       
                       <Alert>
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription className="text-sm">
-                          <strong>Recomendación:</strong> {data.recommendation}
+                          <strong>Recomendación:</strong> {(data as any).recommendation || 'Sin recomendación disponible'}
                         </AlertDescription>
                       </Alert>
                     </div>
