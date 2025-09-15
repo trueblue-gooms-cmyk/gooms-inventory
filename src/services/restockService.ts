@@ -12,6 +12,7 @@ export interface RestockOrder {
   priority: 'low' | 'medium' | 'high' | 'critical';
   notes?: string;
   approved_by?: string;
+  approved_date?: string;
   created_at: string;
   updated_at?: string;
   products?: { name: string; sku: string };

@@ -90,6 +90,18 @@ class SalesService {
   async getSalesByLocation(_startDate?: string, _endDate?: string): Promise<SalesByLocation[]> {
     return [];
   }
+
+  async getSalesSummary(_locationId?: string, _days?: number): Promise<{ totalSales: number; growthRate: number; totalTransactions: number; averageTicket: number; totalProfit: number; profitMargin: number; averageTransaction: number } | null> {
+    return {
+      totalSales: 0,
+      growthRate: 0,
+      totalTransactions: 0,
+      averageTicket: 0,
+      totalProfit: 0,
+      profitMargin: 0,
+      averageTransaction: 0
+    };
+  }
 }
 
 export const salesService = new SalesService();
