@@ -19,7 +19,7 @@ export const useFinancialData = (options: UseFinancialDataOptions = {}) => {
   const useCashFlow = (startDate: string, endDate: string) => {
     return useQuery({
       queryKey: ['cashFlow', startDate, endDate],
-      queryFn: () => financialService.getCashFlowEntries(startDate, endDate),
+      queryFn: () => financialService.getCashFlowByDateRange(new Date(startDate), new Date(endDate)),
       refetchInterval: autoRefresh ? refreshInterval : false,
       staleTime: 5 * 60 * 1000, // 5 minutos
     });
@@ -152,7 +152,7 @@ export const useFinancialData = (options: UseFinancialDataOptions = {}) => {
   const generateProjections = useMutation({
     mutationFn: (year: number) => financialService.generateCashFlowProjections(year),
     onSuccess: (projections) => {
-      if (projections.length > 0) {
+      if (projections && projections.length > 0) {
         queryClient.invalidateQueries({ queryKey: ['cashFlowProjections'] });
         
         toast({
@@ -272,7 +272,7 @@ export const useFinancialData = (options: UseFinancialDataOptions = {}) => {
   }, []);
 
   const calculatePayablesTotal = useCallback((accounts: PayableAccount[]) => {
-    return accounts.reduce((sum, account) => sum + account.amount_pending, 0);
+    return accounts.reduce((sum, account) => sum + (account.amount_pending || account.amount), 0);
   }, []);
 
   // 🔄 FUNCIONES DE REFETCH MANUAL

@@ -223,9 +223,9 @@ class OfflineStorageService {
     }
   }
 
-  private async syncInventoryMovement(data: unknown): Promise<{ success: boolean; error?: string }> {
+  private async syncInventoryMovement(data: any): Promise<{ success: boolean; error?: string }> {
     const { error } = await supabase
-      .rpc('create_inventory_movement', {
+      .rpc('register_inventory_movement', {
         p_product_id: data.product_id,
         p_movement_type: data.movement_type,
         p_quantity: data.quantity,
@@ -239,7 +239,7 @@ class OfflineStorageService {
     return { success: !error, error: error?.message };
   }
 
-  private async syncProductUpdate(data: unknown): Promise<{ success: boolean; error?: string }> {
+  private async syncProductUpdate(data: any): Promise<{ success: boolean; error?: string }> {
     const { error } = await supabase
       .from('products')
       .update(data.updates)
@@ -248,15 +248,16 @@ class OfflineStorageService {
     return { success: !error, error: error?.message };
   }
 
-  private async syncReceptionCreate(data: unknown): Promise<{ success: boolean; error?: string }> {
+  private async syncReceptionCreate(data: any): Promise<{ success: boolean; error?: string }> {
+    // Since receptions table doesn't exist, we'll use inventory_movements instead
     const { error } = await supabase
-      .from('receptions')
+      .from('inventory_movements')
       .insert(data);
 
     return { success: !error, error: error?.message };
   }
 
-  private async syncLocationUpdate(data: unknown): Promise<{ success: boolean; error?: string }> {
+  private async syncLocationUpdate(data: any): Promise<{ success: boolean; error?: string }> {
     const { error } = await supabase
       .from('locations')
       .update(data.updates)
@@ -293,10 +294,10 @@ class OfflineStorageService {
 
       // Inventario actual
       const { data: inventory } = await supabase
-        .from('inventory')
+        .from('inventory_current')
         .select(`
           *,
-          product:products(name, sku, category),
+          product:products(name, sku, type),
           location:locations(name, type)
         `)
         .limit(2000);
@@ -327,7 +328,7 @@ class OfflineStorageService {
     return {
       hasPendingActions: pendingActions.length > 0,
       pendingCount: pendingActions.length,
-      lastSync,
+      lastSync: lastSync as number | null,
       isOnline: navigator.onLine
     };
   }
