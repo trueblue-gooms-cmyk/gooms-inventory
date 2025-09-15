@@ -76,12 +76,12 @@ function AppContent() {
               <Reception />
             </ProtectedRoute>
           } />
-          <Route path="financial" element={
+          {/* <Route path="financial" element={
             <ProtectedRoute requiredRole="operator">
               <Financial />
             </ProtectedRoute>
-          } />
-          <Route path="projections" element={<Projections />} />
+          } /> */}
+          {/* <Route path="projections" element={<Projections />} /> */}
           {/* <Route path="reports" element={<Reports />} /> */}
           <Route path="settings" element={
             <ProtectedRoute requiredRole="admin">

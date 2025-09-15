@@ -28,6 +28,7 @@ import { useErrorHandler } from '@/utils/errorHandler';
 import { formatCurrency, formatNumber, getStatusColor, getStatusLabel } from '@/utils/formatters';
 import { useSecurity } from '@/utils/security';
 import { useValidation, validationRules } from '@/utils/validators';
+import { useCanEdit } from '@/hooks/useSecureAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Tipos unificados para todos los productos
@@ -118,6 +119,7 @@ export function UnifiedProducts() {
   const { toast } = useToast();
   const { handleAsyncError } = useErrorHandler();
   const { canPerform } = useSecurity();
+  const canEdit = useCanEdit();
   const modal = useFormModal<UnifiedProduct>();
   const importModal = useImportModal();
 
@@ -496,7 +498,7 @@ export function UnifiedProducts() {
               Gestión unificada de materias primas, empaques, gomas al granel y productos finales
             </p>
           </div>
-          {canPerform('create_product') && (
+          {canEdit && (
             <div className="flex gap-2">
               <button
                 onClick={() => importModal.openImportModal()}
@@ -592,7 +594,7 @@ export function UnifiedProducts() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Costo</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                  {canPerform('update_product') && (
+                  {canEdit && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                   )}
                 </tr>
@@ -652,7 +654,7 @@ export function UnifiedProducts() {
                             {getStatusLabel(stockStatus)}
                           </span>
                         </td>
-                        {canPerform('update_product') && (
+                        {canEdit && (
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
                               <button
@@ -662,7 +664,7 @@ export function UnifiedProducts() {
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              {canPerform('delete_product') && (
+                              {canEdit && (
                                 <button
                                   onClick={() => handleDelete(product)}
                                   className="text-red-600 hover:text-red-800"

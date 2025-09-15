@@ -35,16 +35,21 @@ export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
             .from('inventory')
             .select(`
               *,
-              products!inventory_product_id_fkey(id, name, sku, type, unit_cost, min_stock_units),
-              locations!inventory_location_id_fkey(id, name, code)
+              products:product_id(id, name, sku, type, unit_cost, min_stock_units),
+              locations:location_id(id, name, code)
             `, { count: 'exact' })
             .range(offset, offset + limit - 1)
             .order('created_at', { ascending: false });
 
           if (fallbackError) throw fallbackError;
 
+          // Ensure all items have proper structure
+          const sanitizedData = (fallbackData || []).filter(item =>
+            item && typeof item === 'object'
+          );
+
           return {
-            data: fallbackData || [],
+            data: sanitizedData,
             totalCount: fallbackCount || 0,
             page,
             limit,
@@ -65,8 +70,13 @@ export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
 
         if (error) throw error;
 
+        // Ensure all items have proper structure
+        const sanitizedData = (data || []).filter(item =>
+          item && typeof item === 'object'
+        );
+
         return {
-          data: data || [],
+          data: sanitizedData,
           totalCount: count || 0,
           page,
           limit,

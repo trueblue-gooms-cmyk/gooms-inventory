@@ -208,8 +208,8 @@ export function Reception() {
     }
   };
 
-  // Cargar items de la orden seleccionada con datos de prueba
-  const loadOrderItems = async (orderId: string) => {
+  // Helper function to get order items data
+  const getOrderItemsData = async (orderId: string): Promise<OrderItem[]> => {
     try {
       const { data, error } = await supabase
         .from('purchase_order_items')
@@ -241,8 +241,7 @@ export function Reception() {
           quality_status: 'pending'
         }));
       } else {
-        // Usar datos de prueba según el tipo de orden
-        console.log('Usando items de prueba para orden:', orderId);
+        // Use the same demo data logic as loadOrderItems
         switch (orderId) {
           case 'demo-1':
             items = [
@@ -350,11 +349,11 @@ export function Reception() {
         }
       }
 
-      setOrderItems(items);
+      return items;
     } catch (err: unknown) {
       console.error('Error loading order items:', err);
-      // Datos de prueba como fallback
-      const fallbackItems: OrderItem[] = [
+      // Return fallback items
+      return [
         {
           id: 'fallback-1',
           product_id: 'prod-fallback',
@@ -367,8 +366,16 @@ export function Reception() {
           quality_status: 'pending'
         }
       ];
-      setOrderItems(fallbackItems);
+    }
+  };
 
+  // Cargar items de la orden seleccionada con datos de prueba
+  const loadOrderItems = async (orderId: string) => {
+    try {
+      const items = await getOrderItemsData(orderId);
+      setOrderItems(items);
+    } catch (err: unknown) {
+      console.error('Error loading order items:', err);
       toast({
         title: "Usando datos de prueba",
         description: "Mostrando items de demostración",
@@ -382,9 +389,22 @@ export function Reception() {
     try {
       setIsLoading(true);
 
+      // Validar que hay items para procesar
+      const itemsToProcess = reception.received_items.filter(item =>
+        item.received_quantity > 0 && item.quality_status === 'approved'
+      );
+
+      if (itemsToProcess.length === 0) {
+        toast({
+          title: "Sin items para procesar",
+          description: "No se han especificado cantidades recibidas o todos los items fueron rechazados",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // 1. Crear movimientos de inventario para cada item recibido
-      for (const item of reception.received_items) {
-        if (item.received_quantity > 0 && item.quality_status === 'approved') {
+      for (const item of itemsToProcess) {
           // Crear movimiento de entrada al inventario
           const movementData = {
             movement_type: 'entrada',
@@ -737,9 +757,18 @@ export function Reception() {
                         onClick={async () => {
                           setSelectedOrder(order);
                           await loadOrderItems(order.id);
+
+                          // Initialize reception data with empty values for all items
+                          const items = await getOrderItemsData(order.id);
                           setReceptionData({
                             order_id: order.id,
-                            received_items: [],
+                            received_items: items.map(item => ({
+                              item_id: item.product_id,
+                              received_quantity: 0,
+                              quality_status: 'approved' as const,
+                              location_id: 'bodega-central',
+                              quality_notes: ''
+                            })),
                             reception_notes: '',
                             received_by: user?.id || ''
                           });
@@ -796,41 +825,32 @@ export function Reception() {
                             placeholder="Cant. recibida"
                             max={item.ordered_quantity}
                             className="w-24 px-2 py-1 border rounded text-sm"
+                            value={receptionData.received_items.find(ri => ri.item_id === item.product_id)?.received_quantity || 0}
                             onChange={(e) => {
                               const quantity = parseInt(e.target.value) || 0;
-                              const currentItem = receptionData.received_items.find(ri => ri.item_id === item.product_id);
                               setReceptionData(prev => ({
                                 ...prev,
-                                received_items: [
-                                  ...prev.received_items.filter(ri => ri.item_id !== item.product_id),
-                                  {
-                                    item_id: item.product_id,
-                                    received_quantity: quantity,
-                                    quality_status: currentItem?.quality_status || 'approved',
-                                    location_id: currentItem?.location_id || 'bodega-central',
-                                    quality_notes: currentItem?.quality_notes
-                                  }
-                                ]
+                                received_items: prev.received_items.map(ri =>
+                                  ri.item_id === item.product_id
+                                    ? { ...ri, received_quantity: quantity }
+                                    : ri
+                                )
                               }));
                             }}
                           />
                           <select
                             className="px-2 py-1 border rounded text-sm"
+                            value={receptionData.received_items.find(ri => ri.item_id === item.product_id)?.quality_status || 'approved'}
                             onChange={(e) => {
                               const status = e.target.value as 'approved' | 'rejected';
-                              const currentItem = receptionData.received_items.find(ri => ri.item_id === item.product_id);
-                              if (currentItem) {
-                                setReceptionData(prev => ({
-                                  ...prev,
-                                  received_items: [
-                                    ...prev.received_items.filter(ri => ri.item_id !== item.product_id),
-                                    {
-                                      ...currentItem,
-                                      quality_status: status
-                                    }
-                                  ]
-                                }));
-                              }
+                              setReceptionData(prev => ({
+                                ...prev,
+                                received_items: prev.received_items.map(ri =>
+                                  ri.item_id === item.product_id
+                                    ? { ...ri, quality_status: status }
+                                    : ri
+                                )
+                              }));
                             }}
                           >
                             <option value="approved">✓ Aprobado</option>
@@ -838,23 +858,18 @@ export function Reception() {
                           </select>
                           <select
                             className="px-2 py-1 border rounded text-sm"
+                            value={receptionData.received_items.find(ri => ri.item_id === item.product_id)?.location_id || 'bodega-central'}
                             onChange={(e) => {
                               const locationId = e.target.value;
-                              const currentItem = receptionData.received_items.find(ri => ri.item_id === item.product_id);
-                              if (currentItem) {
-                                setReceptionData(prev => ({
-                                  ...prev,
-                                  received_items: [
-                                    ...prev.received_items.filter(ri => ri.item_id !== item.product_id),
-                                    {
-                                      ...currentItem,
-                                      location_id: locationId
-                                    }
-                                  ]
-                                }));
-                              }
+                              setReceptionData(prev => ({
+                                ...prev,
+                                received_items: prev.received_items.map(ri =>
+                                  ri.item_id === item.product_id
+                                    ? { ...ri, location_id: locationId }
+                                    : ri
+                                )
+                              }));
                             }}
-                            defaultValue="bodega-central"
                           >
                             <option value="bodega-central">Bodega Central</option>
                             <option value="pos-colina">POS-Colina</option>

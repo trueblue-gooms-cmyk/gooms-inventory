@@ -182,11 +182,11 @@ export function Inventory() {
     try {
       if (!inventoryData?.data) return [];
 
-      return inventoryData.data.map(item => {
-        const product = item.products;
-        const location = item.locations;
-
-        if (!product || !location) return null;
+      return inventoryData.data
+        .filter(item => item && item.products && item.locations) // Filter out invalid items
+        .map(item => {
+          const product = item.products;
+          const location = item.locations;
 
         const quantity = item.quantity_available || 0;
         const minStock = product.min_stock_units || 0;

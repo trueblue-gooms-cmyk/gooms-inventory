@@ -120,6 +120,7 @@ export function InventoryMovements() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<MovementType | 'all'>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'movements' | 'receptions'>('movements');
 
   const { toast } = useToast();
   const { handleAsyncError } = useErrorHandler();
@@ -456,7 +457,42 @@ export function InventoryMovements() {
           )}
         </div>
 
-        {/* Métricas rápidas */}
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('movements')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'movements'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <ArrowRight className="w-4 h-4" />
+                Movimientos
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('receptions')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'receptions'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <PackageCheck className="w-4 h-4" />
+                Recepciones
+              </div>
+            </button>
+          </nav>
+        </div>
+
+        {/* Content based on active tab */}
+        {activeTab === 'movements' && (
+          <>
+            {/* Métricas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {MOVEMENT_TYPES.map(type => {
             const count = movements.filter(m => m.movement_type === type.value).length;
@@ -633,6 +669,24 @@ export function InventoryMovements() {
             </table>
           </div>
         </div>
+          </>
+        )}
+
+        {/* Receptions Tab Content */}
+        {activeTab === 'receptions' && (
+          <div className="text-center py-16">
+            <PackageCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestión de Recepciones</h3>
+            <p className="text-gray-600 mb-6">
+              La funcionalidad completa de recepciones se encuentra en el módulo dedicado de Recepción.
+              <br />
+              Para procesar órdenes de compra y recepciones, utiliza el módulo de Recepción desde el menú lateral.
+            </p>
+            <p className="text-sm text-gray-500">
+              Los movimientos de entrada generados por las recepciones aparecerán automáticamente en la pestaña "Movimientos" arriba.
+            </p>
+          </div>
+        )}
 
         {/* Modal de nuevo movimiento */}
         {modal.isOpen && (
