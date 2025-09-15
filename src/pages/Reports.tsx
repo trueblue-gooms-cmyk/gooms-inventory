@@ -19,11 +19,11 @@ import {
 import { LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface ReportData {
-  inventory: any[];
-  sales: any[];
-  production: any[];
-  purchases: any[];
-  movements: any[];
+  inventory: unknown[];
+  sales: unknown[];
+  production: unknown[];
+  purchases: unknown[];
+  movements: unknown[];
 }
 
 export function Reports() {

@@ -8,7 +8,7 @@ export const useSecureData = () => {
 
   // Safe data access for all authenticated users (no sensitive info)
   const useProductsSafe = () => {
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ export const useSecureData = () => {
   };
 
   const useRawMaterialsSafe = () => {
-    const [rawMaterials, setRawMaterials] = useState<any[]>([]);
+    const [rawMaterials, setRawMaterials] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +56,7 @@ export const useSecureData = () => {
   };
 
   const useLocationsSafe = () => {
-    const [locations, setLocations] = useState<any[]>([]);
+    const [locations, setLocations] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +81,7 @@ export const useSecureData = () => {
   };
 
   const useInventorySafe = () => {
-    const [inventory, setInventory] = useState<any[]>([]);
+    const [inventory, setInventory] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -106,7 +106,7 @@ export const useSecureData = () => {
 
   // Full data access for admin/operators (includes sensitive info)
   const useProductsFull = () => {
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -138,7 +138,7 @@ export const useSecureData = () => {
   };
 
   const useRawMaterialsFull = () => {
-    const [rawMaterials, setRawMaterials] = useState<any[]>([]);
+    const [rawMaterials, setRawMaterials] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -171,7 +171,7 @@ export const useSecureData = () => {
 
   // Full location access for admin/operators (includes sensitive details)
   const useLocationsDetailed = () => {
-    const [locations, setLocations] = useState<any[]>([]);
+    const [locations, setLocations] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -229,7 +229,7 @@ export const useSecureData = () => {
       }
     };
 
-    const createPurchaseOrder = async (orderData: any) => {
+    const createPurchaseOrder = async (orderData: unknown) => {
       if (!['admin', 'operator'].includes(userRole || '')) {
         throw new Error('Insufficient permissions for Alegra integration');
       }
@@ -258,7 +258,7 @@ export const useSecureData = () => {
 
   // Suppliers safe access
   const useSuppliersSafe = () => {
-    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [suppliers, setSuppliers] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

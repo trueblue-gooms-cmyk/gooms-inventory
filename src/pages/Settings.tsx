@@ -19,7 +19,7 @@ import { useAppStore } from '@/stores/useAppStore';
 
 interface AppSetting {
   key: string;
-  value: any;
+  value: unknown;
   description: string;
   is_sensitive: boolean;
 }
@@ -77,7 +77,7 @@ export function Settings() {
 
       if (data) {
         const settingsMap: Record<string, AppSetting> = {};
-        const formValues: any = { ...formData };
+        const formValues: unknown = { ...formData };
         
         data.forEach(setting => {
           settingsMap[setting.key] = {

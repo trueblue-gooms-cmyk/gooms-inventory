@@ -105,7 +105,7 @@ export function Projections() {
     }
   };
 
-  const calculateProjections = (sales: any[], products: any[], inventory: any[]) => {
+  const calculateProjections = (sales: unknown[], products: unknown[], inventory: unknown[]) => {
     return products.map(product => {
       // Calcular ventas promedio
       const productSales = sales.filter(s => s.product_id === product.id);
@@ -161,7 +161,7 @@ export function Projections() {
     });
   };
 
-  const processHistoricalData = (sales: any[]) => {
+  const processHistoricalData = (sales: unknown[]) => {
     const monthlyData: Record<string, number> = {};
     
     sales.forEach(sale => {

@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { label: 'Inventario', href: '/inventory', icon: Box, permission: 'all' },
   { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
   { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },
+  { label: 'Recepción', href: '/reception', icon: Box, permission: 'edit' },
   { label: 'Proyecciones', href: '/projections', icon: Box, permission: 'all' },
   { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
   { label: 'Configuración', href: '/settings', icon: Box, permission: 'admin' },
@@ -35,10 +36,6 @@ export function MainLayout() {
   const { sidebarOpen, toggleSidebar, signOut, user } = useAppStore();
   const [isMobile, setIsMobile] = useState(false);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -51,6 +48,10 @@ export function MainLayout() {
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const filteredNavItems = navItems.filter((item) => {
     if (item.permission === 'all') return true;

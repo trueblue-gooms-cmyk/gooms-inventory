@@ -21,7 +21,7 @@ interface Location {
 }
 
 interface ProductionBatchFormProps {
-  onSuccess?: (batch: any) => void;
+  onSuccess?: (batch: unknown) => void;
   onCancel?: () => void;
 }
 
@@ -109,32 +109,32 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
       { 
         field: 'batch_number', 
         value: formData.batch_number, 
-        validators: [(v: any) => ErrorHandler.validateRequired(v, 'Número de lote')] 
+        validators: [(v: unknown) => ErrorHandler.validateRequired(v, 'Número de lote')] 
       },
       { 
         field: 'product_id', 
         value: formData.product_id, 
-        validators: [(v: any) => ErrorHandler.validateRequired(v, 'Producto')] 
+        validators: [(v: unknown) => ErrorHandler.validateRequired(v, 'Producto')] 
       },
       { 
         field: 'location_id', 
         value: formData.location_id, 
-        validators: [(v: any) => ErrorHandler.validateRequired(v, 'Ubicación')] 
+        validators: [(v: unknown) => ErrorHandler.validateRequired(v, 'Ubicación')] 
       },
       { 
         field: 'planned_quantity', 
         value: formData.planned_quantity, 
         validators: [
-          (v: any) => ErrorHandler.validateRequired(v, 'Cantidad planificada'),
-          (v: any) => ErrorHandler.validateNumber(v, 'Cantidad planificada', 1)
+          (v: unknown) => ErrorHandler.validateRequired(v, 'Cantidad planificada'),
+          (v: unknown) => ErrorHandler.validateNumber(v, 'Cantidad planificada', 1)
         ]
       },
       { 
         field: 'production_date', 
         value: formData.production_date, 
         validators: [
-          (v: any) => ErrorHandler.validateRequired(v, 'Fecha de producción'),
-          (v: any) => ErrorHandler.validateDate(v, 'Fecha de producción')
+          (v: unknown) => ErrorHandler.validateRequired(v, 'Fecha de producción'),
+          (v: unknown) => ErrorHandler.validateDate(v, 'Fecha de producción')
         ]
       }
     ];
@@ -164,7 +164,7 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
             production_date: formData.production_date,
             expiry_date: formData.expiry_date,
             notes: formData.notes,
-            status: 'planned' as any,
+            status: 'planned' as 'planned' | 'in_progress' | 'completed' | 'cancelled',
             created_at: new Date().toISOString()
           })
           .select()

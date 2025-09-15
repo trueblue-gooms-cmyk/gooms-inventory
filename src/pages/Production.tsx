@@ -172,7 +172,7 @@ export function Production() {
 
   const handleStatusChange = async (batchId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus };
+      const updateData: unknown = { status: newStatus };
       
       if (newStatus === 'in_production') {
         updateData.started_at = new Date().toISOString();

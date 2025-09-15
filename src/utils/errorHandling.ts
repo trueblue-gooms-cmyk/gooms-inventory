@@ -92,7 +92,7 @@ export class ErrorHandler {
         this.showSuccess(successMessage);
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error in ${context}:`, error);
       
       if (error.code) {
@@ -109,7 +109,7 @@ export class ErrorHandler {
   }
 
   // Validaciones de formularios
-  static validateRequired(value: any, fieldName: string): string | null {
+  static validateRequired(value: unknown, fieldName: string): string | null {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       return `${fieldName} es requerido`;
     }
@@ -137,7 +137,7 @@ export class ErrorHandler {
     return null;
   }
 
-  static validateNumber(value: any, fieldName: string, min?: number, max?: number): string | null {
+  static validateNumber(value: unknown, fieldName: string, min?: number, max?: number): string | null {
     const num = Number(value);
     
     if (isNaN(num)) {
@@ -174,7 +174,7 @@ export function useErrorHandler() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const validateField = (fieldName: string, value: any, validations: Array<(value: any) => string | null>) => {
+  const validateField = (fieldName: string, value: unknown, validations: Array<(value: unknown) => string | null>) => {
     const errorMessage = validations.find(validation => {
       const result = validation(value);
       return result !== null;

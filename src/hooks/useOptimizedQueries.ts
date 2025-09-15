@@ -150,7 +150,7 @@ export const useCreateMovement = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (movementData: any) => {
+    mutationFn: async (movementData: unknown) => {
       const { data, error } = await supabase
         .from('inventory_movements')
         .insert(movementData)
@@ -170,7 +170,7 @@ export const useCreateMovement = () => {
         description: "El movimiento de inventario se ha guardado correctamente",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo registrar el movimiento",

@@ -97,7 +97,7 @@ export function Products() {
   };
 
   // === NUEVO: crear producto con verificación de unicidad y manejo de 23505 ===
-  const createProduct = async (productData: any) => {
+  const createProduct = async (productData: unknown) => {
     try {
       // Verificar si el SKU ya existe antes de crear
       const { data: existingProduct } = await supabase
@@ -194,7 +194,7 @@ export function Products() {
         // Crear
         await createProduct(productData);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error saving product:', e);
       alert(e?.message || 'Error al guardar el producto');
     }

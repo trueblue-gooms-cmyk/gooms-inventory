@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Bell, X, Package, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,9 +51,9 @@ export function NotificationBell() {
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setLoading(true);
     try {
       // Load notifications from the database
@@ -79,7 +79,7 @@ export function NotificationBell() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const markAsRead = async (id: string) => {
     try {

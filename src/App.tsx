@@ -17,7 +17,11 @@ import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { Products } from './pages/Products';
 import { RawMaterials } from './pages/RawMaterials';
+import { Reception } from './pages/Reception';
+import { Financial } from './pages/Financial';
 import { LoadingScreen } from './components/LoadingScreen';
+import { OfflineSyncStatus } from './components/OfflineSyncStatus';
+import { MobileBottomNavigation } from './components/MobileBottomNavigation';
 import { supabase } from './integrations/supabase/client';
 
 function AppContent() {
@@ -34,13 +38,14 @@ function AppContent() {
       }
     });
     return () => authListener?.subscription.unsubscribe();
-  }, []);
+  }, [checkSession]);
 
   if (isLoading && location.pathname !== '/login') return <LoadingScreen />;
 
   return (
     <ErrorBoundary>
       <NotificationProvider />
+      <OfflineSyncStatus variant="floating" />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<MainLayout />}>
@@ -63,6 +68,16 @@ function AppContent() {
               <Purchases />
             </ProtectedRoute>
           } />
+          <Route path="reception" element={
+            <ProtectedRoute requiredRole="operator">
+              <Reception />
+            </ProtectedRoute>
+          } />
+          <Route path="financial" element={
+            <ProtectedRoute requiredRole="operator">
+              <Financial />
+            </ProtectedRoute>
+          } />
           <Route path="projections" element={<Projections />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={
@@ -78,6 +93,7 @@ function AppContent() {
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+      <MobileBottomNavigation />
     </ErrorBoundary>
   );
 }

@@ -34,7 +34,7 @@ export const useAdvancedErrorHandler = () => {
       const result = await operation();
       setRetryCount(0);
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage = err.message || 'Ha ocurrido un error inesperado';
       
       if (logError) {
@@ -69,7 +69,7 @@ export const useAdvancedErrorHandler = () => {
         const result = await operation();
         setRetryCount(0);
         return result;
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (attempt === maxRetries) {
           // Last attempt failed
           const errorMessage = `Operación falló después de ${maxRetries + 1} intentos: ${err.message}`;
@@ -116,7 +116,7 @@ export const useAdvancedErrorHandler = () => {
   }, [handleAsyncOperation, toast]);
 
   // Auto-recovery for authentication errors
-  const handleAuthError = useCallback(async (error: any) => {
+  const handleAuthError = useCallback(async (error: unknown) => {
     if (error.message?.includes('JWT') || error.message?.includes('auth')) {
       toast({
         title: "Sesión expirada",
@@ -157,7 +157,7 @@ export const useAdvancedErrorHandler = () => {
 };
 
 // Global error boundary helper
-export const logGlobalError = (error: Error, errorInfo?: any) => {
+export const logGlobalError = (error: Error, errorInfo?: unknown) => {
   console.error('Global error caught:', error, errorInfo);
   
   // In production, send to error tracking service

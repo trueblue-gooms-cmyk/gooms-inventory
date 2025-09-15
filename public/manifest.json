@@ -1,0 +1,158 @@
+{
+  "name": "Gooms Inventory - Gestión de Inventario",
+  "short_name": "Gooms",
+  "description": "Sistema completo de gestión de inventario multi-ubicación con control de vencimientos, producción y reportes en tiempo real",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "id": "/",
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "es",
+  "dir": "ltr",
+  
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard principal con métricas en tiempo real"
+    },
+    {
+      "src": "/screenshots/mobile-inventory.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Gestión de inventario móvil"
+    }
+  ],
+  
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard", 
+      "description": "Ver dashboard principal con métricas",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/shortcut-dashboard.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Inventario",
+      "short_name": "Inventario",
+      "description": "Gestionar inventario y stock", 
+      "url": "/inventory",
+      "icons": [
+        {
+          "src": "/icons/shortcut-inventory.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Recepción",
+      "short_name": "Recepción",
+      "description": "Procesar recepción de mercancía",
+      "url": "/reception", 
+      "icons": [
+        {
+          "src": "/icons/shortcut-reception.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Alertas",
+      "short_name": "Alertas",
+      "description": "Ver alertas de vencimientos",
+      "url": "/inventory?tab=expiry",
+      "icons": [
+        {
+          "src": "/icons/shortcut-alerts.png", 
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  
+  "display_override": [
+    "window-controls-overlay",
+    "standalone", 
+    "minimal-ui"
+  ],
+  
+  "related_applications": [],
+  "prefer_related_applications": false,
+  
+  "protocol_handlers": [
+    {
+      "protocol": "web+gooms",
+      "url": "/?action=%s"
+    }
+  ],
+  
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

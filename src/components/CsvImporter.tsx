@@ -19,7 +19,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
   const [file, setFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<any[]>([]);
+  const [preview, setPreview] = useState<unknown[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
 
@@ -49,7 +49,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
         
         const data = lines.slice(1).map(line => {
           const values = line.split(',').map(v => v.trim());
-          const row: any = {};
+          const row: unknown = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || '';
           });
@@ -83,7 +83,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
   const sanitizeForCsv = (value: string) => {
     // Prevent CSV injection by removing dangerous characters
     if (typeof value !== 'string') return value;
-    return value.replace(/^[=@+\-]/, "'").replace(/[\r\n]/g, ' ');
+    return value.replace(/^[=@+-]/, "'").replace(/[\r\n]/g, ' ');
   };
 
   const handleImport = async () => {
@@ -95,7 +95,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
     try {
       // Mapear datos según la configuración
       const mappedData = preview.map(row => {
-        const newRow: any = {};
+        const newRow: unknown = {};
         Object.entries(mapping).forEach(([field, csvColumn]) => {
           if (csvColumn && row[csvColumn] !== undefined) {
             let value = row[csvColumn];
@@ -129,7 +129,7 @@ export function CsvImporter({ tableName, columns, onSuccess, onClose }: CsvImpor
       }
       
       // Insertar en la base de datos usando casting para tabla dinámica
-      const { error } = await (supabase as any).from(tableName).insert(mappedData);
+      const { error } = await (supabase as unknown as { from: (table: string) => { insert: (data: unknown[]) => Promise<{ error?: unknown }> } }).from(tableName).insert(mappedData);
       
       if (error) throw error;
       

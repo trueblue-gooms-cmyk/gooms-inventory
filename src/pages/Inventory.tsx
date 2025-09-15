@@ -28,6 +28,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useUserRole } from '@/hooks/useSecureAuth';
 import { OptimizedInventoryTable } from '@/components/OptimizedInventoryTable';
 import { InventoryMovementModal } from '@/components/InventoryMovementModal';
+import ExpiryManagement from '@/components/ExpiryManagement';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Tipos para el inventario
@@ -88,6 +89,7 @@ export function Inventory() {
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'expiry'>('inventory');
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -295,6 +297,36 @@ export function Inventory() {
           </div>
         </div>
 
+        {/* Pestañas de navegación */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              activeTab === 'inventory'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Inventario General
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('expiry')}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              activeTab === 'expiry'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Control de Vencimientos
+            </div>
+          </button>
+        </div>
+
         {/* Métricas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
@@ -387,12 +419,16 @@ export function Inventory() {
           </div>
         </div>
 
-        {/* Optimized Inventory Table */}
-        <OptimizedInventoryTable 
-          searchQuery={searchQuery}
-          selectedLocation={selectedLocation}
-          selectedCategory={selectedCategory}
-        />
+        {/* Contenido condicional basado en pestaña activa */}
+        {activeTab === 'inventory' ? (
+          <OptimizedInventoryTable 
+            searchQuery={searchQuery}
+            selectedLocation={selectedLocation}
+            selectedCategory={selectedCategory}
+          />
+        ) : (
+          <ExpiryManagement />
+        )}
 
         {/* Modal de movimiento */}
         {showMovementModal && selectedItem && (

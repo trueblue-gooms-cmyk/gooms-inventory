@@ -11,6 +11,12 @@ interface RealtimeNotification {
   message: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   created_at: string;
+  data?: {
+    product_id?: string;
+    location_name?: string;
+    days_until_expiry?: number;
+    [key: string]: unknown;
+  };
 }
 
 export const useRealtimeNotifications = () => {
@@ -34,17 +40,34 @@ export const useRealtimeNotifications = () => {
           const newNotification = payload.new as RealtimeNotification;
           setLastNotification(newNotification);
           
-          // Show toast based on priority
-          const toastConfig = {
+          // Configuración específica para notificaciones de vencimiento
+          const toastConfig: unknown = {
             title: newNotification.title,
             description: newNotification.message,
-            variant: newNotification.priority === 'critical' ? 'destructive' as const : 'default' as const,
           };
+
+          // Personalizar según el tipo de notificación
+          if (newNotification.type === 'expiry_alert') {
+            toastConfig.variant = 'destructive';
+            toastConfig.duration = 10000; // 10 segundos para alertas críticas
+            
+            // Agregar información adicional si está disponible
+            if (newNotification.data?.days_until_expiry !== undefined) {
+              const days = newNotification.data.days_until_expiry;
+              const urgencyText = days <= 1 ? 'URGENTE' : days <= 3 ? 'MUY IMPORTANTE' : 'IMPORTANTE';
+              toastConfig.title = `🚨 ${urgencyText}: ${newNotification.title}`;
+            }
+          } else {
+            toastConfig.variant = newNotification.priority === 'critical' ? 'destructive' as const : 'default' as const;
+          }
 
           toast(toastConfig);
 
-          // Invalidate notifications cache
+          // Invalidar cache de notificaciones e inventario para refrescar datos
           queryClient.invalidateQueries({ queryKey: QUERY_KEYS.notifications });
+          if (newNotification.type === 'expiry_alert') {
+            queryClient.invalidateQueries({ queryKey: ['inventory-rotation'] });
+          }
         }
       )
       .subscribe((status) => {
