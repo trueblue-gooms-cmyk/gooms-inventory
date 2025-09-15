@@ -84,8 +84,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 Ha ocurrido un error inesperado. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo.
               </p>
 
-              {/* Error details (only in development) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {/* Error details (always show for debugging) */}
+              {this.state.error && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <p className="text-sm font-mono text-gray-700 mb-2">
                     {this.state.error.toString()}

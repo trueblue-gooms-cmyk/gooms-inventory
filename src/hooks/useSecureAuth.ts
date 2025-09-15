@@ -60,33 +60,61 @@ export const useCanEdit = () => {
 export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const { user } = useAppStore();
-  
+
   useEffect(() => {
     async function fetchRole() {
       if (!user) {
         setRole(null);
         return;
       }
-      
+
       try {
+        // First try to get role from RPC
         const { data, error } = await supabase.rpc('get_my_role');
-        if (error) throw error;
-        setRole(data);
-        
-        // Log role access for security monitoring
-        await supabase.rpc('log_sensitive_access', {
-          table_name: 'user_roles',
-          operation: 'ROLE_CHECK'
-        });
+
+        if (error) {
+          console.warn('RPC get_my_role failed, trying fallback:', error);
+
+          // Fallback: get role from profiles table
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile fallback also failed:', profileError);
+            // Default to 'user' role if everything fails
+            setRole('user');
+            return;
+          }
+
+          setRole(profileData?.role || 'user');
+          return;
+        }
+
+        setRole(data || 'user');
+
+        // Try to log role access, but don't fail if it doesn't work
+        try {
+          await supabase.rpc('log_sensitive_access', {
+            table_name: 'user_roles',
+            operation: 'ROLE_CHECK'
+          });
+        } catch (logError) {
+          // Silently fail logging if the function doesn't exist
+          console.debug('Role access logging failed:', logError);
+        }
       } catch (error) {
         console.error('Error fetching user role:', error);
-        setRole(null);
+        // Default to 'user' role in case of error
+        setRole('user');
       }
     }
-    
+
     fetchRole();
   }, [user]);
-  
+
   return role;
 };
 

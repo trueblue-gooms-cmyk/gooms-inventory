@@ -20,29 +20,66 @@ export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
   return useQuery({
     queryKey: ['inventory', page, limit],
     queryFn: async () => {
-      const offset = (page - 1) * limit;
-      
-      const { data, error, count } = await supabase
-        .from('inventory_current')
-        .select(`
-          *,
-          products:product_id(id, name, sku, type, unit_cost, min_stock_units),
-          locations:location_id(id, name, code)
-        `, { count: 'exact' })
-        .range(offset, offset + limit - 1)
-        .order('last_updated', { ascending: false });
+      try {
+        const offset = (page - 1) * limit;
 
-      if (error) throw error;
-      
-      return {
-        data: data || [],
-        totalCount: count || 0,
-        page,
-        limit,
-        totalPages: Math.ceil((count || 0) / limit)
-      };
+        // First, check if the table exists by trying to get count
+        const { count, error: countError } = await supabase
+          .from('inventory_current')
+          .select('*', { count: 'exact', head: true });
+
+        if (countError) {
+          console.error('Table inventory_current not found, falling back to alternative query');
+          // Fallback to basic inventory table if inventory_current doesn't exist
+          const { data: fallbackData, error: fallbackError, count: fallbackCount } = await supabase
+            .from('inventory')
+            .select(`
+              *,
+              products!inventory_product_id_fkey(id, name, sku, type, unit_cost, min_stock_units),
+              locations!inventory_location_id_fkey(id, name, code)
+            `, { count: 'exact' })
+            .range(offset, offset + limit - 1)
+            .order('created_at', { ascending: false });
+
+          if (fallbackError) throw fallbackError;
+
+          return {
+            data: fallbackData || [],
+            totalCount: fallbackCount || 0,
+            page,
+            limit,
+            totalPages: Math.ceil((fallbackCount || 0) / limit)
+          };
+        }
+
+        // If inventory_current exists, use it
+        const { data, error } = await supabase
+          .from('inventory_current')
+          .select(`
+            *,
+            products:product_id(id, name, sku, type, unit_cost, min_stock_units),
+            locations:location_id(id, name, code)
+          `)
+          .range(offset, offset + limit - 1)
+          .order('last_updated', { ascending: false });
+
+        if (error) throw error;
+
+        return {
+          data: data || [],
+          totalCount: count || 0,
+          page,
+          limit,
+          totalPages: Math.ceil((count || 0) / limit)
+        };
+      } catch (error) {
+        console.error('Inventory query error:', error);
+        throw error;
+      }
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for inventory
+    retry: 2, // Retry failed queries up to 2 times
+    retryDelay: 1000, // Wait 1 second between retries
   });
 };
 

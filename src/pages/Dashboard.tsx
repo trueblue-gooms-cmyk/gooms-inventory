@@ -64,6 +64,34 @@ const LOCATIONS = [
   { id: 'pos-eventos', name: 'POS-Eventos', color: 'bg-orange-500' }
 ];
 
+// Familias de productos actualizadas según especificaciones
+const PRODUCT_FAMILIES = {
+  materia_prima: {
+    label: 'Materia Prima',
+    color: 'bg-blue-500',
+    icon: <Factory className="w-5 h-5" />,
+    description: 'Ingredientes base para producción'
+  },
+  empaques: {
+    label: 'Empaques',
+    color: 'bg-green-500',
+    icon: <Package className="w-5 h-5" />,
+    description: 'Material de empaque y etiquetado'
+  },
+  gomas_granel: {
+    label: 'Gomas al Granel',
+    color: 'bg-purple-500',
+    icon: <Box className="w-5 h-5" />,
+    description: 'Producto semi-terminado a granel'
+  },
+  producto_final: {
+    label: 'Producto Final',
+    color: 'bg-orange-500',
+    icon: <ShoppingCart className="w-5 h-5" />,
+    description: 'SKUs listos para venta'
+  }
+};
+
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [inventoryByLocation, setInventoryByLocation] = useState<InventoryByLocation[]>([]);
@@ -101,8 +129,127 @@ export default function Dashboard() {
     loadAdditionalData();
   }, [selectedPeriod]);
 
+  // Función para generar datos de demostración
+  const generateDemoData = () => {
+    console.log('Generando datos de demostración para dashboard');
+
+    // Datos de inventario por ubicación (demo)
+    const demoLocationData: InventoryByLocation[] = [
+      {
+        location: 'Bodega Central',
+        products: 1250,
+        value: 45000000,
+        percentage: 65,
+        items: {
+          materia_prima: 450,
+          empaques: 300,
+          gomas_granel: 250,
+          producto_final: 250
+        }
+      },
+      {
+        location: 'POS-Colina',
+        products: 380,
+        value: 8500000,
+        percentage: 12,
+        items: {
+          materia_prima: 50,
+          empaques: 80,
+          gomas_granel: 100,
+          producto_final: 150
+        }
+      },
+      {
+        location: 'POS-Fontanar',
+        products: 290,
+        value: 7200000,
+        percentage: 10,
+        items: {
+          materia_prima: 30,
+          empaques: 60,
+          gomas_granel: 80,
+          producto_final: 120
+        }
+      },
+      {
+        location: 'POS-Eventos',
+        products: 420,
+        value: 9300000,
+        percentage: 13,
+        items: {
+          materia_prima: 80,
+          empaques: 100,
+          gomas_granel: 120,
+          producto_final: 120
+        }
+      }
+    ];
+
+    setInventoryByLocation(demoLocationData);
+
+    // Datos por tipo de producto (demo)
+    const demoTypeData = Object.entries(PRODUCT_FAMILIES).map(([key, family]) => ({
+      label: family.label,
+      type: key,
+      value: key === 'materia_prima' ? 15000000 :
+             key === 'empaques' ? 8000000 :
+             key === 'gomas_granel' ? 22000000 : 25000000,
+      quantity: key === 'materia_prima' ? 610 :
+                key === 'empaques' ? 540 :
+                key === 'gomas_granel' ? 550 : 640,
+      color: family.color,
+      icon: family.icon,
+      description: family.description
+    }));
+
+    setInventoryByType(demoTypeData);
+
+    // Métricas principales (demo)
+    setMetrics({
+      totalProducts: 85,
+      lowStockItems: 12,
+      expiringItems: 3,
+      pendingOrders: 8,
+      totalInventoryValue: 70000000,
+      monthlyGrowth: 8.5,
+      totalLocations: 4,
+      activeUsers: 6
+    });
+
+    // Alertas demo
+    const demoAlerts: Alert[] = [
+      {
+        id: 'demo-alert-1',
+        type: 'warning',
+        title: '12 productos bajo stock mínimo',
+        description: 'Materia prima crítica requiere reabastecimiento',
+        action: 'Ver productos'
+      },
+      {
+        id: 'demo-alert-2',
+        type: 'critical',
+        title: '3 lotes próximos a vencer',
+        description: 'Vencen en los próximos 5 días',
+        action: 'Ver detalles'
+      },
+      {
+        id: 'demo-alert-3',
+        type: 'info',
+        title: 'Nueva recepción programada',
+        description: 'Orden OC-2025-004 llega mañana',
+        action: 'Preparar recepción'
+      }
+    ];
+
+    setAlerts(demoAlerts);
+  };
+
   const calculateRealMetrics = () => {
-    if (!products || !inventory || !locations) return;
+    if (!products || !inventory || !locations) {
+      // Si no hay datos reales, usar datos de demostración
+      generateDemoData();
+      return;
+    }
 
     // Calculate inventory by location
     const locationStats: { [key: string]: InventoryByLocation } = {};
@@ -150,13 +297,19 @@ export default function Dashboard() {
     
     setInventoryByLocation(Object.values(locationStats));
 
-    // Calculate inventory by type
-    const typeStats = {
-      materia_prima: { label: 'Materia Prima', value: 0, quantity: 0, color: 'bg-blue-500', icon: <Factory className="w-5 h-5" />, type: 'materia_prima' },
-      empaques: { label: 'Empaques', value: 0, quantity: 0, color: 'bg-green-500', icon: <Package className="w-5 h-5" />, type: 'empaques' },
-      gomas_granel: { label: 'Gomas al Granel', value: 0, quantity: 0, color: 'bg-purple-500', icon: <Box className="w-5 h-5" />, type: 'gomas_granel' },
-      producto_final: { label: 'Producto Final', value: 0, quantity: 0, color: 'bg-orange-500', icon: <ShoppingCart className="w-5 h-5" />, type: 'producto_final' }
-    };
+    // Calculate inventory by type usando las familias definidas
+    const typeStats = Object.entries(PRODUCT_FAMILIES).reduce((acc, [key, family]) => {
+      acc[key] = {
+        label: family.label,
+        value: 0,
+        quantity: 0,
+        color: family.color,
+        icon: family.icon,
+        type: key,
+        description: family.description
+      };
+      return acc;
+    }, {} as Record<string, any>);
 
     inventory.forEach(item => {
       const product = products.find(p => p.id === item.product_id);

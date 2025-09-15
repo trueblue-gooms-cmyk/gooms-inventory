@@ -6,6 +6,7 @@ import { NotificationProvider } from './components/ui/NotificationProvider';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { GlobalErrorHandler } from './components/GlobalErrorHandler';
 import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import { Inventory } from './pages/Inventory';
@@ -15,8 +16,8 @@ import { Projections } from './pages/Projections';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
-import { Products } from './pages/Products';
-import { RawMaterials } from './pages/RawMaterials';
+import { UnifiedProducts } from './pages/UnifiedProducts';
+import { InventoryMovements } from './pages/InventoryMovements';
 import { Reception } from './pages/Reception';
 import { Financial } from './pages/Financial';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -43,22 +44,24 @@ function AppContent() {
   if (isLoading && location.pathname !== '/login') return <LoadingScreen />;
 
   return (
-    <ErrorBoundary>
-      <NotificationProvider />
-      <OfflineSyncStatus variant="floating" />
-      <Routes>
+    <GlobalErrorHandler>
+      <ErrorBoundary>
+        <NotificationProvider />
+        <OfflineSyncStatus variant="floating" />
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
-          <Route path="raw-materials" element={<RawMaterials />} />
+          <Route path="products" element={<UnifiedProducts />} />
+          <Route path="movements" element={<InventoryMovements />} />
           <Route path="inventory" element={
             <ErrorBoundary>
               <Inventory />
             </ErrorBoundary>
           } />
-          <Route path="production" element={
+          {/* TEMPORALMENTE DESHABILITADAS */}
+          {/* <Route path="production" element={
             <ProtectedRoute requiredRole="operator">
               <Production />
             </ProtectedRoute>
@@ -67,7 +70,7 @@ function AppContent() {
             <ProtectedRoute requiredRole="operator">
               <Purchases />
             </ProtectedRoute>
-          } />
+          } /> */}
           <Route path="reception" element={
             <ProtectedRoute requiredRole="operator">
               <Reception />
@@ -79,7 +82,7 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="projections" element={<Projections />} />
-          <Route path="reports" element={<Reports />} />
+          {/* <Route path="reports" element={<Reports />} /> */}
           <Route path="settings" element={
             <ProtectedRoute requiredRole="admin">
               <Settings />
@@ -92,9 +95,10 @@ function AppContent() {
           } />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-      <MobileBottomNavigation />
-    </ErrorBoundary>
+        </Routes>
+        <MobileBottomNavigation />
+      </ErrorBoundary>
+    </GlobalErrorHandler>
   );
 }
 

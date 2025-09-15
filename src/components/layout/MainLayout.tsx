@@ -16,14 +16,16 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: Box, permission: 'all' },
-  { label: 'Productos', href: '/products', icon: Box, permission: 'all' },
-  { label: 'Materias Primas', href: '/raw-materials', icon: Box, permission: 'all' },
+  { label: 'Catálogo', href: '/products', icon: Box, permission: 'all' },
   { label: 'Inventario', href: '/inventory', icon: Box, permission: 'all' },
-  { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
-  { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },
+  { label: 'Movimientos', href: '/movements', icon: Box, permission: 'edit' },
+  // TEMPORALMENTE DESHABILITADAS
+  // { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
+  // { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },
   { label: 'Recepción', href: '/reception', icon: Box, permission: 'edit' },
+  { label: 'Finanzas', href: '/financial', icon: Box, permission: 'edit' },
   { label: 'Proyecciones', href: '/projections', icon: Box, permission: 'all' },
-  { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
+  // { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
   { label: 'Configuración', href: '/settings', icon: Box, permission: 'admin' },
   { label: 'Usuarios', href: '/users', icon: Box, permission: 'admin' },
 ];
