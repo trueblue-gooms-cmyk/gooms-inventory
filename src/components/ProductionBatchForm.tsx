@@ -164,7 +164,7 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
             production_date: formData.production_date,
             expiry_date: formData.expiry_date,
             notes: formData.notes,
-            status: 'planned' as 'planned' | 'in_progress' | 'completed' | 'cancelled',
+            status: 'planned' as 'planned' | 'in_production' | 'completed' | 'cancelled',
             created_at: new Date().toISOString()
           })
           .select()

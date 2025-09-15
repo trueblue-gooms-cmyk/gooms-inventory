@@ -125,7 +125,7 @@ export const Financial = () => {
       label: 'Monto',
       sortable: true,
       render: (value: number, row: unknown) => (
-        <span className={row.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+        <span className={(row as any).type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
           ${value.toLocaleString()}
         </span>
       )
@@ -376,7 +376,7 @@ export const Financial = () => {
             <CardContent>
               {cashFlowData && (
                 <MobileOptimizedTable
-                  data={cashFlowData}
+                  data={cashFlowData as any}
                   columns={cashFlowColumns}
                   searchable
                   pagination

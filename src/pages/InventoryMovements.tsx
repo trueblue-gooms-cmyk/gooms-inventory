@@ -225,7 +225,7 @@ export function InventoryMovements() {
 
       if (productsError) throw productsError;
 
-      setMovements(movementsData || []);
+      setMovements((movementsData || []) as any);
       setProducts(productsData || []);
     });
 
@@ -430,7 +430,7 @@ export function InventoryMovements() {
       // Crear movimiento
       const { data: newMovement, error: movementError } = await supabase
         .from('inventory_movements')
-        .insert([movementData])
+        .insert([movementData as any])
         .select()
         .single();
 

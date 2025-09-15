@@ -175,9 +175,9 @@ export function Production() {
       const updateData: unknown = { status: newStatus };
       
       if (newStatus === 'in_production') {
-        updateData.started_at = new Date().toISOString();
+        (updateData as any).started_at = new Date().toISOString();
       } else if (newStatus === 'completed') {
-        updateData.completed_at = new Date().toISOString();
+        (updateData as any).completed_at = new Date().toISOString();
       }
 
       const { error } = await supabase

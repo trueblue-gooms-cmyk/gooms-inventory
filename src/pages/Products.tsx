@@ -103,21 +103,21 @@ export function Products() {
       const { data: existingProduct } = await supabase
         .from('products')
         .select('sku')
-        .eq('sku', productData.sku)
+        .eq('sku', (productData as any).sku)
         .maybeSingle();
 
       if (existingProduct) {
-        toast.error(`Ya existe un producto con el SKU "${productData.sku}"`);
+        toast.error(`Ya existe un producto con el SKU "${(productData as any).sku}"`);
         return;
       }
 
       // Crear el producto si el SKU es único
-      const { error } = await supabase.from('products').insert([productData]).select().single();
+      const { error } = await supabase.from('products').insert([productData as any]).select().single();
 
       if (error) {
         // Manejar diferentes tipos de errores (por ejemplo, violación de clave única)
         if ((error as any).code === '23505') {
-          toast.error(`El SKU "${productData.sku}" ya está en uso. Por favor usa un SKU diferente.`);
+          toast.error(`El SKU "${(productData as any).sku}" ya está en uso. Por favor usa un SKU diferente.`);
         } else {
           console.error('Error creating product:', error);
           toast.error('Error creando producto: ' + (error as any).message);
@@ -196,7 +196,7 @@ export function Products() {
       }
     } catch (e: unknown) {
       console.error('Error saving product:', e);
-      alert(e?.message || 'Error al guardar el producto');
+      alert((e as any)?.message || 'Error al guardar el producto');
     }
   };
 

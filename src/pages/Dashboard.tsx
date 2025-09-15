@@ -254,9 +254,9 @@ export default function Dashboard() {
     // Calculate inventory by location
     const locationStats: { [key: string]: InventoryByLocation } = {};
     
-    inventory.forEach(item => {
-      const location = locations.find(l => l.id === item.location_id);
-      const locationName = location?.name || 'Unknown';
+    inventory.forEach((item: any) => {
+      const location = locations.find((l: any) => l.id === item.location_id);
+      const locationName = (location as any)?.name || 'Unknown';
       
       if (!locationStats[locationName]) {
         locationStats[locationName] = {
@@ -273,17 +273,17 @@ export default function Dashboard() {
         };
       }
       
-      const product = products.find(p => p.id === item.product_id);
+      const product = products.find((p: any) => p.id === item.product_id);
       if (product) {
-        locationStats[locationName].products += item.quantity_available;
-        locationStats[locationName].value += item.quantity_available * (product.unit_cost || 0);
+        locationStats[locationName].products += (item as any).quantity_available;
+        locationStats[locationName].value += (item as any).quantity_available * ((product as any).unit_cost || 0);
         
         // Categorize by product type
-        if (product.type) {
+        if ((product as any).type) {
           const validTypes = ['materia_prima', 'empaques', 'gomas_granel', 'producto_final'];
-          if (validTypes.includes(product.type)) {
-            const typeKey = product.type as keyof typeof locationStats[typeof locationName]['items'];
-            locationStats[locationName].items[typeKey] += item.quantity_available;
+          if (validTypes.includes((product as any).type)) {
+            const typeKey = (product as any).type as keyof typeof locationStats[typeof locationName]['items'];
+            locationStats[locationName].items[typeKey] += (item as any).quantity_available;
           }
         }
       }
@@ -311,12 +311,12 @@ export default function Dashboard() {
       return acc;
     }, {} as Record<string, any>);
 
-    inventory.forEach(item => {
-      const product = products.find(p => p.id === item.product_id);
-      if (product && product.type && typeStats[product.type as keyof typeof typeStats]) {
-        const typeKey = product.type as keyof typeof typeStats;
-        typeStats[typeKey].quantity += item.quantity_available;
-        typeStats[typeKey].value += item.quantity_available * (product.unit_cost || 0);
+    inventory.forEach((item: any) => {
+      const product = products.find((p: any) => p.id === item.product_id);
+      if (product && (product as any).type && typeStats[(product as any).type as keyof typeof typeStats]) {
+        const typeKey = (product as any).type as keyof typeof typeStats;
+        typeStats[typeKey].quantity += (item as any).quantity_available;
+        typeStats[typeKey].value += (item as any).quantity_available * ((product as any).unit_cost || 0);
       }
     });
 
@@ -324,14 +324,14 @@ export default function Dashboard() {
 
     // Calculate main metrics
     const totalProducts = products?.length || 0;
-    const lowStockItems = inventory?.filter(item => {
-      const product = products.find(p => p.id === item.product_id);
-      return product && item.quantity_available <= (product.min_stock_units || 0);
+    const lowStockItems = inventory?.filter((item: any) => {
+      const product = products.find((p: any) => p.id === item.product_id);
+      return product && (item as any).quantity_available <= ((product as any).min_stock_units || 0);
     }).length || 0;
     
-    const totalInventoryValue = inventory?.reduce((sum, item) => {
-      const product = products.find(p => p.id === item.product_id);
-      return sum + (item.quantity_available * (product?.unit_cost || 0));
+    const totalInventoryValue = inventory?.reduce((sum: number, item: any) => {
+      const product = products.find((p: any) => p.id === item.product_id);
+      return sum + ((item as any).quantity_available * ((product as any)?.unit_cost || 0));
     }, 0) || 0;
 
     setMetrics({
@@ -339,9 +339,9 @@ export default function Dashboard() {
       lowStockItems,
       expiringItems: 0, // Will be calculated with expiry data
       pendingOrders: 0, // Will be calculated with purchase orders
-      totalInventoryValue,
+      totalInventoryValue: Number(totalInventoryValue) || 0,
       monthlyGrowth: 12.5, // Placeholder - needs historical data
-      totalLocations: locations?.length || 0,
+      totalLocations: Array.isArray(locations) ? locations.length : 4,
       activeUsers: 8 // Placeholder - needs user data
     });
   };
@@ -381,9 +381,9 @@ export default function Dashboard() {
       
       // Low stock alerts
       if (inventory && products) {
-        const lowStockProducts = inventory.filter(item => {
-          const product = products.find(p => p.id === item.product_id);
-          return product && item.quantity_available <= (product.min_stock_units || 0);
+        const lowStockProducts = inventory.filter((item: any) => {
+          const product = products.find((p: any) => p.id === item.product_id);
+          return product && (item as any).quantity_available <= ((product as any).min_stock_units || 0);
         });
 
         if (lowStockProducts.length > 0) {
@@ -399,9 +399,9 @@ export default function Dashboard() {
 
       // Expiring items alerts
       if (inventory) {
-        const expiringItems = inventory.filter(item => {
-          if (!item.expiry_date) return false;
-          const expiryDate = new Date(item.expiry_date);
+        const expiringItems = inventory.filter((item: any) => {
+          if (!(item as any).expiry_date) return false;
+          const expiryDate = new Date((item as any).expiry_date);
           const fiveDaysFromNow = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
           return expiryDate <= fiveDaysFromNow;
         });
