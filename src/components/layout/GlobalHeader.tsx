@@ -124,9 +124,9 @@ export function GlobalHeader({
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+      <div className="px-6 sm:px-8 lg:px-12">
+        <div className="flex items-center justify-between h-20">
           {/* Logo y nombre */}
           <div className="flex items-center">
             <button
@@ -137,17 +137,17 @@ export function GlobalHeader({
             </button>
             
             <div className="flex items-center ml-2 lg:ml-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-sm">
+                <Package className="w-6 h-6 text-white" />
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900 hidden sm:block">Gooms</span>
+              <span className="ml-3 text-2xl font-thin text-gray-900 hidden sm:block tracking-tight">Gooms</span>
             </div>
           </div>
 
           {/* Barra de búsqueda - Desktop */}
-          <div className="hidden lg:flex flex-1 max-w-lg mx-8">
+          <div className="hidden lg:flex flex-1 max-w-md mx-12">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 value={searchQuery}
@@ -158,27 +158,27 @@ export function GlobalHeader({
                     handleSearch();
                   }
                 }}
-                placeholder="Buscar productos, órdenes..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Buscar..."
+                className="w-full pl-12 pr-6 py-3 bg-gray-50/50 border-0 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:bg-gray-50 transition-all duration-200 text-sm font-light"
               />
             </div>
           </div>
 
           {/* Controles de la derecha */}
-          <div className="flex items-center gap-2 lg:gap-4">
+          <div className="flex items-center gap-1 lg:gap-2">
             {/* Filtro de tiempo */}
             <div className="relative hidden sm:block">
               <button
-                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white/50 hover:bg-white/80 rounded-full transition-all duration-200 text-gray-600 hover:text-gray-900 border border-gray-100 hover:border-gray-200 hover:shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   const menu = document.getElementById('time-filter-menu');
                   menu?.classList.toggle('hidden');
                 }}
               >
-                <Calendar className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-700 hidden md:inline">{selectedFilter.label}</span>
-                <ChevronDown className="w-4 h-4 text-gray-600" />
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm font-light hidden md:inline">{selectedFilter.label}</span>
+                <ChevronDown className="w-3 h-3" />
               </button>
               
               <div 
@@ -206,10 +206,10 @@ export function GlobalHeader({
             <button
               onClick={handleRefresh}
               disabled={refreshing || isLoading}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+              className="p-3 rounded-full hover:bg-white/50 transition-all duration-200 disabled:opacity-50 text-gray-600 hover:text-gray-900"
               title="Actualizar datos"
             >
-              <RefreshCw className={`w-5 h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
 
             {/* Notificaciones */}
@@ -220,27 +220,27 @@ export function GlobalHeader({
                   setShowNotifications(!showNotifications);
                   setShowUserMenu(false);
                 }}
-                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="relative p-3 rounded-full hover:bg-white/50 transition-all duration-200 text-gray-600 hover:text-gray-900"
               >
-                <Bell className="w-5 h-5 text-gray-600" />
+                <Bell className="w-4 h-4" />
                 {notifications > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-900">Notificaciones</h3>
+                <div className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 py-3 z-50">
+                  <div className="px-6 py-3 border-b border-gray-100">
+                    <h3 className="text-sm font-medium text-gray-900">Notificaciones</h3>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
                     {notifications > 0 ? (
-                      <div className="px-4 py-3 hover:bg-gray-50">
-                        <p className="text-sm text-gray-600">Tienes {notifications} notificaciones nuevas</p>
+                      <div className="px-6 py-4 hover:bg-gray-50/50 transition-colors">
+                        <p className="text-sm font-light text-gray-600">Tienes {notifications} notificaciones nuevas</p>
                       </div>
                     ) : (
-                      <div className="px-4 py-8 text-center">
-                        <p className="text-sm text-gray-500">No hay notificaciones nuevas</p>
+                      <div className="px-6 py-8 text-center">
+                        <p className="text-sm font-light text-gray-500">No hay notificaciones nuevas</p>
                       </div>
                     )}
                   </div>
@@ -256,41 +256,41 @@ export function GlobalHeader({
                   setShowUserMenu(!showUserMenu);
                   setShowNotifications(false);
                 }}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 p-2.5 rounded-full hover:bg-white/50 transition-all duration-200"
               >
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-white font-medium text-sm">
                     {user.full_name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-gray-600 hidden sm:block" />
+                <ChevronDown className="w-3 h-3 text-gray-500 hidden sm:block" />
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-200">
+                <div className="absolute right-0 mt-3 w-68 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 py-3 z-50">
+                  <div className="px-6 py-4 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">{user.full_name || 'Usuario'}</p>
-                    <p className="text-xs text-gray-500 mt-1">{user.email}</p>
-                    <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${getRoleBadgeColor(user.role)}`}>
+                    <p className="text-xs font-light text-gray-500 mt-1">{user.email}</p>
+                    <span className={`inline-block mt-3 px-3 py-1.5 text-xs font-light rounded-full ${getRoleBadgeColor(user.role)}`}>
                       {getRoleLabel(user.role)}
                     </span>
                   </div>
-                  
+
                   {user.role === 'admin' && (
                     <button
                       onClick={() => {
                         navigate('/settings');
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full px-6 py-3 text-left text-sm font-light text-gray-700 hover:bg-gray-50/50 flex items-center gap-3 transition-colors"
                     >
                       <Settings className="w-4 h-4" />
                       Configuración
                     </button>
                   )}
-                  
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+
+                  <div className="border-t border-gray-100 mt-2 pt-2">
+                    <button onClick={handleLogout} className="w-full px-6 py-3 text-left text-sm font-light text-red-600 hover:bg-red-50/50 flex items-center gap-3 transition-colors">
                       <LogOut className="w-4 h-4" />
                       Cerrar Sesión
                     </button>

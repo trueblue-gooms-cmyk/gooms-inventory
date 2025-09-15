@@ -15,4 +15,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React and core libs
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI components
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+          // Chart and data visualization
+          'charts-vendor': ['recharts'],
+          // Supabase and data
+          'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
+          // Utilities
+          'utils-vendor': ['date-fns', 'clsx', 'class-variance-authority', 'zod'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 }));

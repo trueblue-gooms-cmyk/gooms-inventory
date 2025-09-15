@@ -71,7 +71,7 @@ class OfflineStorageService {
     });
   }
 
-  async getCachedData(key: string): Promise<any> {
+  async getCachedData(key: string): Promise<unknown> {
     if (!this.db) await this.init();
 
     const transaction = this.db!.transaction(['cached_data'], 'readonly');

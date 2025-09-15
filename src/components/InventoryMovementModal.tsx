@@ -1,5 +1,5 @@
 // src/components/InventoryMovementModal.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { X, Package, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
@@ -56,7 +56,7 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     }
   }, [isOpen]);
 
-  const loadBatches = async () => {
+  const loadBatches = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('inventory_current')
@@ -74,7 +74,15 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
         .gt('quantity_available', 0);
 
       if (data) {
-        const formattedBatches = data.map((item: any) => ({
+        const formattedBatches = data.map((item: {
+          batch_id: string;
+          quantity_available: number;
+          production_batches: {
+            id: string;
+            batch_number: string;
+            expiry_date: string;
+          };
+        }) => ({
           id: item.batch_id,
           batch_number: item.production_batches.batch_number,
           expiry_date: item.production_batches.expiry_date,
@@ -85,13 +93,13 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     } catch (error) {
       console.error('Error loading batches:', error);
     }
-  };
+  }, [formData.product_id, formData.from_location_id]);
 
   useEffect(() => {
     if (formData.product_id && formData.from_location_id) {
       loadBatches();
     }
-  }, [formData.product_id, formData.from_location_id]);
+  }, [formData.product_id, formData.from_location_id, loadBatches]);
 
   const loadData = async () => {
     try {
@@ -122,7 +130,7 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     try {
       // Use the new RPC function for transactional inventory movements
       const { data: movementId, error } = await supabase.rpc('register_inventory_movement', {
-        p_movement_type: formData.movement_type as any,
+        p_movement_type: formData.movement_type as 'entrada' | 'salida' | 'transferencia' | 'ajuste',
         p_product_id: formData.product_id,
         p_quantity: parseInt(formData.quantity),
         p_batch_id: formData.batch_id || null,

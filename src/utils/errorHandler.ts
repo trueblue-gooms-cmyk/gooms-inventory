@@ -8,7 +8,7 @@ export interface AppError {
   message: string;
   userMessage: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -26,7 +26,7 @@ export class ErrorHandler {
   /**
    * Procesa un error y retorna un objeto de error normalizado
    */
-  processError(error: unknown, context?: Record<string, any>): AppError {
+  processError(error: unknown, context?: Record<string, unknown>): AppError {
     let appError: AppError;
 
     if (error instanceof Error) {
@@ -60,7 +60,7 @@ export class ErrorHandler {
   /**
    * Mapea errores específicos a errores de aplicación
    */
-  private mapErrorToAppError(error: Error, context?: Record<string, any>): AppError {
+  private mapErrorToAppError(error: Error, context?: Record<string, unknown>): AppError {
     // Errores de Supabase
     if (error.message.includes('duplicate key')) {
       return {
@@ -172,13 +172,13 @@ export class ErrorHandler {
 export const useErrorHandler = () => {
   const errorHandler = ErrorHandler.getInstance();
 
-  const handleError = (error: unknown, context?: Record<string, any>) => {
+  const handleError = (error: unknown, context?: Record<string, unknown>) => {
     return errorHandler.processError(error, context);
   };
 
   const handleAsyncError = async <T>(
     asyncFn: () => Promise<T>,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<{ data?: T; error?: AppError }> => {
     try {
       const data = await asyncFn();
@@ -200,7 +200,7 @@ export const useErrorHandler = () => {
 /**
  * Utility para manejo de errores en operaciones de Supabase
  */
-export const handleSupabaseError = (error: any, operation: string = 'operación') => {
+export const handleSupabaseError = (error: unknown, operation: string = 'operación') => {
   const errorHandler = ErrorHandler.getInstance();
 
   return errorHandler.processError(error, {

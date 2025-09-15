@@ -9,9 +9,9 @@ export interface ValidationResult {
   field?: string;
 }
 
-export interface ValidationRule<T = any> {
+export interface ValidationRule<T = Record<string, unknown>> {
   field: keyof T;
-  rules: Array<(value: any, data?: T) => ValidationResult>;
+  rules: Array<(value: unknown, data?: T) => ValidationResult>;
 }
 
 /**
@@ -19,7 +19,7 @@ export interface ValidationRule<T = any> {
  */
 export const validators = {
   required: (message: string = 'Este campo es requerido') =>
-    (value: any): ValidationResult => ({
+    (value: unknown): ValidationResult => ({
       isValid: value !== null && value !== undefined && value !== '',
       message: value === null || value === undefined || value === '' ? message : undefined
     }),
@@ -48,13 +48,13 @@ export const validators = {
     },
 
   numeric: (message: string = 'Debe ser un número válido') =>
-    (value: any): ValidationResult => ({
+    (value: unknown): ValidationResult => ({
       isValid: value === '' || value === null || !isNaN(Number(value)),
       message: value !== '' && value !== null && isNaN(Number(value)) ? message : undefined
     }),
 
   positiveNumber: (message: string = 'Debe ser un número positivo') =>
-    (value: any): ValidationResult => {
+    (value: unknown): ValidationResult => {
       const num = Number(value);
       return {
         isValid: value === '' || value === null || (!isNaN(num) && num >= 0),
@@ -63,7 +63,7 @@ export const validators = {
     },
 
   integer: (message: string = 'Debe ser un número entero') =>
-    (value: any): ValidationResult => {
+    (value: unknown): ValidationResult => {
       const num = Number(value);
       return {
         isValid: value === '' || value === null || (!isNaN(num) && Number.isInteger(num)),
@@ -92,7 +92,7 @@ export const validators = {
 
   phoneNumber: (message: string = 'Número de teléfono inválido') =>
     (value: string): ValidationResult => {
-      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+      const phoneRegex = /^[\d\s\-+()]+$/;
       return {
         isValid: !value || phoneRegex.test(value),
         message: value && !phoneRegex.test(value) ? message : undefined
@@ -134,7 +134,7 @@ export const domainValidators = {
 
   // Validaciones para precios y costos
   unitCost: (message: string = 'Costo unitario debe ser mayor a 0') =>
-    (value: any): ValidationResult => {
+    (value: unknown): ValidationResult => {
       const num = Number(value);
       return {
         isValid: !isNaN(num) && num > 0,
@@ -144,7 +144,7 @@ export const domainValidators = {
 
   // Validaciones para stock
   stockQuantity: (message: string = 'Cantidad de stock inválida') =>
-    (value: any): ValidationResult => {
+    (value: unknown): ValidationResult => {
       const num = Number(value);
       return {
         isValid: !isNaN(num) && num >= 0 && Number.isInteger(num),
@@ -200,7 +200,7 @@ export const domainValidators = {
 /**
  * Función para validar un objeto completo
  */
-export const validateObject = <T extends Record<string, any>>(
+export const validateObject = <T extends Record<string, unknown>>(
   data: T,
   rules: ValidationRule<T>[]
 ): { isValid: boolean; errors: Record<string, string> } => {
@@ -228,12 +228,12 @@ export const validateObject = <T extends Record<string, any>>(
 /**
  * Hook para validación en tiempo real
  */
-export const useValidation = <T extends Record<string, any>>(
+export const useValidation = <T extends Record<string, unknown>>(
   rules: ValidationRule<T>[]
 ) => {
   const validate = (data: T) => validateObject(data, rules);
 
-  const validateField = (field: keyof T, value: any, data?: T) => {
+  const validateField = (field: keyof T, value: unknown, data?: T) => {
     const fieldRules = rules.find(rule => rule.field === field);
     if (!fieldRules) return { isValid: true };
 

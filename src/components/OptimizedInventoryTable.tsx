@@ -76,7 +76,7 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
 
   // Filter data based on search and filters
   const filteredData = inventoryData?.data.filter(item => {
-    const typedItem = item as any;
+    const typedItem = item as { products: { name: string; sku: string; category: string }; locations: { name: string }; quantity_available: number };
     const product = typedItem.products;
     if (!product) return false;
 
@@ -174,7 +174,7 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
               </tr>
             ) : (
               filteredData.map((item) => {
-                const typedItem = item as any;
+                const typedItem = item as { products: { name: string; sku: string; category: string; min_stock_units?: number; unit_cost?: number }; locations: { name: string }; quantity_available: number };
                 const product = typedItem.products;
                 const location = typedItem.locations;
                 if (!product) return null;

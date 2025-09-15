@@ -92,9 +92,9 @@ export const MobileOptimizedTable = ({
         }
         
         if (sortOrder === 'asc') {
-          return (aVal as any) > (bVal as any) ? 1 : -1;
+          return Number(aVal) > Number(bVal) ? 1 : -1;
         } else {
-          return (aVal as any) < (bVal as any) ? 1 : -1;
+          return Number(aVal) < Number(bVal) ? 1 : -1;
         }
       });
     }

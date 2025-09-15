@@ -1,6 +1,12 @@
 // Componente de reportes financieros avanzados
 // Compatible con Lovable - Análisis completo y exportación de reportes
 import { useState, useMemo } from 'react';
+
+interface PerformanceAnalysisItem {
+  status: 'excellent' | 'good' | 'fair' | 'poor';
+  score: number;
+  recommendation: string;
+}
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -293,7 +299,7 @@ export const FinancialReports = ({
         <TabsContent value="analysis">
           {performanceAnalysis && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(performanceAnalysis).filter(([key]) => key !== 'overall').map(([category, data]) => (
+              {Object.entries(performanceAnalysis).filter(([key]) => key !== 'overall').map(([category, data]: [string, PerformanceAnalysisItem]) => (
                 <Card key={category}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
@@ -310,26 +316,26 @@ export const FinancialReports = ({
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Score</span>
-                         <Badge variant={(data as any).status === 'excellent' || (data as any).status === 'good' ? 'default' : 'destructive'}>
-                           {(data as any).score?.toFixed(0) || 0}/100
+                         <Badge variant={data.status === 'excellent' || data.status === 'good' ? 'default' : 'destructive'}>
+                           {data.score?.toFixed(0) || 0}/100
                          </Badge>
                       </div>
                       
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
                            className={`h-2 rounded-full ${
-                             (data as any).status === 'excellent' ? 'bg-green-500' :
-                             (data as any).status === 'good' ? 'bg-blue-500' :
-                             (data as any).status === 'fair' ? 'bg-yellow-500' : 'bg-red-500'
+                             data.status === 'excellent' ? 'bg-green-500' :
+                             data.status === 'good' ? 'bg-blue-500' :
+                             data.status === 'fair' ? 'bg-yellow-500' : 'bg-red-500'
                            }`}
-                           style={{ width: `${Math.min((data as any).score || 0, 100)}%` }}
+                           style={{ width: `${Math.min(data.score || 0, 100)}%` }}
                         />
                       </div>
                       
                       <Alert>
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription className="text-sm">
-                          <strong>Recomendación:</strong> {(data as any).recommendation || 'Sin recomendación disponible'}
+                          <strong>Recomendación:</strong> {data.recommendation || 'Sin recomendación disponible'}
                         </AlertDescription>
                       </Alert>
                     </div>

@@ -318,13 +318,13 @@ class SalesService {
       // Calcular métricas básicas
       const totalRevenue = sales.reduce((sum, sale) => sum + sale.total_amount, 0);
       const totalProfit = sales.reduce((sum, sale) => {
-        return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => {
+        return sum + (sale.sale_items || []).reduce((itemSum: number, item: SaleItem) => {
           return itemSum + (item.profit_amount || 0);
         }, 0);
       }, 0);
       const totalTransactions = sales.length;
       const totalUnits = sales.reduce((sum, sale) => {
-        return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => {
+        return sum + (sale.sale_items || []).reduce((itemSum: number, item: SaleItem) => {
           return itemSum + item.quantity;
         }, 0);
       }, 0);
@@ -434,7 +434,7 @@ class SalesService {
       const previousRevenue = (previousSales || []).reduce((sum, sale) => sum + sale.total_amount, 0);
       const previousTransactions = (previousSales || []).length;
       const previousProfit = (previousSales || []).reduce((sum, sale) => {
-        return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => {
+        return sum + (sale.sale_items || []).reduce((itemSum: number, item: SaleItem) => {
           return itemSum + (item.profit_amount || 0);
         }, 0);
       }, 0);

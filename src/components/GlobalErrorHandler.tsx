@@ -61,7 +61,7 @@ export class GlobalErrorHandler extends Component<Props, State> {
     }
   }
 
-  private reportErrorToService = async (appError: any, errorInfo: ErrorInfo) => {
+  private reportErrorToService = async (appError: { message: string; code?: string; severity?: string }, errorInfo: ErrorInfo) => {
     try {
       // Aquí se enviaría a un servicio como Sentry, LogRocket, etc.
       const errorReport = {

@@ -259,13 +259,13 @@ class PerformanceReportService {
 
     const total_revenue = (sales || []).reduce((sum, sale) => sum + sale.total_amount, 0);
     const total_profit = (sales || []).reduce((sum, sale) => {
-      return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => {
+      return sum + (sale.sale_items || []).reduce((itemSum: number, item: { profit_amount?: number }) => {
         return itemSum + (item.profit_amount || 0);
       }, 0);
     }, 0);
     const total_transactions = (sales || []).length;
     const total_units_sold = (sales || []).reduce((sum, sale) => {
-      return sum + (sale.sale_items || []).reduce((itemSum: number, item: any) => {
+      return sum + (sale.sale_items || []).reduce((itemSum: number, item: { quantity: number }) => {
         return itemSum + item.quantity;
       }, 0);
     }, 0);

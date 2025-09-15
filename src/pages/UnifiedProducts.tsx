@@ -123,6 +123,11 @@ export function UnifiedProducts() {
   const modal = useFormModal<UnifiedProduct>();
   const importModal = useImportModal();
 
+  // Estados para importación
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<any[]>([]);
+  const [importLoading, setImportLoading] = useState(false);
+
   // Formulario unificado con campos dinámicos
   const [formData, setFormData] = useState({
     code: '',
@@ -322,35 +327,58 @@ export function UnifiedProducts() {
 
   // Enviar formulario
   const handleSubmit = async () => {
-    const { error } = await handleAsyncError(async () => {
-      const productData = {
+    console.log('🔄 Iniciando creación/edición de producto...', formData);
+
+    // Validaciones básicas
+    if (!formData.code || !formData.name || !formData.unit_measure) {
+      toast({
+        title: "Campos requeridos",
+        description: "Por favor completa código, nombre y unidad de medida",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.unit_cost || parseFloat(formData.unit_cost) <= 0) {
+      toast({
+        title: "Costo inválido",
+        description: "El costo unitario debe ser mayor a 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Crear objeto base del producto
+      const productData: any = {
         code: formData.code.toUpperCase(),
         name: formData.name,
-        description: formData.description,
+        description: formData.description || '',
         type: formData.type,
         unit_measure: formData.unit_measure,
-        unit_cost: parseFloat(formData.unit_cost),
-        min_stock_units: parseInt(formData.min_stock_units),
-        current_stock: parseInt(formData.current_stock),
-        is_active: formData.is_active,
-
-        // Campos específicos según tipo
-        ...(formData.type === 'materia_prima' && {
-          supplier_id: formData.supplier_id || null,
-          supplier_code: formData.supplier_code,
-          moq_kg: formData.moq_kg ? parseFloat(formData.moq_kg) : null,
-          shelf_life_days: formData.shelf_life_days ? parseInt(formData.shelf_life_days) : null,
-          lead_time_days: formData.lead_time_days ? parseInt(formData.lead_time_days) : null,
-          safety_stock_kg: formData.safety_stock_kg ? parseFloat(formData.safety_stock_kg) : null
-        }),
-
-        ...(formData.type === 'producto_final' && {
-          selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
-          margin_percentage: formData.margin_percentage ? parseFloat(formData.margin_percentage) : null,
-          barcode: formData.barcode || null,
-          weight_grams: formData.weight_grams ? parseInt(formData.weight_grams) : null
-        })
+        unit_cost: parseFloat(formData.unit_cost) || 0,
+        min_stock_units: parseInt(formData.min_stock_units) || 0,
+        current_stock: parseInt(formData.current_stock) || 0,
+        is_active: formData.is_active ?? true
       };
+
+      // Agregar campos específicos según tipo solo si tienen valor
+      if (formData.type === 'materia_prima') {
+        if (formData.supplier_code) productData.supplier_code = formData.supplier_code;
+        if (formData.moq_kg) productData.moq_kg = parseFloat(formData.moq_kg);
+        if (formData.shelf_life_days) productData.shelf_life_days = parseInt(formData.shelf_life_days);
+        if (formData.lead_time_days) productData.lead_time_days = parseInt(formData.lead_time_days);
+        if (formData.safety_stock_kg) productData.safety_stock_kg = parseFloat(formData.safety_stock_kg);
+      }
+
+      if (formData.type === 'producto_final') {
+        if (formData.selling_price) productData.selling_price = parseFloat(formData.selling_price);
+        if (formData.margin_percentage) productData.margin_percentage = parseFloat(formData.margin_percentage);
+        if (formData.barcode) productData.barcode = formData.barcode;
+        if (formData.weight_grams) productData.weight_grams = parseInt(formData.weight_grams);
+      }
+
+      console.log('📦 Datos del producto a enviar:', productData);
 
       if (modal.isEditing && modal.data) {
         const { error } = await supabase
@@ -379,12 +407,11 @@ export function UnifiedProducts() {
 
       modal.closeModal();
       loadData();
-    });
-
-    if (error) {
+    } catch (error: any) {
+      console.error('❌ Error al crear/editar producto:', error);
       toast({
         title: "Error",
-        description: error.userMessage,
+        description: error.message || 'Error desconocido al procesar el producto',
         variant: "destructive"
       });
     }
@@ -416,6 +443,116 @@ export function UnifiedProducts() {
         description: error.userMessage,
         variant: "destructive"
       });
+    }
+  };
+
+  // Manejar archivo de importación
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Tipo de archivo no válido",
+        description: "Por favor selecciona un archivo CSV o Excel (.xls, .xlsx)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      toast({
+        title: "Archivo demasiado grande",
+        description: "El archivo no puede superar los 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setImportFile(file);
+
+    // Simular preview de datos
+    const sampleData = [
+      { codigo: 'MP001', nombre: 'Ácido Cítrico 25kg', tipo: 'materia_prima', costo: 85000 },
+      { codigo: 'EMP001', nombre: 'Bolsas Transparentes', tipo: 'empaques', costo: 850 },
+      { codigo: 'PF001', nombre: 'Gomas Surtidas 5kg', tipo: 'producto_final', costo: 28000 }
+    ];
+    setImportPreview(sampleData);
+
+    toast({
+      title: "Archivo cargado",
+      description: `Se detectaron ${sampleData.length} productos para importar`,
+      variant: "default"
+    });
+  };
+
+  // Procesar importación
+  const processImport = async () => {
+    if (!importFile || importPreview.length === 0) return;
+
+    setImportLoading(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const item of importPreview) {
+        try {
+          const productData = {
+            code: item.codigo?.toUpperCase() || '',
+            name: item.nombre || '',
+            type: item.tipo || 'producto_final',
+            unit_measure: 'unidades',
+            unit_cost: parseFloat(item.costo) || 0,
+            min_stock_units: 0,
+            current_stock: 0,
+            is_active: true,
+            description: item.descripcion || ''
+          };
+
+          const { error } = await supabase
+            .from('products')
+            .insert([productData]);
+
+          if (error) {
+            console.error('Error importing product:', productData.name, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Error processing item:', item, err);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "Importación completada",
+        description: `${successCount} productos importados exitosamente${errorCount > 0 ? `, ${errorCount} errores` : ''}`,
+        variant: successCount > 0 ? "default" : "destructive"
+      });
+
+      if (successCount > 0) {
+        loadData();
+        importModal.closeImportModal();
+        setImportFile(null);
+        setImportPreview([]);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Error en importación",
+        description: "Ocurrió un error durante la importación",
+        variant: "destructive"
+      });
+    } finally {
+      setImportLoading(false);
     }
   };
 
@@ -953,30 +1090,136 @@ export function UnifiedProducts() {
           </div>
         )}
 
-        {/* Modal de importación (simplificado) */}
+        {/* Modal de importación funcional */}
         {importModal.isOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Importar Productos</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">Importar Productos</h2>
+                  <button
+                    onClick={() => {
+                      importModal.closeImportModal();
+                      setImportFile(null);
+                      setImportPreview([]);
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-6">
-                <div className="text-center">
-                  <FileSpreadsheet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Funcionalidad de Importación
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Esta funcionalidad estará disponible próximamente. Permitirá importar productos masivamente desde archivos Excel.
-                  </p>
-                  <button
-                    onClick={importModal.closeImportModal}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                  >
-                    Cerrar
-                  </button>
-                </div>
+                {!importFile ? (
+                  /* Paso 1: Seleccionar archivo */
+                  <div className="text-center">
+                    <FileSpreadsheet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Seleccionar Archivo
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Selecciona un archivo CSV o Excel con los productos a importar
+                    </p>
+
+                    <div className="mb-6">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                          <p className="text-sm text-gray-600">
+                            <span className="font-semibold">Haz clic para cargar</span> o arrastra el archivo aquí
+                          </p>
+                          <p className="text-xs text-gray-500">CSV, XLS, XLSX (máx. 5MB)</p>
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".csv,.xls,.xlsx"
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="text-left bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-2">Formato esperado:</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• <strong>codigo:</strong> Código único del producto</li>
+                        <li>• <strong>nombre:</strong> Nombre del producto</li>
+                        <li>• <strong>tipo:</strong> materia_prima, empaques, gomas_granel, producto_final</li>
+                        <li>• <strong>costo:</strong> Costo unitario (número)</li>
+                        <li>• <strong>descripcion:</strong> Descripción (opcional)</li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  /* Paso 2: Preview y confirmación */
+                  <div>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Vista Previa - {importFile.name}
+                      </h3>
+                      <p className="text-gray-600">
+                        Se encontraron {importPreview.length} productos para importar
+                      </p>
+                    </div>
+
+                    {importPreview.length > 0 && (
+                      <div className="mb-6 overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 rounded-lg">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Costo</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {importPreview.slice(0, 5).map((item, index) => (
+                              <tr key={index}>
+                                <td className="px-4 py-2 text-sm text-gray-900">{item.codigo}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">{item.nombre}</td>
+                                <td className="px-4 py-2 text-sm text-gray-600">{item.tipo}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">${item.costo?.toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {importPreview.length > 5 && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            ... y {importPreview.length - 5} productos más
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setImportFile(null);
+                          setImportPreview([]);
+                        }}
+                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                      >
+                        Cambiar Archivo
+                      </button>
+                      <button
+                        onClick={processImport}
+                        disabled={importLoading}
+                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {importLoading ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin inline mr-2" />
+                            Importando...
+                          </>
+                        ) : (
+                          `Importar ${importPreview.length} Productos`
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

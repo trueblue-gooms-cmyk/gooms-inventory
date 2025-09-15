@@ -32,7 +32,7 @@ export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
           console.error('Table inventory_current not found, falling back to alternative query');
           // Fallback to basic inventory table if inventory_current doesn't exist
           const { data: fallbackData, error: fallbackError, count: fallbackCount } = await supabase
-            .from('inventory_current')
+            .from('inventory')
             .select(`
               *,
               products:product_id(id, name, sku, type, unit_cost, min_stock_units),
@@ -200,7 +200,7 @@ export const useCreateMovement = () => {
     mutationFn: async (movementData: unknown) => {
       const { data, error } = await supabase
         .from('inventory_movements')
-        .insert(movementData as any)
+        .insert(movementData as Record<string, unknown>)
         .select()
         .single();
 
@@ -220,7 +220,7 @@ export const useCreateMovement = () => {
     onError: (error: unknown) => {
       toast({
         title: "Error",
-        description: (error as any)?.message || "No se pudo registrar el movimiento",
+        description: (error as Error)?.message || "No se pudo registrar el movimiento",
         variant: "destructive",
       });
     },

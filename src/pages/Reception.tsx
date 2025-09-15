@@ -386,6 +386,8 @@ export function Reception() {
 
   // Procesar recepción de mercancía que alimenta directamente el inventario
   const processReception = async (reception: ReceptionData) => {
+    console.log('🔄 Iniciando procesamiento de recepción...', reception);
+
     try {
       setIsLoading(true);
 
@@ -394,12 +396,15 @@ export function Reception() {
         item.received_quantity > 0 && item.quality_status === 'approved'
       );
 
+      console.log('📦 Items para procesar:', itemsToProcess);
+
       if (itemsToProcess.length === 0) {
         toast({
           title: "Sin items para procesar",
           description: "No se han especificado cantidades recibidas o todos los items fueron rechazados",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
 
@@ -531,6 +536,8 @@ export function Reception() {
         console.log('Tabla purchase_orders no disponible, continuando...');
       }
 
+      console.log('✅ Recepción procesada exitosamente');
+
       toast({
         title: "Recepción procesada exitosamente",
         description: `Se recibieron ${totalReceived} items. Inventario actualizado correctamente.`,
@@ -543,10 +550,10 @@ export function Reception() {
       setSelectedOrder(null);
 
     } catch (err: unknown) {
-      console.error('Error processing reception:', err);
+      console.error('❌ Error processing reception:', err);
       toast({
         title: "Error procesando recepción",
-        description: err instanceof Error ? err.message : 'Error desconocido',
+        description: err instanceof Error ? err.message : 'Error desconocido al procesar la recepción',
         variant: "destructive"
       });
     } finally {

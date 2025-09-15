@@ -57,7 +57,7 @@ serve(async (req) => {
     const alegraAuth = btoa(`${alegraEmail}:${alegraApiToken}`);
 
     switch (action) {
-      case 'sync_sales':
+      case 'sync_sales': {
         // Sync sales data from Alegra
         response = await fetch('https://app.alegra.com/api/v1/invoices', {
           headers: {
@@ -65,7 +65,7 @@ serve(async (req) => {
             'Accept': 'application/json'
           }
         });
-        
+
         if (!response.ok) {
           throw new Error(`Alegra API error: ${response.statusText}`);
         }
@@ -94,18 +94,19 @@ serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify({ 
-            success: true, 
-            message: `Synced ${salesData.length} sales records` 
+          JSON.stringify({
+            success: true,
+            message: `Synced ${salesData.length} sales records`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
 
-      case 'create_purchase_order':
+      case 'create_purchase_order': {
         // Create purchase order in Alegra
         const poData = {
           client: data.supplier_id,
-          items: data.items.map((item: any) => ({
+          items: data.items.map((item: { item_id: string; quantity: number; unit_price: number; notes?: string }) => ({
             id: item.item_id,
             quantity: item.quantity,
             price: item.unit_price,
@@ -132,13 +133,14 @@ serve(async (req) => {
         const createdPO = await response.json();
 
         return new Response(
-          JSON.stringify({ 
-            success: true, 
+          JSON.stringify({
+            success: true,
             alegra_id: createdPO.id,
-            message: 'Purchase order created successfully' 
+            message: 'Purchase order created successfully'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
 
       default:
         throw new Error(`Unknown action: ${action}`);

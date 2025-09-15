@@ -464,18 +464,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Vista general del inventario multi-ubicación</p>
+          <h1 className="text-3xl font-thin text-gray-900 tracking-tight">Dashboard</h1>
+          <p className="text-gray-500 mt-2 font-light">Vista general del inventario multi-ubicación</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="px-5 py-3 bg-white border-0 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400/20 font-light text-gray-700"
           >
             <option value="7d">Últimos 7 días</option>
             <option value="30d">Últimos 30 días</option>
@@ -485,70 +485,70 @@ export default function Dashboard() {
       </div>
 
       {/* Métricas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Productos Activos</p>
-              <p className="text-2xl font-bold text-gray-900">{metrics.totalProducts}</p>
-              <p className="text-xs text-gray-500 mt-1">SKUs disponibles</p>
+              <p className="text-sm font-light text-gray-500">Productos Activos</p>
+              <p className="text-3xl font-thin text-gray-900 mt-2">{metrics.totalProducts}</p>
+              <p className="text-xs font-light text-gray-400 mt-2">SKUs disponibles</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Package className="w-6 h-6 text-blue-600" />
+            <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+              <Package className="w-7 h-7 text-blue-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Stock Bajo</p>
-              <p className="text-2xl font-bold text-red-600">{metrics.lowStockItems}</p>
-              <p className="text-xs text-gray-500 mt-1">Requieren atención</p>
+              <p className="text-sm font-light text-gray-500">Stock Bajo</p>
+              <p className="text-3xl font-thin text-red-600 mt-2">{metrics.lowStockItems}</p>
+              <p className="text-xs font-light text-gray-400 mt-2">Requieren atención</p>
             </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center">
+              <AlertTriangle className="w-7 h-7 text-red-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Próximos a Vencer</p>
-              <p className="text-2xl font-bold text-yellow-600">{metrics.expiringItems}</p>
-              <p className="text-xs text-gray-500 mt-1">En los próximos 30 días</p>
+              <p className="text-sm font-light text-gray-500">Próximos a Vencer</p>
+              <p className="text-3xl font-thin text-yellow-600 mt-2">{metrics.expiringItems}</p>
+              <p className="text-xs font-light text-gray-400 mt-2">En los próximos 30 días</p>
             </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-yellow-600" />
+            <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center">
+              <Clock className="w-7 h-7 text-yellow-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Órdenes Pendientes</p>
-              <p className="text-2xl font-bold text-purple-600">{metrics.pendingOrders}</p>
-              <p className="text-xs text-gray-500 mt-1">Por recibir</p>
+              <p className="text-sm font-light text-gray-500">Órdenes Pendientes</p>
+              <p className="text-3xl font-thin text-purple-600 mt-2">{metrics.pendingOrders}</p>
+              <p className="text-xs font-light text-gray-400 mt-2">Por recibir</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Truck className="w-6 h-6 text-purple-600" />
+            <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+              <Truck className="w-7 h-7 text-purple-600" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Valor del inventario */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Valor Total del Inventario</h2>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-gray-900">
+      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-light text-gray-900">Valor Total del Inventario</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-thin text-gray-900">
               {formatCurrency(metrics.totalInventoryValue)}
             </span>
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-              metrics.monthlyGrowth > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-light ${
+              metrics.monthlyGrowth > 0 ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'
             }`}>
               {metrics.monthlyGrowth > 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
               {Math.abs(metrics.monthlyGrowth)}%
@@ -557,65 +557,67 @@ export default function Dashboard() {
         </div>
         
         {/* Desglose por tipo */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {inventoryByType.map((type) => (
-            <div key={type.type} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-8 h-8 ${type.color} bg-opacity-20 rounded-lg flex items-center justify-center`}>
+            <div key={type.type} className="p-6 bg-gray-50/50 rounded-2xl hover:bg-gray-50/80 transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 ${type.color} bg-opacity-10 rounded-2xl flex items-center justify-center`}>
                   {type.icon}
                 </div>
-                <span className="text-sm font-medium text-gray-700">{type.label}</span>
+                <span className="text-sm font-light text-gray-700">{type.label}</span>
               </div>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(type.value)}</p>
-              <p className="text-xs text-gray-500">{type.quantity} unidades</p>
+              <p className="text-xl font-thin text-gray-900">{formatCurrency(type.value)}</p>
+              <p className="text-xs font-light text-gray-400 mt-1">{type.quantity} unidades</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Grid de ubicaciones y alertas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Inventario por ubicación */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Inventario por Ubicación</h2>
-          <div className="space-y-4">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm">
+          <h2 className="text-xl font-light text-gray-900 mb-6">Inventario por Ubicación</h2>
+          <div className="space-y-6">
             {inventoryByLocation.map((location, index) => (
-              <div key={index} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium text-gray-900">{location.location}</span>
+              <div key={index} className="border-b border-gray-100/50 last:border-0 pb-6 last:pb-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-500/10 rounded-2xl flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <span className="font-light text-gray-900 text-lg">{location.location}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-lg font-thin text-gray-600">
                     {formatCurrency(location.value)}
                   </span>
                 </div>
-                
+
                 {/* Barra de progreso */}
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                  <div 
-                    className={`h-2 rounded-full ${LOCATIONS[index].color}`}
+                <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
+                  <div
+                    className={`h-2 rounded-full ${LOCATIONS[index].color} transition-all duration-300`}
                     style={{ width: `${location.percentage}%` }}
                   ></div>
                 </div>
-                
+
                 {/* Desglose por tipo */}
-                <div className="grid grid-cols-4 gap-2 text-xs">
-                  <div className="text-gray-600">
-                    <span className="block font-medium">Mat. Prima</span>
-                    <span>{location.items.materia_prima}</span>
+                <div className="grid grid-cols-4 gap-4 text-sm">
+                  <div className="text-gray-500">
+                    <span className="block font-light text-xs text-gray-400">Mat. Prima</span>
+                    <span className="font-light">{location.items.materia_prima}</span>
                   </div>
-                  <div className="text-gray-600">
-                    <span className="block font-medium">Empaques</span>
-                    <span>{location.items.empaques}</span>
+                  <div className="text-gray-500">
+                    <span className="block font-light text-xs text-gray-400">Empaques</span>
+                    <span className="font-light">{location.items.empaques}</span>
                   </div>
-                  <div className="text-gray-600">
-                    <span className="block font-medium">Gomas</span>
-                    <span>{location.items.gomas_granel}</span>
+                  <div className="text-gray-500">
+                    <span className="block font-light text-xs text-gray-400">Gomas</span>
+                    <span className="font-light">{location.items.gomas_granel}</span>
                   </div>
-                  <div className="text-gray-600">
-                    <span className="block font-medium">P. Final</span>
-                    <span>{location.items.producto_final}</span>
+                  <div className="text-gray-500">
+                    <span className="block font-light text-xs text-gray-400">P. Final</span>
+                    <span className="font-light">{location.items.producto_final}</span>
                   </div>
                 </div>
               </div>
@@ -623,10 +625,10 @@ export default function Dashboard() {
           </div>
           
           {/* Resumen */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-gray-100/50">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Total productos en todas las ubicaciones:</span>
-              <span className="font-bold text-gray-900">
+              <span className="text-sm font-light text-gray-500">Total productos en todas las ubicaciones:</span>
+              <span className="font-light text-lg text-gray-900">
                 {inventoryByLocation.reduce((sum, loc) => sum + loc.products, 0)} items
               </span>
             </div>
@@ -634,21 +636,21 @@ export default function Dashboard() {
         </div>
 
         {/* Alertas críticas */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Alertas Críticas</h2>
-          <div className="space-y-3">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm">
+          <h2 className="text-xl font-light text-gray-900 mb-6">Alertas Críticas</h2>
+          <div className="space-y-4">
             {alerts.map((alert) => (
-              <div 
-                key={alert.id} 
-                className={`p-3 rounded-lg border ${getAlertBgColor(alert.type)}`}
+              <div
+                key={alert.id}
+                className={`p-5 rounded-2xl border-0 ${getAlertBgColor(alert.type)} transition-all hover:shadow-sm`}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3">
                   {getAlertIcon(alert.type)}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{alert.title}</p>
-                    <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                    <p className="text-sm font-light text-gray-900">{alert.title}</p>
+                    <p className="text-xs font-light text-gray-500 mt-1">{alert.description}</p>
                     {alert.action && (
-                      <button className="text-xs text-blue-600 hover:text-blue-700 mt-2 font-medium">
+                      <button className="text-xs text-orange-600 hover:text-orange-700 mt-3 font-light">
                         {alert.action} →
                       </button>
                     )}
@@ -661,34 +663,34 @@ export default function Dashboard() {
       </div>
 
       {/* Tendencia de ventas vs producción */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Tendencia Mensual</h2>
-        <div className="h-64 flex items-center justify-center text-gray-500">
+      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-0 shadow-sm">
+        <h2 className="text-xl font-light text-gray-900 mb-6">Tendencia Mensual</h2>
+        <div className="h-64 flex items-center justify-center text-gray-400">
           <div className="text-center">
-            <BarChart3 className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>Gráfico de tendencias</p>
-            <p className="text-xs mt-1">Ventas vs Producción</p>
+            <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p className="font-light text-lg">Gráfico de tendencias</p>
+            <p className="text-sm font-light mt-2">Ventas vs Producción</p>
           </div>
         </div>
       </div>
 
       {/* Acciones rápidas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <button className="p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <button className="p-6 bg-orange-500/10 text-orange-600 rounded-3xl hover:bg-orange-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
           <Package className="w-5 h-5" />
-          <span>Nuevo Producto</span>
+          <span className="font-light">Nuevo Producto</span>
         </button>
-        <button className="p-4 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2">
+        <button className="p-6 bg-blue-500/10 text-blue-600 rounded-3xl hover:bg-blue-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
           <ShoppingCart className="w-5 h-5" />
-          <span>Crear Orden</span>
+          <span className="font-light">Crear Orden</span>
         </button>
-        <button className="p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
+        <button className="p-6 bg-green-500/10 text-green-600 rounded-3xl hover:bg-green-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
           <Truck className="w-5 h-5" />
-          <span>Recibir Mercancía</span>
+          <span className="font-light">Recibir Mercancía</span>
         </button>
-        <button className="p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-2">
+        <button className="p-6 bg-purple-500/10 text-purple-600 rounded-3xl hover:bg-purple-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
           <BarChart3 className="w-5 h-5" />
-          <span>Ver Reportes</span>
+          <span className="font-light">Ver Reportes</span>
         </button>
       </div>
     </div>

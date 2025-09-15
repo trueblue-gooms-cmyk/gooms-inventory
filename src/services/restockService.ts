@@ -255,7 +255,7 @@ class RestockService {
           if (!product) continue;
 
           const preferredSupplier = product.supplier_products?.find(
-            (sp: any) => sp.suppliers?.is_active
+            (sp: { supplier_id: string; unit_cost: number; suppliers: { name: string; is_active: boolean } }) => sp.suppliers?.is_active
           );
 
           const order: Omit<RestockOrder, 'id'> = {

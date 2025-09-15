@@ -5,13 +5,13 @@
 
 import { useState, useCallback } from 'react';
 
-export interface ModalState<T = any> {
+export interface ModalState<T = Record<string, unknown>> {
   isOpen: boolean;
   data?: T;
   mode: 'create' | 'edit' | 'view' | 'delete' | 'custom';
 }
 
-export interface UseModalReturn<T = any> {
+export interface UseModalReturn<T = Record<string, unknown>> {
   modal: ModalState<T>;
   openModal: (mode: ModalState<T>['mode'], data?: T) => void;
   closeModal: () => void;
@@ -27,7 +27,7 @@ export interface UseModalReturn<T = any> {
 /**
  * Hook para manejo centralizado de estados de modales
  */
-export const useModal = <T = any>(initialState?: Partial<ModalState<T>>): UseModalReturn<T> => {
+export const useModal = <T = Record<string, unknown>>(initialState?: Partial<ModalState<T>>): UseModalReturn<T> => {
   const [modal, setModal] = useState<ModalState<T>>({
     isOpen: false,
     data: undefined,
@@ -150,7 +150,7 @@ export interface ImportModalState {
   isOpen: boolean;
   step: 'upload' | 'preview' | 'processing' | 'complete';
   file?: File;
-  data?: any[];
+  data?: Record<string, unknown>[];
   errors?: string[];
 }
 
@@ -185,7 +185,7 @@ export const useImportModal = () => {
     setState(prev => ({ ...prev, file, step: 'preview' }));
   }, []);
 
-  const setData = useCallback((data: any[], errors?: string[]) => {
+  const setData = useCallback((data: Record<string, unknown>[], errors?: string[]) => {
     setState(prev => ({ ...prev, data, errors }));
   }, []);
 

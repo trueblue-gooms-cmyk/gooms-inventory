@@ -31,6 +31,8 @@ import { useFormModal } from '@/hooks/useModal';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
 import { useSecurity } from '@/utils/security';
+import { useAppStore } from '@/stores/useAppStore';
+import { useCanEdit } from '@/hooks/useSecureAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export type MovementType = 'entrada' | 'salida' | 'transferencia' | 'ajuste' | 'vencimiento';
@@ -121,10 +123,15 @@ export function InventoryMovements() {
   const [selectedType, setSelectedType] = useState<MovementType | 'all'>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'movements' | 'receptions'>('movements');
+  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showReceptionModal, setShowReceptionModal] = useState(false);
 
   const { toast } = useToast();
   const { handleAsyncError } = useErrorHandler();
   const { canPerform, logOperation } = useSecurity();
+  const { user } = useAppStore();
+  const canEdit = useCanEdit();
   const modal = useFormModal();
 
   // Estados del formulario
@@ -141,9 +148,55 @@ export function InventoryMovements() {
 
   useEffect(() => {
     loadData();
+    loadPendingOrders();
   }, []);
 
   // Cargar datos
+  // Cargar órdenes pendientes de recepción
+  const loadPendingOrders = async () => {
+    try {
+      // Usar datos de prueba mientras configuramos la base de datos
+      const demoOrders = [
+        {
+          id: 'order-1',
+          order_number: 'OC-2025-001',
+          supplier_name: 'Proveedor ABC Químicos',
+          status: 'sent',
+          order_date: new Date().toISOString(),
+          expected_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          total_items: 5,
+          total_cost: 2500000,
+          items: [
+            { id: 'item-1', product_name: 'Ácido Cítrico 25kg', ordered_quantity: 10, unit_cost: 85000 },
+            { id: 'item-2', product_name: 'Colorante Rojo 5kg', ordered_quantity: 5, unit_cost: 120000 }
+          ]
+        },
+        {
+          id: 'order-2',
+          order_number: 'OC-2025-002',
+          supplier_name: 'Empaques del Valle',
+          status: 'partial',
+          order_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          expected_date: new Date().toISOString(),
+          total_items: 3,
+          total_cost: 850000,
+          items: [
+            { id: 'item-3', product_name: 'Bolsas Transparentes 100g', ordered_quantity: 1000, unit_cost: 850 }
+          ]
+        }
+      ];
+
+      setPendingOrders(demoOrders);
+    } catch (error) {
+      console.error('Error loading pending orders:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las órdenes pendientes",
+        variant: "destructive"
+      });
+    }
+  };
+
   const loadData = async () => {
     const { error } = await handleAsyncError(async () => {
       setLoading(true);
@@ -330,10 +383,16 @@ export function InventoryMovements() {
 
   // Enviar formulario
   const handleSubmit = async () => {
+    console.log('🔄 Creando nuevo movimiento...', formData);
+
     const { error } = await handleAsyncError(async () => {
       // Validaciones básicas
       if (!formData.product_id || !formData.quantity) {
         throw new Error('Producto y cantidad son requeridos');
+      }
+
+      if (parseInt(formData.quantity) <= 0) {
+        throw new Error('La cantidad debe ser mayor a 0');
       }
 
       if (formData.movement_type === 'transferencia') {
@@ -364,7 +423,7 @@ export function InventoryMovements() {
         reference_id: formData.reference_id || null,
         notes: formData.notes,
         status: 'completed', // Para simplicidad, completamos inmediatamente
-        created_by: 'current-user', // Se obtendría del contexto de usuario
+        created_by: user?.id || 'anonymous-user',
         completed_at: new Date().toISOString()
       };
 
@@ -377,6 +436,8 @@ export function InventoryMovements() {
 
       if (movementError) throw movementError;
 
+      console.log('✅ Movimiento creado exitosamente:', newMovement);
+
       // Registrar operación sensible
       await logOperation('bulk_operations', {
         operation: 'inventory_movement',
@@ -387,7 +448,8 @@ export function InventoryMovements() {
 
       toast({
         title: "Movimiento registrado",
-        description: `Movimiento de ${formData.movement_type} registrado correctamente`
+        description: `Movimiento de ${formData.movement_type} por ${formData.quantity} unidades registrado correctamente`,
+        variant: "default"
       });
 
       modal.closeModal();
@@ -446,7 +508,7 @@ export function InventoryMovements() {
               Recepción, transferencias y despachos de productos
             </p>
           </div>
-          {canPerform('create_movement') && (
+          {canEdit && (
             <button
               onClick={handleCreate}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
@@ -674,17 +736,82 @@ export function InventoryMovements() {
 
         {/* Receptions Tab Content */}
         {activeTab === 'receptions' && (
-          <div className="text-center py-16">
-            <PackageCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestión de Recepciones</h3>
-            <p className="text-gray-600 mb-6">
-              La funcionalidad completa de recepciones se encuentra en el módulo dedicado de Recepción.
-              <br />
-              Para procesar órdenes de compra y recepciones, utiliza el módulo de Recepción desde el menú lateral.
-            </p>
-            <p className="text-sm text-gray-500">
-              Los movimientos de entrada generados por las recepciones aparecerán automáticamente en la pestaña "Movimientos" arriba.
-            </p>
+          <div className="space-y-6">
+            {/* Header de recepciones */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Órdenes Pendientes de Recepción</h2>
+                <p className="text-gray-600 mt-1">
+                  Procesa las órdenes de compra y recibe mercancía directamente desde aquí
+                </p>
+              </div>
+              <button
+                onClick={loadPendingOrders}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Actualizar
+              </button>
+            </div>
+
+            {/* Lista de órdenes pendientes */}
+            <div className="bg-white rounded-lg border border-gray-200">
+              {pendingOrders.length === 0 ? (
+                <div className="p-8 text-center">
+                  <PackageCheck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">No hay órdenes pendientes de recepción</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {pendingOrders.map((order) => (
+                    <div key={order.id} className="p-6 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-gray-900">
+                              Orden #{order.order_number}
+                            </h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              order.status === 'sent' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {order.status === 'sent' ? 'Enviado' : 'Parcial'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <User className="w-4 h-4" />
+                              {order.supplier_name}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              Esperado: {new Date(order.expected_date).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Package className="w-4 h-4" />
+                              ${order.total_cost.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setShowReceptionModal(true);
+                            }}
+                            className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                          >
+                            <PackageCheck className="w-4 h-4 inline mr-1" />
+                            Procesar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

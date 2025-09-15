@@ -13,13 +13,8 @@ interface Notification {
   is_read: boolean;
 }
 
-export function NotificationBell() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // Datos de prueba mientras se implementa la base de datos
-  const mockNotifications: Notification[] = [
+// Datos de prueba mientras se implementa la base de datos
+const mockNotifications: Notification[] = [
     {
       id: '1',
       type: 'stock_low',
@@ -48,6 +43,11 @@ export function NotificationBell() {
       is_read: false
     }
   ];
+
+export function NotificationBell() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     setLoading(true);

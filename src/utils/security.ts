@@ -8,6 +8,14 @@ import { supabase } from '@/integrations/supabase/client';
 export type UserRole = 'admin' | 'operator' | 'user';
 export type Permission = 'read' | 'create' | 'update' | 'delete' | 'admin';
 
+export interface UserData {
+  id: string;
+  email: string;
+  full_name?: string;
+  role?: UserRole;
+  [key: string]: unknown;
+}
+
 /**
  * Configuración de permisos por rol
  */
@@ -36,7 +44,7 @@ export type SensitiveOperation = typeof SENSITIVE_OPERATIONS[number];
  */
 export class SecurityManager {
   private static instance: SecurityManager;
-  private currentUser: any = null;
+  private currentUser: UserData | null = null;
   private currentRole: UserRole | null = null;
 
   static getInstance(): SecurityManager {
@@ -49,7 +57,7 @@ export class SecurityManager {
   /**
    * Inicializa el manager de seguridad con datos del usuario
    */
-  async initialize(user: any): Promise<void> {
+  async initialize(user: UserData): Promise<void> {
     this.currentUser = user;
     this.currentRole = await this.getUserRole(user.id);
   }
@@ -132,7 +140,7 @@ export class SecurityManager {
   /**
    * Sanitiza datos de entrada para prevenir inyecciones
    */
-  sanitizeInput(input: any): any {
+  sanitizeInput(input: unknown): unknown {
     if (typeof input === 'string') {
       return input
         .trim()
@@ -146,7 +154,7 @@ export class SecurityManager {
     }
 
     if (typeof input === 'object' && input !== null) {
-      const sanitized: any = {};
+      const sanitized: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(input)) {
         // Solo permitir keys válidos (alfanuméricos y underscore)
         if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
@@ -164,7 +172,7 @@ export class SecurityManager {
    */
   validateCriticalOperation(
     operation: SensitiveOperation,
-    data: any
+    data: unknown
   ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
@@ -226,7 +234,7 @@ export class SecurityManager {
    */
   async logSensitiveOperation(
     operation: SensitiveOperation,
-    details: Record<string, any>
+    details: Record<string, unknown>
   ): Promise<void> {
     try {
       // En una implementación real, esto se guardaría en una tabla de auditoría
@@ -261,7 +269,7 @@ export class SecurityManager {
   /**
    * Valida que los datos no contengan información sensible
    */
-  validateDataSensitivity(data: any): { isSafe: boolean; warnings: string[] } {
+  validateDataSensitivity(data: unknown): { isSafe: boolean; warnings: string[] } {
     const warnings: string[] = [];
     const sensitivePatterns = [
       /password/i,
@@ -273,7 +281,7 @@ export class SecurityManager {
       /credential/i
     ];
 
-    const checkForSensitiveData = (obj: any, path: string = ''): void => {
+    const checkForSensitiveData = (obj: unknown, path: string = ''): void => {
       if (typeof obj === 'string') {
         sensitivePatterns.forEach(pattern => {
           if (pattern.test(obj) || pattern.test(path)) {
@@ -328,10 +336,10 @@ export const useSecurity = () => {
   return {
     hasPermission: (permission: Permission) => securityManager.hasPermission(permission),
     canPerform: (operation: string) => securityManager.canPerformOperation(operation),
-    sanitize: (input: any) => securityManager.sanitizeInput(input),
-    validateOperation: (operation: SensitiveOperation, data: any) =>
+    sanitize: (input: unknown) => securityManager.sanitizeInput(input),
+    validateOperation: (operation: SensitiveOperation, data: unknown) =>
       securityManager.validateCriticalOperation(operation, data),
-    logOperation: (operation: SensitiveOperation, details: Record<string, any>) =>
+    logOperation: (operation: SensitiveOperation, details: Record<string, unknown>) =>
       securityManager.logSensitiveOperation(operation, details),
     getCurrentUser: () => securityManager.getCurrentUser(),
     getCurrentRole: () => securityManager.getCurrentRole(),
@@ -345,10 +353,10 @@ export const useSecurity = () => {
  * Decorator para funciones que requieren permisos específicos
  */
 export const requiresPermission = (permission: Permission) => {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       const securityManager = SecurityManager.getInstance();
 
       if (!securityManager.hasPermission(permission)) {

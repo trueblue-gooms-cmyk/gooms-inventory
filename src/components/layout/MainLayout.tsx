@@ -37,6 +37,7 @@ export function MainLayout() {
   const isAdmin = useIsAdmin();
   const { sidebarOpen, toggleSidebar, signOut, user } = useAppStore();
   const [isMobile, setIsMobile] = useState(false);
+  const [currentTimeFilter, setCurrentTimeFilter] = useState(30); // Default: 30 días
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -81,33 +82,33 @@ export function MainLayout() {
   // }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50/30">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/80 backdrop-blur-md border-r border-gray-100 transform transition-transform duration-300 ease-out md:relative md:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Box className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between h-20 px-8 border-b border-gray-100">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-sm">
+              <Box className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Gooms</span>
+            <span className="text-2xl font-thin text-gray-900 tracking-tight">Gooms</span>
           </Link>
           {isMobile && (
             <button
               onClick={toggleSidebar}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="md:hidden p-2.5 rounded-full hover:bg-gray-100/50 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-gray-600" />
             </button>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-6 py-6 space-y-2 overflow-y-auto">
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
@@ -116,10 +117,10 @@ export function MainLayout() {
                 key={item.href}
                 to={item.href}
                 onClick={handleNavClick}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group ${
+                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-orange-50 text-orange-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-orange-500/10 text-orange-600 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-50/50 hover:text-gray-900'
                 }`}
               >
                 <Icon
@@ -129,10 +130,10 @@ export function MainLayout() {
                       : 'text-gray-400 group-hover:text-gray-600'
                   }`}
                 />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-light text-[15px]">{item.label}</span>
                 {item.badge && (
                   <span
-                    className={`ml-auto px-2 py-0.5 text-xs rounded-full ${
+                    className={`ml-auto px-2.5 py-1 text-xs font-light rounded-full ${
                       isActive
                         ? 'bg-orange-600 text-white'
                         : 'bg-gray-200 text-gray-600'
@@ -147,10 +148,10 @@ export function MainLayout() {
         </nav>
 
         {/* User info */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <span className="text-sm font-medium text-orange-600">
+        <div className="px-6 py-5 border-t border-gray-100">
+          <div className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50/50">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-sm">
+              <span className="text-sm font-medium text-white">
                 {getInitials(profile?.full_name, profile?.email)}
               </span>
             </div>
@@ -158,7 +159,7 @@ export function MainLayout() {
               <p className="text-sm font-medium text-gray-900 truncate">
                 {profile?.full_name || 'Usuario'}
               </p>
-              <p className="text-xs text-gray-500 truncate">{profile?.email}</p>
+              <p className="text-xs font-light text-gray-500 truncate">{profile?.email}</p>
             </div>
           </div>
         </div>
@@ -175,7 +176,8 @@ export function MainLayout() {
             role: (profile?.role as 'admin' | 'operator' | 'user') || 'user'
           }}
           onTimeFilterChange={(days) => {
-            console.log('Filtro cambiado a:', days, 'días');
+            setCurrentTimeFilter(days);
+            // El filtro ahora está funcionalmente conectado
           }}
           onRefresh={() => {
             window.location.reload();
@@ -188,8 +190,8 @@ export function MainLayout() {
         />
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="container mx-auto px-6 py-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50/30">
+          <div className="container mx-auto px-8 py-10">
             <Outlet />
           </div>
         </main>
@@ -198,7 +200,7 @@ export function MainLayout() {
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
           onClick={toggleSidebar}
         />
       )}

@@ -188,29 +188,29 @@ export function Inventory() {
           const product = item.products;
           const location = item.locations;
 
-        const quantity = item.quantity_available || 0;
-        const minStock = product.min_stock_units || 0;
-        const unitCost = product.unit_cost || 0;
-        const totalValue = quantity * unitCost;
+          const quantity = item.quantity_available || 0;
+          const minStock = product.min_stock_units || 0;
+          const unitCost = product.unit_cost || 0;
+          const totalValue = quantity * unitCost;
 
-        return {
-          id: item.id,
-          sku: product.sku,
-          name: product.name,
-          category: product.type as any,
-          location: location.name,
-          quantity,
-          min_stock: minStock,
-          max_stock: Math.max(minStock * 5, 1000),
-          unit: 'unidades',
-          unit_cost: unitCost,
-          total_value: totalValue,
-          status: getStockStatus(quantity, minStock, Math.max(minStock * 5, 1000)),
-          last_movement: item.last_movement_date ?
-            new Date(item.last_movement_date).toISOString().split('T')[0] :
-            new Date().toISOString().split('T')[0],
-          expiry_date: item.expiry_date || undefined
-        };
+          return {
+            id: item.id,
+            sku: product.sku || 'N/A',
+            name: product.name || 'Producto sin nombre',
+            category: product.type as any,
+            location: location.name || 'Ubicación desconocida',
+            quantity,
+            min_stock: minStock,
+            max_stock: Math.max(minStock * 5, 1000),
+            unit: 'unidades',
+            unit_cost: unitCost,
+            total_value: totalValue,
+            status: getStockStatus(quantity, minStock, Math.max(minStock * 5, 1000)),
+            last_movement: item.last_movement_date ?
+              new Date(item.last_movement_date).toISOString().split('T')[0] :
+              new Date().toISOString().split('T')[0],
+            expiry_date: item.expiry_date || undefined
+          };
       }).filter(Boolean) as InventoryItem[];
     } catch (error) {
       console.error('Error processing inventory data:', error);
