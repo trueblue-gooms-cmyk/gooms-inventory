@@ -202,25 +202,24 @@ export function InventoryMovements() {
     const { error } = await handleAsyncError(async () => {
       setLoading(true);
 
-      // Cargar movimientos
+      // Cargar movimientos - QUERY CORREGIDA
       const { data: movementsData, error: movementsError } = await supabase
         .from('inventory_movements')
         .select(`
-          *,
-          products!inventory_movements_product_id_fkey(id, code, name, type, unit_measure),
-          from_location:locations!inventory_movements_from_location_id_fkey(id, name, code),
-          to_location:locations!inventory_movements_to_location_id_fkey(id, name, code),
-          created_by_profile:profiles!inventory_movements_created_by_fkey(id, full_name)
+          id, movement_type, quantity, created_at, notes, unit_cost, total_cost,
+          products!inventory_movements_product_id_fkey(id, sku, name, type),
+          from_location:locations!inventory_movements_from_location_id_fkey(id, name),
+          to_location:locations!inventory_movements_to_location_id_fkey(id, name)
         `)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (movementsError) throw movementsError;
 
-      // Cargar productos
+      // Cargar productos - CAMPOS CORREGIDOS
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, code, name, type, unit_measure, current_stock')
+        .select('id, sku, name, type, unit_cost')
         .eq('is_active', true)
         .order('name');
 
@@ -416,7 +415,7 @@ export function InventoryMovements() {
         throw new Error('Para salidas se requiere ubicación de origen');
       }
 
-      // Preparar datos del movimiento
+      // Preparar datos del movimiento - VERSIÓN CORREGIDA v2
       const movementData = {
         movement_type: formData.movement_type,
         product_id: formData.product_id,
@@ -426,10 +425,12 @@ export function InventoryMovements() {
         reference_type: formData.reference_type || null,
         reference_id: formData.reference_id || null,
         notes: formData.notes,
-        status: 'completed', // Para simplicidad, completamos inmediatamente
         created_by: user?.id || 'anonymous-user',
-        completed_at: new Date().toISOString()
+        unit_cost: 0,
+        total_cost: 0
       };
+
+      console.log('🟢 NUEVO movementData (sin status/completed_at):', movementData);
 
       // Crear movimiento
       const { data: newMovement, error: movementError } = await supabase

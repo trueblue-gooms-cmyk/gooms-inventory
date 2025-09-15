@@ -169,11 +169,11 @@ export function UnifiedProducts() {
     const { error } = await handleAsyncError(async () => {
       setLoading(true);
 
-      // Test de conexión básica
+      // Test de conexión básica - CORREGIDO
       try {
         const { data: testData, error: testError } = await supabase
           .from('products')
-          .select('count')
+          .select('id')
           .limit(1);
         console.log('🔄 Test connection - data:', testData, 'error:', testError);
       } catch (err) {
@@ -184,24 +184,16 @@ export function UnifiedProducts() {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
-          *,
-          suppliers(id, name, code)
+          id, name, sku, type, unit_cost, min_stock_units,
+          is_active, weight_grams, shelf_life_days,
+          safety_stock_units, units_per_box, created_at, updated_at
         `)
         .order('name');
 
       if (productsError) throw productsError;
 
-      // Cargar proveedores
-      const { data: suppliersData, error: suppliersError } = await supabase
-        .from('suppliers')
-        .select('id, name, code')
-        .eq('is_active', true)
-        .order('name');
-
-      if (suppliersError) throw suppliersError;
-
       setProducts((productsData as any) || []);
-      setSuppliers(suppliersData || []);
+      setSuppliers([]);
     });
 
     if (error) {
@@ -370,33 +362,26 @@ export function UnifiedProducts() {
     }
 
     try {
-      // Crear objeto base del producto
+      // Crear objeto base del producto según esquema real de la tabla
       const productData: any = {
-        code: formData.code.toUpperCase(),
+        sku: formData.code.toUpperCase(),
         name: formData.name,
-        description: formData.description || '',
         type: formData.type,
-        unit_measure: formData.unit_measure,
         unit_cost: parseFloat(formData.unit_cost) || 0,
         min_stock_units: parseInt(formData.min_stock_units) || 0,
-        current_stock: parseInt(formData.current_stock) || 0,
-        is_active: formData.is_active ?? true
+        is_active: formData.is_active ?? true,
+        weight_grams: formData.weight_grams ? parseInt(formData.weight_grams) : null,
+        shelf_life_days: formData.shelf_life_days ? parseInt(formData.shelf_life_days) : null,
+        safety_stock_units: parseInt(formData.min_stock_units) || 0,
+        units_per_box: 1
       };
 
-      // Agregar campos específicos según tipo solo si tienen valor
-      if (formData.type === 'materia_prima') {
-        if (formData.supplier_code) productData.supplier_code = formData.supplier_code;
-        if (formData.moq_kg) productData.moq_kg = parseFloat(formData.moq_kg);
-        if (formData.shelf_life_days) productData.shelf_life_days = parseInt(formData.shelf_life_days);
-        if (formData.lead_time_days) productData.lead_time_days = parseInt(formData.lead_time_days);
-        if (formData.safety_stock_kg) productData.safety_stock_kg = parseFloat(formData.safety_stock_kg);
+      // Solo los campos específicos que existen en la tabla
+      if (formData.weight_grams) {
+        productData.weight_grams = parseInt(formData.weight_grams);
       }
-
-      if (formData.type === 'producto_final') {
-        if (formData.selling_price) productData.selling_price = parseFloat(formData.selling_price);
-        if (formData.margin_percentage) productData.margin_percentage = parseFloat(formData.margin_percentage);
-        if (formData.barcode) productData.barcode = formData.barcode;
-        if (formData.weight_grams) productData.weight_grams = parseInt(formData.weight_grams);
+      if (formData.shelf_life_days) {
+        productData.shelf_life_days = parseInt(formData.shelf_life_days);
       }
 
       console.log('📦 Datos del producto a enviar:', productData);
