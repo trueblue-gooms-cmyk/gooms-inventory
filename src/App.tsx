@@ -18,7 +18,7 @@ import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { UnifiedProducts } from './pages/UnifiedProducts';
 import { InventoryMovements } from './pages/InventoryMovements';
-import { Reception } from './pages/Reception';
+
 import { Financial } from './pages/Financial';
 import { LoadingScreen } from './components/LoadingScreen';
 import { OfflineSyncStatus } from './components/OfflineSyncStatus';
@@ -71,11 +71,6 @@ function AppContent() {
               <Purchases />
             </ProtectedRoute>
           } /> */}
-          <Route path="reception" element={
-            <ProtectedRoute requiredRole="operator">
-              <Reception />
-            </ProtectedRoute>
-          } />
           {/* <Route path="financial" element={
             <ProtectedRoute requiredRole="operator">
               <Financial />

@@ -77,7 +77,7 @@ export function Settings() {
 
       if (data) {
         const settingsMap: Record<string, AppSetting> = {};
-        const formValues: unknown = { ...formData };
+        const formValues: any = { ...formData };
         
         data.forEach(setting => {
           settingsMap[setting.key] = {
@@ -88,12 +88,12 @@ export function Settings() {
           };
           
           if (setting.value !== null) {
-            formValues[setting.key] = setting.value;
+            (formValues as any)[setting.key] = setting.value;
           }
         });
         
         setSettings(settingsMap);
-        setFormData(formValues);
+        setFormData(formValues as any);
       }
     } catch (error) {
       console.error('Error loading settings:', error);

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { X, Package, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
+import { toast } from 'sonner';
 
 interface Props {
   isOpen: boolean;
@@ -144,12 +145,13 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
 
       if (error) throw error;
 
+      toast.success('Movimiento registrado exitosamente');
       onSuccess();
       onClose();
       resetForm();
     } catch (error) {
       console.error('Error registering movement:', error);
-      alert('Error al registrar el movimiento');
+      toast.error('Error al registrar el movimiento');
     } finally {
       setLoading(false);
     }

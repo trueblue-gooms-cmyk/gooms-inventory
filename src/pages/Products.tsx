@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Plus, Search, Edit2, Trash2, Upload } from 'lucide-react';
 import { useCanEdit } from '@/stores/useAppStore';
 import { CsvImporter } from '@/components/CsvImporter';
+import { toast } from 'sonner';
 
 interface Product {
   id: string;
@@ -19,11 +20,6 @@ interface Product {
   created_at: string;
 }
 
-// Helper de toast seguro (reemplaza por tu lib si la tienes: sonner/shadcn)
-const toast = {
-  success: (msg: string) => (window as any)?.__toast?.success ? (window as any).__toast.success(msg) : alert(msg),
-  error: (msg: string) => (window as any)?.__toast?.error ? (window as any).__toast.error(msg) : alert(msg),
-};
 
 export function Products() {
   const [showImporter, setShowImporter] = useState(false);

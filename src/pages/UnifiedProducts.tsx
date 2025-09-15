@@ -185,7 +185,7 @@ export function UnifiedProducts() {
 
       if (suppliersError) throw suppliersError;
 
-      setProducts(productsData || []);
+      setProducts((productsData as any) || []);
       setSuppliers(suppliersData || []);
     });
 
@@ -519,7 +519,7 @@ export function UnifiedProducts() {
 
           const { error } = await supabase
             .from('products')
-            .insert([productData]);
+            .insert([productData] as any);
 
           if (error) {
             console.error('Error importing product:', productData.name, error);
@@ -1214,7 +1214,7 @@ export function UnifiedProducts() {
                       >
                         {importLoading ? (
                           <>
-                            <RefreshCw className="w-4 h-4 animate-spin inline mr-2" />
+                            <div className="w-4 h-4 animate-spin inline mr-2 border-2 border-white border-t-transparent rounded-full"></div>
                             Importando...
                           </>
                         ) : (
