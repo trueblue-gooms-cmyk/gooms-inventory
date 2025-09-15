@@ -201,16 +201,16 @@ export default function Purchases() {
             id: item.id,
             product_id: item.item_id,
             product_name: item.item_type === 'product' ? 
-              products?.find(p => p.id === item.item_id)?.name || 'Unknown Product' :
-              rawMaterials?.find(rm => rm.id === item.item_id)?.name || 'Unknown Raw Material',
+              (products as any[])?.find((p: any) => p.id === item.item_id)?.name || 'Unknown Product' :
+              (rawMaterials as any[])?.find((rm: any) => rm.id === item.item_id)?.name || 'Unknown Raw Material',
             sku: item.item_type === 'product' ? 
-              products?.find(p => p.id === item.item_id)?.sku || '' :
-              rawMaterials?.find(rm => rm.id === item.item_id)?.code || '',
+              (products as any[])?.find((p: any) => p.id === item.item_id)?.sku || '' :
+              (rawMaterials as any[])?.find((rm: any) => rm.id === item.item_id)?.code || '',
             quantity: item.quantity,
             unit_price: item.unit_price || 0,
             total: item.total_price || 0,
             moq: 1, // Default value
-            current_stock: inventory?.find(inv => inv.product_id === item.item_id)?.quantity_available || 0
+            current_stock: (inventory as any[])?.find((inv: any) => inv.product_id === item.item_id)?.quantity_available || 0
           })) || [],
           subtotal: order.subtotal || 0,
           discount: 0,
@@ -241,8 +241,8 @@ export default function Purchases() {
     const suggestions: SmartSuggestion[] = [];
     
     // Analizar cada producto
-    products.forEach(product => {
-      const inventoryItem = inventory.find(inv => inv.product_id === product.id);
+    (products as any[])?.forEach((product: any) => {
+      const inventoryItem = (inventory as any[])?.find((inv: any) => inv.product_id === product.id);
       const currentStock = inventoryItem?.quantity_available || 0;
       const minStock = product.min_stock_units || 0;
       const unitCost = product.unit_cost || 0;

@@ -92,11 +92,11 @@ export function Projections() {
         inventoryData || []
       );
 
-      setProjections(projectionsData);
+      setProjections(projectionsData as ProductProjection[]);
       
       // Preparar datos históricos para gráficos
       const historyData = processHistoricalData(salesData || []);
-      setSalesHistory(historyData);
+      setSalesHistory(historyData as SalesHistory[]);
       
     } catch (error) {
       console.error('Error loading projections:', error);
@@ -105,17 +105,18 @@ export function Projections() {
     }
   };
 
-  const calculateProjections = (sales: unknown[], products: unknown[], inventory: unknown[]) => {
-    return products.map(product => {
+  const calculateProjections = (sales: any[], products: any[], inventory: any[]) => {
+    return (products || []).map((p: any) => {
+      const product = p as any;
       // Calcular ventas promedio
-      const productSales = sales.filter(s => s.product_id === product.id);
-      const totalUnits = productSales.reduce((sum, s) => sum + s.quantity, 0);
+      const productSales = (sales || []).filter((s: any) => s.product_id === product.id);
+      const totalUnits = productSales.reduce((sum: number, s: any) => sum + (Number(s.quantity) || 0), 0);
       const avgMonthlySales = totalUnits / historicalMonths || 0;
       
       // Calcular stock actual
-      const productInventory = inventory.filter(i => i.product_id === product.id);
+      const productInventory = (inventory || []).filter((i: any) => i.product_id === product.id);
       const currentStock = productInventory.reduce(
-        (sum, i) => sum + i.quantity_available + i.quantity_reserved, 
+        (sum: number, i: any) => sum + (Number(i.quantity_available) || 0) + (Number(i.quantity_reserved) || 0), 
         0
       );
       
@@ -124,22 +125,22 @@ export function Projections() {
         avgMonthlySales * projectionMonths * (1 + growthPercentage / 100)
       );
       
-      // Calcular meses de inventario
-      const monthsOfStock = avgMonthlySales > 0 
-        ? (currentStock / avgMonthlySales).toFixed(1) 
-        : '∞';
+      // Calcular meses de inventario (número)
+      const monthsOfStockNum = avgMonthlySales > 0 
+        ? Number((currentStock / avgMonthlySales).toFixed(1))
+        : Number.POSITIVE_INFINITY;
       
       // Calcular necesidades de producción
-      const targetStock = projectedSales + product.safety_stock_units;
+      const targetStock = projectedSales + (Number(product.safety_stock_units) || 0);
       const unitsToProduce = Math.max(0, targetStock - currentStock);
       
       // Determinar estado
       let status: ProductProjection['status'] = 'optimal';
-      if (currentStock < product.min_stock_units) {
+      if (currentStock < (Number(product.min_stock_units) || 0)) {
         status = 'critical';
-      } else if (currentStock < product.safety_stock_units) {
+      } else if (currentStock < (Number(product.safety_stock_units) || 0)) {
         status = 'low';
-      } else if (currentStock > projectedSales * 3) {
+      } else if (projectedSales > 0 && currentStock > projectedSales * 3) {
         status = 'overstock';
       }
       
@@ -148,28 +149,28 @@ export function Projections() {
         product_name: product.name,
         sku: product.sku,
         current_stock: currentStock,
-        min_stock: product.min_stock_units,
-        safety_stock: product.safety_stock_units,
+        min_stock: Number(product.min_stock_units) || 0,
+        safety_stock: Number(product.safety_stock_units) || 0,
         avg_monthly_sales: Math.round(avgMonthlySales),
         growth_rate: growthPercentage,
         projected_sales: projectedSales,
-        months_of_stock: parseFloat(monthsOfStock) || 0,
+        months_of_stock: Number.isFinite(monthsOfStockNum) ? monthsOfStockNum : 0,
         units_to_produce: unitsToProduce,
         units_to_purchase_materials: Math.ceil(unitsToProduce * 1.1), // 10% adicional
         status
-      };
+      } as ProductProjection;
     });
   };
 
-  const processHistoricalData = (sales: unknown[]) => {
+  const processHistoricalData = (sales: any[]) => {
     const monthlyData: Record<string, number> = {};
     
-    sales.forEach(sale => {
-      const month = new Date(sale.sale_date).toLocaleDateString('es-ES', { 
+    (sales || []).forEach((sale: any) => {
+      const month = new Date(sale.sale_date as string).toLocaleDateString('es-ES', { 
         year: 'numeric', 
         month: 'short' 
       });
-      monthlyData[month] = (monthlyData[month] || 0) + sale.quantity;
+      monthlyData[month] = (monthlyData[month] || 0) + (Number(sale.quantity) || 0);
     });
     
     return Object.entries(monthlyData).map(([month, units]) => ({

@@ -101,7 +101,7 @@ export function Reception() {
           status,
           order_date,
           expected_date,
-          total_cost,
+          total,
           notes,
           suppliers (
             id,
@@ -111,7 +111,7 @@ export function Reception() {
             full_name
           )
         `)
-        .in('status', ['sent', 'partial'])
+        .in('status', ['sent', 'received'])
         .order('expected_date', { ascending: true });
 
       let transformedOrders: PurchaseOrder[] = [];
@@ -123,11 +123,11 @@ export function Reception() {
           order_number: order.order_number,
           supplier_id: order.suppliers?.id || '',
           supplier_name: order.suppliers?.name || 'N/A',
-          status: order.status as 'sent' | 'received' | 'partial',
+          status: (order.status === 'partial' ? 'sent' : order.status) as 'sent' | 'received',
           order_date: order.order_date,
           expected_date: order.expected_date,
           total_items: 0,
-          total_cost: order.total_cost,
+          total_cost: order.total,
           created_by: order.profiles?.full_name || 'N/A',
           notes: order.notes
         }));
@@ -215,7 +215,7 @@ export function Reception() {
         .from('purchase_order_items')
         .select(`
           id,
-          quantity as ordered_quantity,
+          quantity,
           unit_price,
           notes,
           products (
@@ -428,7 +428,7 @@ export function Reception() {
           let movementError = null;
           try {
             const { error: rpcError } = await supabase
-              .rpc('create_inventory_movement', {
+              .rpc('register_inventory_movement', {
                 p_product_id: item.item_id,
                 p_movement_type: 'entrada',
                 p_quantity: item.received_quantity,
@@ -454,7 +454,7 @@ export function Reception() {
           // 2. Actualizar stock del producto en la ubicación específica
           // Intentar actualizar inventario existente
           const { data: existingInventory } = await supabase
-            .from('inventory')
+            .from('inventory_current')
             .select('id, quantity_available')
             .eq('product_id', item.item_id)
             .eq('location_id', item.location_id)
@@ -463,7 +463,7 @@ export function Reception() {
           if (existingInventory) {
             // Actualizar inventario existente
             const { error: updateError } = await supabase
-              .from('inventory')
+              .from('inventory_current')
               .update({
                 quantity_available: existingInventory.quantity_available + item.received_quantity,
                 last_updated: new Date().toISOString(),
@@ -475,7 +475,7 @@ export function Reception() {
           } else {
             // Crear nuevo registro de inventario
             const { error: insertError } = await supabase
-              .from('inventory')
+              .from('inventory_current')
               .insert([{
                 product_id: item.item_id,
                 location_id: item.location_id,
@@ -516,7 +516,7 @@ export function Reception() {
 
       const totalOrdered = orderItems.reduce((sum, item) => sum + item.ordered_quantity, 0);
 
-      const newStatus = totalReceived >= totalOrdered ? 'received' : 'partial';
+      const newStatus = totalReceived >= totalOrdered ? 'received' : 'sent';
 
       // Intentar actualizar orden si existe tabla
       try {
