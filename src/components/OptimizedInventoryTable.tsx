@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useInventoryPaginated } from '@/hooks/useOptimizedQueries';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { 
@@ -75,20 +75,31 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
   };
 
   // Filter data based on search and filters
-  const filteredData = inventoryData?.data.filter(item => {
-    const typedItem = item as { products: { name: string; sku: string; category: string }; locations: { name: string }; quantity_available: number };
-    const product = typedItem.products;
-    if (!product) return false;
+  const filteredData = React.useMemo(() => {
+    if (!inventoryData?.data || !Array.isArray(inventoryData.data)) return [];
 
-    const matchesLocation = selectedLocation === 'all' || 
-      typedItem.locations?.name === selectedLocation;
-    const matchesCategory = selectedCategory === 'all' || 
-      product.type === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesLocation && matchesCategory && matchesSearch;
-  }) || [];
+    return inventoryData.data.filter(item => {
+      try {
+        if (!item || typeof item !== 'object') return false;
+
+        const typedItem = item as { products: { name: string; sku: string; type: string }; locations: { name: string }; quantity_available: number };
+        const product = typedItem.products;
+        const location = typedItem.locations;
+
+        if (!product || typeof product !== 'object' || !location || typeof location !== 'object') return false;
+
+        const matchesLocation = selectedLocation === 'all' || location.name === selectedLocation;
+        const matchesCategory = selectedCategory === 'all' || product.type === selectedCategory;
+        const matchesSearch = (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesLocation && matchesCategory && matchesSearch;
+      } catch (error) {
+        console.error('Error filtering inventory item:', error, item);
+        return false;
+      }
+    });
+  }, [inventoryData?.data, selectedLocation, selectedCategory, searchQuery]);
 
   if (isLoading) {
     return (
@@ -174,25 +185,27 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
               </tr>
             ) : (
               filteredData.map((item) => {
-                const typedItem = item as { products: { name: string; sku: string; category: string; min_stock_units?: number; unit_cost?: number }; locations: { name: string }; quantity_available: number };
-                const product = typedItem.products;
-                const location = typedItem.locations;
-                if (!product) return null;
+                try {
+                  const typedItem = item as { id: string; products: { name: string; sku: string; type: string; min_stock_units?: number; unit_cost?: number }; locations: { name: string }; quantity_available: number };
+                  const product = typedItem.products;
+                  const location = typedItem.locations;
 
-                const quantity = typedItem.quantity_available || 0;
-                const minStock = product.min_stock_units || 0;
-                const unitCost = product.unit_cost || 0;
-                const totalValue = quantity * unitCost;
-                const status = getStockStatus(quantity, minStock);
-                
-                const CategoryIcon = CATEGORIES[product.type as keyof typeof CATEGORIES]?.icon || Package;
-                const categoryConfig = CATEGORIES[product.type as keyof typeof CATEGORIES] || {
-                  label: product.type,
-                  color: 'bg-gray-500'
-                };
+                  if (!product || !location || !typedItem.id) return null;
 
-                return (
-                  <tr key={typedItem.id} className="hover:bg-gray-50">
+                  const quantity = Number(typedItem.quantity_available) || 0;
+                  const minStock = Number(product.min_stock_units) || 0;
+                  const unitCost = Number(product.unit_cost) || 0;
+                  const totalValue = quantity * unitCost;
+                  const status = getStockStatus(quantity, minStock);
+
+                  const CategoryIcon = CATEGORIES[product.type as keyof typeof CATEGORIES]?.icon || Package;
+                  const categoryConfig = CATEGORIES[product.type as keyof typeof CATEGORIES] || {
+                    label: product.type || 'Sin categoría',
+                    color: 'bg-gray-500'
+                  };
+
+                  return (
+                    <tr key={typedItem.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{product.name}</p>
@@ -237,8 +250,12 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                       </div>
                     </td>
                   </tr>
-                );
-              })
+                  );
+                } catch (error) {
+                  console.error('Error rendering inventory item:', error, item);
+                  return null;
+                }
+              }).filter(Boolean)
             )}
           </tbody>
         </table>

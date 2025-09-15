@@ -32,7 +32,7 @@ import ExpiryManagement from '@/components/ExpiryManagement';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InventoryFallback } from '@/components/InventoryFallback';
 import { useErrorHandler } from '@/utils/errorHandler';
-import { formatCurrency, formatNumber, getStatusColor, getStatusLabel } from '@/utils/formatters';
+import { formatNumber } from '@/utils/formatters';
 import { useFormModal } from '@/hooks/useModal';
 import { useSecurity } from '@/utils/security';
 
@@ -180,38 +180,51 @@ export function Inventory() {
   // Process inventory data for metrics calculation with error handling
   const processedInventory = React.useMemo(() => {
     try {
-      if (!inventoryData?.data) return [];
+      if (!inventoryData?.data || !Array.isArray(inventoryData.data)) return [];
 
       return inventoryData.data
-        .filter(item => item && item.products && item.locations) // Filter out invalid items
+        .filter(item => {
+          return item &&
+                 typeof item === 'object' &&
+                 item.products &&
+                 typeof item.products === 'object' &&
+                 item.locations &&
+                 typeof item.locations === 'object';
+        })
         .map(item => {
-          const product = item.products;
-          const location = item.locations;
+          try {
+            const product = item.products;
+            const location = item.locations;
 
-          const quantity = item.quantity_available || 0;
-          const minStock = product.min_stock_units || 0;
-          const unitCost = product.unit_cost || 0;
-          const totalValue = quantity * unitCost;
+            const quantity = Number(item.quantity_available) || 0;
+            const minStock = Number(product.min_stock_units) || 0;
+            const unitCost = Number(product.unit_cost) || 0;
+            const totalValue = quantity * unitCost;
 
-          return {
-            id: item.id,
-            sku: product.sku || 'N/A',
-            name: product.name || 'Producto sin nombre',
-            category: product.type as any,
-            location: location.name || 'Ubicación desconocida',
-            quantity,
-            min_stock: minStock,
-            max_stock: Math.max(minStock * 5, 1000),
-            unit: 'unidades',
-            unit_cost: unitCost,
-            total_value: totalValue,
-            status: getStockStatus(quantity, minStock, Math.max(minStock * 5, 1000)),
-            last_movement: item.last_movement_date ?
-              new Date(item.last_movement_date).toISOString().split('T')[0] :
-              new Date().toISOString().split('T')[0],
-            expiry_date: item.expiry_date || undefined
-          };
-      }).filter(Boolean) as InventoryItem[];
+            return {
+              id: String(item.id || ''),
+              sku: String(product.sku || 'N/A'),
+              name: String(product.name || 'Producto sin nombre'),
+              category: product.type as any,
+              location: String(location.name || 'Ubicación desconocida'),
+              quantity,
+              min_stock: minStock,
+              max_stock: Math.max(minStock * 5, 1000),
+              unit: 'unidades',
+              unit_cost: unitCost,
+              total_value: totalValue,
+              status: getStockStatus(quantity, minStock, Math.max(minStock * 5, 1000)),
+              last_movement: item.last_movement_date ?
+                new Date(item.last_movement_date).toISOString().split('T')[0] :
+                new Date().toISOString().split('T')[0],
+              expiry_date: item.expiry_date || undefined
+            } as InventoryItem;
+          } catch (itemError) {
+            console.error('Error processing inventory item:', itemError, item);
+            return null;
+          }
+        })
+        .filter((item): item is InventoryItem => item !== null);
     } catch (error) {
       console.error('Error processing inventory data:', error);
       return [];

@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   Eye,
   Package,
-  Archive
+  Archive,
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -645,6 +646,7 @@ export function UnifiedProducts() {
                 <span>Importar</span>
               </button>
               <button
+                type="button"
                 onClick={handleCreate}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
@@ -1074,12 +1076,14 @@ export function UnifiedProducts() {
 
               <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
                 <button
+                  type="button"
                   onClick={modal.closeModal}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                 >

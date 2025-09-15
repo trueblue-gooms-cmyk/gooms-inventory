@@ -760,6 +760,7 @@ export function Reception() {
 
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={async () => {
                           setSelectedOrder(order);
                           await loadOrderItems(order.id);
@@ -912,6 +913,7 @@ export function Reception() {
                     Cancelar
                   </button>
                   <button
+                    type="button"
                     onClick={() => processReception(receptionData)}
                     disabled={isLoading}
                     className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"

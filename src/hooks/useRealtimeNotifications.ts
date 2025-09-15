@@ -41,7 +41,12 @@ export const useRealtimeNotifications = () => {
           setLastNotification(newNotification);
           
           // Configuración específica para notificaciones de vencimiento
-          const toastConfig: unknown = {
+          const toastConfig: {
+            title: string;
+            description: string;
+            variant?: 'default' | 'destructive';
+            duration?: number;
+          } = {
             title: newNotification.title,
             description: newNotification.message,
           };

@@ -510,6 +510,7 @@ export function InventoryMovements() {
           </div>
           {canEdit && (
             <button
+              type="button"
               onClick={handleCreate}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
             >
@@ -983,6 +984,7 @@ export function InventoryMovements() {
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                 >
