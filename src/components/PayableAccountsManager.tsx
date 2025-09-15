@@ -391,9 +391,9 @@ export const PayableAccountsManager = ({ className = '' }: PayableAccountsManage
           {/* Tabla */}
           {payableData && (
             <MobileOptimizedTable
-              data={payableData}
-              columns={columns}
-              actions={actions}
+              data={payableData as any}
+              columns={columns as any}
+              actions={actions as any}
               searchable
               pagination
               pageSize={10}

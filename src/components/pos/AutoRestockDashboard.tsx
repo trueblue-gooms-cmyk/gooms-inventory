@@ -25,6 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { restockService, RestockOrder, RestockAlert, StockAnalysis } from '@/services/restockService';
 import { useNotification } from '@/components/ui/NotificationProvider';
 import { MobileOptimizedTable } from '@/components/MobileOptimizedTable';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AutoRestockDashboardProps {
   className?: string;
@@ -151,7 +152,13 @@ export function AutoRestockDashboard({ className = '' }: AutoRestockDashboardPro
       key: 'status',
       label: 'Estado',
       render: (value: unknown) => (
-        <Badge variant={getStatusColor(value as string)}>
+        <Badge variant={
+          (value as string) === 'pending' ? 'secondary' :
+          (value as string) === 'approved' ? 'default' :
+          (value as string) === 'ordered' ? 'outline' :
+          (value as string) === 'received' ? 'secondary' :
+          'destructive'
+        }>
           {value as string}
         </Badge>
       )
@@ -170,7 +177,11 @@ export function AutoRestockDashboard({ className = '' }: AutoRestockDashboardPro
       key: 'priority',
       label: 'Prioridad',
       render: (value: unknown) => (
-        <Badge variant={getPriorityColor(value as string)}>
+        <Badge variant={
+          (value as string) === 'critical' ? 'destructive' :
+          (value as string) === 'high' ? 'secondary' :
+          'outline'
+        }>
           {value as string}
         </Badge>
       ),
@@ -326,8 +337,10 @@ export function AutoRestockDashboard({ className = '' }: AutoRestockDashboardPro
                   <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant={getPriorityColor(alert.priority)}>
-                          {alert.priority}
+                        <Badge variant={
+                          (alert as any).priority === 'critical' ? 'destructive' : 'secondary'
+                        }>
+                          {(alert as any).priority}
                         </Badge>
                         <span className="font-medium">{alert.product_name}</span>
                       </div>
@@ -367,7 +380,7 @@ export function AutoRestockDashboard({ className = '' }: AutoRestockDashboardPro
             </CardHeader>
             <CardContent>
               <MobileOptimizedTable
-                data={restockOrders || []}
+                data={restockOrders as any || []}
                 columns={orderColumns}
                 actions={orderActions}
                 searchable={true}
@@ -392,8 +405,10 @@ export function AutoRestockDashboard({ className = '' }: AutoRestockDashboardPro
                   <div key={alert.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={getPriorityColor(alert.priority)}>
-                          {alert.priority}
+                        <Badge variant={
+                          (alert as any).priority === 'critical' ? 'destructive' : 'secondary'
+                        }>
+                          {(alert as any).priority}
                         </Badge>
                         <span className="font-medium">{alert.product_name}</span>
                         <Badge variant="outline">{alert.alert_type}</Badge>

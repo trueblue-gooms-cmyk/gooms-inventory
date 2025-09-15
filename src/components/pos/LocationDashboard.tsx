@@ -8,6 +8,7 @@ import { AlertTriangle, MapPin, Package, TrendingUp, TrendingDown, RefreshCw, Be
 import { useQuery } from '@tanstack/react-query';
 import { pointOfSaleService, LocationMetrics, SalesPerformance, RestockSuggestion, LocationAlert } from '@/services/pointOfSaleService';
 import { useNotification } from '@/components/ui/NotificationProvider';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationDashboardProps {
   className?: string;
@@ -28,7 +29,7 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
     queryKey: ['location-metrics', selectedLocation],
-    queryFn: () => selectedLocation ? pointOfSaleService.getLocationMetrics(selectedLocation) : null,
+    queryFn: () => selectedLocation ? pointOfSaleService.getLocationMetrics(selectedLocation, 30) : Promise.resolve(null),
     enabled: !!selectedLocation
   });
 
@@ -128,10 +129,10 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {metricsLoading ? '...' : metrics?.total_products || 0}
+                  {metricsLoading ? '...' : (metrics as any)?.total_products || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {metrics?.low_stock_items || 0} con stock bajo
+                  {(metrics as any)?.low_stock_items || 0} con stock bajo
                 </p>
               </CardContent>
             </Card>
@@ -142,10 +143,10 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${getPerformanceColor(metrics?.performance_score || 0)}`}>
-                  {metricsLoading ? '...' : `${metrics?.performance_score || 0}%`}
+                <div className={`text-2xl font-bold ${getPerformanceColor((metrics as any)?.performance_score || 0)}`}>
+                  {metricsLoading ? '...' : `${(metrics as any)?.performance_score || 0}%`}
                 </div>
-                <Progress value={metrics?.performance_score || 0} className="mt-2" />
+                <Progress value={(metrics as any)?.performance_score || 0} className="mt-2" />
               </CardContent>
             </Card>
 
@@ -156,7 +157,7 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {metricsLoading ? '...' : (metrics?.sales_velocity || 0).toFixed(1)}
+                  {metricsLoading ? '...' : ((metrics as any)?.sales_velocity || 0).toFixed(1)}
                 </div>
                 <p className="text-xs text-muted-foreground">unidades/día</p>
               </CardContent>
@@ -172,7 +173,7 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
                   {alerts?.length || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {alerts?.filter(a => a.priority === 'critical').length || 0} críticas
+                  {alerts?.filter(a => (a as any).priority === 'critical').length || 0} críticas
                 </p>
               </CardContent>
             </Card>
@@ -193,16 +194,16 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
                     <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <Badge variant={getPriorityColor(alert.priority)}>
-                            {alert.priority}
+                          <Badge variant={(alert as any).priority === 'critical' ? 'destructive' : 'secondary'}>
+                            {(alert as any).priority}
                           </Badge>
-                          <span className="font-medium">{alert.title}</span>
+                          <span className="font-medium">{(alert as any).title}</span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
+                        <p className="text-sm text-gray-600 mt-1">{(alert as any).message}</p>
                       </div>
                       <div className="text-xs text-gray-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        Hace {Math.floor((Date.now() - new Date(alert.created_at).getTime()) / (1000 * 60))} min
+                        Hace {Math.floor((Date.now() - new Date((alert as any).created_at).getTime()) / (1000 * 60))} min
                       </div>
                     </div>
                   ))}
@@ -222,21 +223,21 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {restockSuggestions.slice(0, 10).map((suggestion) => (
-                    <div key={suggestion.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {restockSuggestions.slice(0, 10).map((suggestion, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <Badge variant={getPriorityColor(suggestion.priority)}>
-                            {suggestion.priority}
+                          <Badge variant={(suggestion as any).priority === 'critical' ? 'destructive' : 'secondary'}>
+                            {(suggestion as any).priority}
                           </Badge>
-                          <span className="font-medium">{suggestion.product_name}</span>
+                          <span className="font-medium">{(suggestion as any).product_name}</span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          Stock actual: {suggestion.current_stock} | Sugerido: {suggestion.suggested_quantity}
+                          Stock actual: {(suggestion as any).current_stock} | Sugerido: {(suggestion as any).suggested_quantity}
                         </p>
                       </div>
                       <div className="text-sm text-gray-700">
-                        {formatCurrency(suggestion.estimated_cost)}
+                        {formatCurrency((suggestion as any).estimated_cost)}
                       </div>
                     </div>
                   ))}
@@ -256,26 +257,26 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Total Ventas:</span>
-                      <span className="text-lg font-bold">{formatCurrency(salesPerformance.total_sales)}</span>
+                      <span className="text-lg font-bold">{formatCurrency((salesPerformance as any).total_sales)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Unidades Vendidas:</span>
-                      <span className="text-lg font-bold">{salesPerformance.total_units}</span>
+                      <span className="text-lg font-bold">{(salesPerformance as any).total_units}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Precio Promedio:</span>
-                      <span className="text-lg font-bold">{formatCurrency(salesPerformance.average_sale)}</span>
+                      <span className="text-lg font-bold">{formatCurrency((salesPerformance as any).average_sale)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Crecimiento vs mes anterior:</span>
                       <div className="flex items-center gap-1">
-                        {salesPerformance.growth_rate >= 0 ? (
+                        {(salesPerformance as any).growth_rate >= 0 ? (
                           <TrendingUp className="w-4 h-4 text-green-600" />
                         ) : (
                           <TrendingDown className="w-4 h-4 text-red-600" />
                         )}
-                        <span className={`font-bold ${salesPerformance.growth_rate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {salesPerformance.growth_rate.toFixed(1)}%
+                        <span className={`font-bold ${(salesPerformance as any).growth_rate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {((salesPerformance as any).growth_rate).toFixed(1)}%
                         </span>
                       </div>
                     </div>
@@ -289,13 +290,13 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {salesPerformance.hourly_distribution.map((hour) => (
+                    {((salesPerformance as any).hourly_distribution || []).map((hour: any) => (
                       <div key={hour.hour} className="flex items-center gap-3">
                         <span className="text-sm w-8">{hour.hour}h</span>
                         <div className="flex-1">
-                          <Progress value={(hour.sales / salesPerformance.total_sales) * 100} className="h-2" />
+                          <Progress value={(hour.revenue / (salesPerformance as any).total_sales) * 100} className="h-2" />
                         </div>
-                        <span className="text-sm w-16 text-right">{formatCurrency(hour.sales)}</span>
+                        <span className="text-sm w-16 text-right">{formatCurrency(hour.revenue)}</span>
                       </div>
                     ))}
                   </div>

@@ -56,11 +56,42 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     }
   }, [isOpen]);
 
+  const loadBatches = async () => {
+    try {
+      const { data } = await supabase
+        .from('inventory_current')
+        .select(`
+          batch_id,
+          quantity_available,
+          production_batches!inner (
+            id,
+            batch_number,
+            expiry_date
+          )
+        `)
+        .eq('product_id', formData.product_id)
+        .eq('location_id', formData.from_location_id)
+        .gt('quantity_available', 0);
+
+      if (data) {
+        const formattedBatches = data.map((item: any) => ({
+          id: item.batch_id,
+          batch_number: item.production_batches.batch_number,
+          expiry_date: item.production_batches.expiry_date,
+          quantity_available: item.quantity_available
+        }));
+        setBatches(formattedBatches);
+      }
+    } catch (error) {
+      console.error('Error loading batches:', error);
+    }
+  };
+
   useEffect(() => {
     if (formData.product_id && formData.from_location_id) {
       loadBatches();
     }
-  }, [formData.product_id, formData.from_location_id, loadBatches]);
+  }, [formData.product_id, formData.from_location_id]);
 
   const loadData = async () => {
     try {
@@ -84,36 +115,6 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     }
   };
 
-  const loadBatches = async () => {
-    try {
-      const { data } = await supabase
-        .from('inventory_current')
-        .select(`
-          batch_id,
-          quantity_available,
-          production_batches!inner (
-            id,
-            batch_number,
-            expiry_date
-          )
-        `)
-        .eq('product_id', formData.product_id)
-        .eq('location_id', formData.from_location_id)
-        .gt('quantity_available', 0);
-
-      if (data) {
-        const formattedBatches = data.map((item: unknown) => ({
-          id: item.batch_id,
-          batch_number: item.production_batches.batch_number,
-          expiry_date: item.production_batches.expiry_date,
-          quantity_available: item.quantity_available
-        }));
-        setBatches(formattedBatches);
-      }
-    } catch (error) {
-      console.error('Error loading batches:', error);
-    }
-  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -121,7 +122,9 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     try {
       // Use the new RPC function for transactional inventory movements
       const { data: movementId, error } = await supabase.rpc('register_inventory_movement', {
-        p_movement_type: formData.movement_type as 'entrada' | 'salida' | 'transferencia' | 'ajuste',
+        p_movement_type: formData.movement_type === 'entrada' ? 'entry' : 
+                         formData.movement_type === 'salida' ? 'exit' : 
+                         formData.movement_type === 'ajuste' ? 'adjustment' : 'entry',
         p_product_id: formData.product_id,
         p_quantity: parseInt(formData.quantity),
         p_batch_id: formData.batch_id || null,

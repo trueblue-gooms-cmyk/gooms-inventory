@@ -134,7 +134,7 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
         value: formData.production_date, 
         validators: [
           (v: unknown) => ErrorHandler.validateRequired(v, 'Fecha de producción'),
-          (v: unknown) => ErrorHandler.validateDate(v, 'Fecha de producción')
+          (v: unknown) => ErrorHandler.validateDate(v as string, 'Fecha de producción')
         ]
       }
     ];
@@ -164,7 +164,7 @@ export function ProductionBatchForm({ onSuccess, onCancel }: ProductionBatchForm
             production_date: formData.production_date,
             expiry_date: formData.expiry_date,
             notes: formData.notes,
-            status: 'planned' as 'planned' | 'in_progress' | 'completed' | 'cancelled',
+            status: 'planned' as any,
             created_at: new Date().toISOString()
           })
           .select()

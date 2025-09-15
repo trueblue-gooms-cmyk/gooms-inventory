@@ -49,10 +49,6 @@ export function NotificationBell() {
     }
   ];
 
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
-
   const loadNotifications = useCallback(async () => {
     setLoading(true);
     try {
