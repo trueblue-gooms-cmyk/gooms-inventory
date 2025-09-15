@@ -112,10 +112,11 @@ export const useInventoryRotation = () => {
 
     } catch (err: unknown) {
       console.error('Error loading rotation data:', err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
       toast({
         title: "Error cargando datos de rotación",
-        description: err.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -129,7 +130,8 @@ export const useInventoryRotation = () => {
     
     return inventory
       .map(item => {
-        const expiryDate = new Date(item.expiry_date);
+        const typedItem = item as any;
+        const expiryDate = new Date(typedItem.expiry_date);
         const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         // Determinar nivel de alerta
@@ -145,16 +147,16 @@ export const useInventoryRotation = () => {
         }
 
         // Generar acciones sugeridas basadas en el nivel de alerta
-        const suggestedActions = generateSuggestedActions(alertLevel, daysUntilExpiry, item);
+        const suggestedActions = generateSuggestedActions(alertLevel, daysUntilExpiry, typedItem);
 
         return {
-          id: item.id,
-          product_id: item.product_id,
-          product_name: item.products.name,
-          location_name: item.locations.name,
-          batch_number: item.batch_number,
-          current_quantity: item.current_quantity,
-          expiry_date: item.expiry_date,
+          id: typedItem.id,
+          product_id: typedItem.product_id,
+          product_name: typedItem.products.name,
+          location_name: typedItem.locations.name,
+          batch_number: typedItem.batch_number,
+          current_quantity: typedItem.current_quantity,
+          expiry_date: typedItem.expiry_date,
           days_until_expiry: daysUntilExpiry,
           alert_level: alertLevel,
           suggested_actions: suggestedActions
@@ -198,16 +200,17 @@ export const useInventoryRotation = () => {
     const today = new Date();
 
     // Agrupar por producto para análisis comparativo
-    const productGroups = inventory.reduce((groups: unknown, item) => {
-      if (!groups[item.product_id]) {
-        groups[item.product_id] = [];
+    const productGroups = inventory.reduce((groups: any, item) => {
+      const typedItem = item as any;
+      if (!groups[typedItem.product_id]) {
+        groups[typedItem.product_id] = [];
       }
-      groups[item.product_id].push(item);
+      groups[typedItem.product_id].push(typedItem);
       return groups;
     }, {});
 
     Object.entries(productGroups).forEach(([productId, items]: [string, any]) => {
-      const sortedItems = (items as unknown[]).sort((a, b) => 
+      const sortedItems = (items as any[]).sort((a, b) => 
         new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime()
       );
 
@@ -275,16 +278,17 @@ export const useInventoryRotation = () => {
     let totalRotationDays = 0;
 
     inventory.forEach(item => {
-      const expiryDate = new Date(item.expiry_date);
+      const typedItem = item as any;
+      const expiryDate = new Date(typedItem.expiry_date);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       if (daysUntilExpiry <= 15) {
         totalExpiringSoon++;
-        totalValueAtRisk += item.current_quantity * (item.unit_cost || 0);
+        totalValueAtRisk += typedItem.current_quantity * (typedItem.unit_cost || 0);
       }
 
       const daysSinceLastMovement = Math.ceil(
-        (today.getTime() - new Date(item.last_movement_date || today).getTime()) / (1000 * 60 * 60 * 24)
+        (today.getTime() - new Date(typedItem.last_movement_date || today).getTime()) / (1000 * 60 * 60 * 24)
       );
       
       if (daysSinceLastMovement > 60) {
@@ -355,9 +359,10 @@ export const useInventoryRotation = () => {
           break;
       }
     } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       toast({
         title: "Error ejecutando acción",
-        description: err.message,
+        description: errorMessage,
         variant: "destructive"
       });
     }

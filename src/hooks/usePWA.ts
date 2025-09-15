@@ -57,11 +57,7 @@ export const usePWA = () => {
               setPWAState(prev => ({ ...prev, hasUpdate: true }));
               toast({
                 title: "🔄 Actualización disponible",
-                description: "Nueva versión de la app lista para instalar",
-                action: {
-                  label: "Actualizar",
-                  onClick: () => updateApp()
-                }
+                description: "Nueva versión de la app lista para instalar"
               });
             }
           });
@@ -89,10 +85,6 @@ export const usePWA = () => {
       toast({
         title: "📱 Instalar App",
         description: "Gooms Inventory puede instalarse como app nativa",
-        action: {
-          label: "Instalar",
-          onClick: () => installPWA()
-        },
         duration: 8000
       });
     };
@@ -238,7 +230,10 @@ export const usePWA = () => {
     }
 
     try {
-      await serviceWorker.sync.register('inventory-sync');
+      // Background sync is optional and may not be available
+      if ('sync' in serviceWorker) {
+        await (serviceWorker as any).sync.register('inventory-sync');
+      }
       toast({
         title: "🔄 Sincronización iniciada",
         description: "Los datos se están sincronizando en segundo plano"

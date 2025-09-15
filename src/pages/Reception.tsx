@@ -502,7 +502,6 @@ export function Reception() {
 
             if (productUpdateError) throw productUpdateError;
           }
-        }
       }
 
       // 4. Actualizar estado de la orden

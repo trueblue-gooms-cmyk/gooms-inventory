@@ -35,7 +35,7 @@ export const useAdvancedErrorHandler = () => {
       setRetryCount(0);
       return result;
     } catch (err: unknown) {
-      const errorMessage = err.message || 'Ha ocurrido un error inesperado';
+      const errorMessage = (err instanceof Error ? err.message : null) || 'Ha ocurrido un error inesperado';
       
       if (logError) {
         console.error('Operation failed:', err);
@@ -72,7 +72,7 @@ export const useAdvancedErrorHandler = () => {
       } catch (err: unknown) {
         if (attempt === maxRetries) {
           // Last attempt failed
-          const errorMessage = `Operación falló después de ${maxRetries + 1} intentos: ${err.message}`;
+          const errorMessage = `Operación falló después de ${maxRetries + 1} intentos: ${err instanceof Error ? err.message : 'Error desconocido'}`;
           setError(errorMessage);
           
           toast({
@@ -117,7 +117,8 @@ export const useAdvancedErrorHandler = () => {
 
   // Auto-recovery for authentication errors
   const handleAuthError = useCallback(async (error: unknown) => {
-    if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+    const errorMessage = error instanceof Error ? error.message : '';
+    if (errorMessage?.includes('JWT') || errorMessage?.includes('auth')) {
       toast({
         title: "Sesión expirada",
         description: "Redirigiendo al login...",

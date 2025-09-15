@@ -76,11 +76,12 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
 
   // Filter data based on search and filters
   const filteredData = inventoryData?.data.filter(item => {
-    const product = item.products;
+    const typedItem = item as any;
+    const product = typedItem.products;
     if (!product) return false;
 
     const matchesLocation = selectedLocation === 'all' || 
-      item.locations?.name === selectedLocation;
+      typedItem.locations?.name === selectedLocation;
     const matchesCategory = selectedCategory === 'all' || 
       product.type === selectedCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -173,11 +174,12 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
               </tr>
             ) : (
               filteredData.map((item) => {
-                const product = item.products;
-                const location = item.locations;
+                const typedItem = item as any;
+                const product = typedItem.products;
+                const location = typedItem.locations;
                 if (!product) return null;
 
-                const quantity = item.quantity_available || 0;
+                const quantity = typedItem.quantity_available || 0;
                 const minStock = product.min_stock_units || 0;
                 const unitCost = product.unit_cost || 0;
                 const totalValue = quantity * unitCost;
@@ -190,7 +192,7 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                 };
 
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr key={typedItem.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{product.name}</p>
