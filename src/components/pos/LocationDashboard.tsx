@@ -29,13 +29,13 @@ export function LocationDashboard({ className = '' }: LocationDashboardProps) {
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
     queryKey: ['location-metrics', selectedLocation],
-    queryFn: () => selectedLocation ? pointOfSaleService.getLocationMetrics(selectedLocation, 30) : Promise.resolve(null),
+    queryFn: () => selectedLocation ? pointOfSaleService.getLocationMetrics(selectedLocation) : Promise.resolve(null),
     enabled: !!selectedLocation
   });
 
   const { data: salesPerformance, isLoading: salesLoading } = useQuery({
     queryKey: ['sales-performance', selectedLocation],
-    queryFn: () => selectedLocation ? pointOfSaleService.getSalesPerformance(selectedLocation, 30) : null,
+    queryFn: () => selectedLocation ? pointOfSaleService.getSalesPerformance(selectedLocation, '30', 'daily') : Promise.resolve(null),
     enabled: !!selectedLocation
   });
 

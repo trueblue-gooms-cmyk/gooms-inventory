@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -147,7 +148,12 @@ export function LocationSalesModule({ className = '' }: LocationSalesModuleProps
           transfer: 'purple',
           mixed: 'orange'
         };
-        return <Badge variant={colors[method as keyof typeof colors] || 'secondary'}>{method}</Badge>;
+        return <Badge variant={
+          (colors as any)[method as keyof typeof colors] === 'green' ? 'secondary' :
+          (colors as any)[method as keyof typeof colors] === 'blue' ? 'default' :
+          (colors as any)[method as keyof typeof colors] === 'purple' ? 'outline' :
+          'secondary'
+        }>{method}</Badge>;
       },
       mobileHidden: true
     },
@@ -162,7 +168,11 @@ export function LocationSalesModule({ className = '' }: LocationSalesModuleProps
           cancelled: 'red',
           refunded: 'gray'
         };
-        return <Badge variant={colors[status as keyof typeof colors] || 'secondary'}>{status}</Badge>;
+        return <Badge variant={
+          (colors as any)[status as keyof typeof colors] === 'green' ? 'secondary' :
+          (colors as any)[status as keyof typeof colors] === 'red' ? 'destructive' :
+          'secondary'
+        }>{status}</Badge>;
       }
     },
     {
@@ -409,9 +419,9 @@ export function LocationSalesModule({ className = '' }: LocationSalesModuleProps
             </CardHeader>
             <CardContent>
               <MobileOptimizedTable
-                data={sales || []}
-                columns={salesColumns}
-                actions={salesActions}
+                data={sales as any || []}
+                columns={salesColumns as any}
+                actions={salesActions as any}
                 searchable={true}
                 pagination={true}
                 pageSize={15}

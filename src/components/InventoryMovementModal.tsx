@@ -122,9 +122,7 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     try {
       // Use the new RPC function for transactional inventory movements
       const { data: movementId, error } = await supabase.rpc('register_inventory_movement', {
-        p_movement_type: formData.movement_type === 'entrada' ? 'entry' : 
-                         formData.movement_type === 'salida' ? 'exit' : 
-                         formData.movement_type === 'ajuste' ? 'adjustment' : 'entry',
+        p_movement_type: formData.movement_type as any,
         p_product_id: formData.product_id,
         p_quantity: parseInt(formData.quantity),
         p_batch_id: formData.batch_id || null,
