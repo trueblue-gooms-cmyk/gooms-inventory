@@ -193,7 +193,7 @@ export class SecurityManager {
         if (!this.hasPermission('admin')) {
           errors.push('Solo administradores pueden cambiar roles');
         }
-        if (data.targetUserId === this.currentUser?.id) {
+        if ((data as any)?.targetUserId === this.currentUser?.id) {
           errors.push('No puedes cambiar tu propio rol');
         }
         break;
@@ -205,7 +205,7 @@ export class SecurityManager {
         break;
 
       case 'bulk_operations':
-        if (!this.hasPermission('admin') && data.count > 100) {
+        if (!this.hasPermission('admin') && ((data as any)?.count ?? 0) > 100) {
           errors.push('Operaciones masivas de más de 100 elementos requieren permisos de administrador');
         }
         break;

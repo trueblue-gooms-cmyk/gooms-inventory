@@ -76,8 +76,8 @@ class PointOfSaleService {
     };
   }
 
-  async getSalesPerformance(locationId: string, period: string): Promise<SalesPerformance> {
-    console.log('Mock getting sales performance:', { locationId, period });
+  async getSalesPerformance(locationId: string, period: string, granularity: 'daily' | 'weekly' | 'monthly' = 'daily'): Promise<SalesPerformance> {
+    console.log('Mock getting sales performance:', { locationId, period, granularity });
     return {
       location_id: locationId,
       location_name: 'Mock Location',

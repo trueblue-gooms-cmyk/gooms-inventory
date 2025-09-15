@@ -93,11 +93,12 @@ export class ErrorHandler {
       }
       return result;
     } catch (error: unknown) {
-      console.error(`Error in ${context}:`, error);
+      const err = error as any;
+      console.error(`Error in ${context}:`, err);
       
-      if (error.code) {
+      if (err && typeof err === 'object' && 'code' in err) {
         // Es un error de Supabase
-        const appError = this.handleSupabaseError(error, context);
+        const appError = this.handleSupabaseError(err, context);
         this.showError(appError);
       } else {
         // Error general
