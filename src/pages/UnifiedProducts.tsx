@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFormModal, useImportModal } from '@/hooks/useModal';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { formatCurrency, formatNumber, getStatusColor, getStatusLabel } from '@/utils/formatters';
+import { DESIGN_SYSTEM, cn, getStatusStyle } from '@/styles/design-system';
 import { useSecurity } from '@/utils/security';
 import { useValidation, validationRules } from '@/utils/validators';
 import { useCanEdit } from '@/hooks/useSecureAuth';
@@ -162,8 +163,22 @@ export function UnifiedProducts() {
   }, []);
 
   const loadData = async () => {
+    console.log('🔄 loadData called');
+    console.log('🔄 Supabase instance:', !!supabase);
+
     const { error } = await handleAsyncError(async () => {
       setLoading(true);
+
+      // Test de conexión básica
+      try {
+        const { data: testData, error: testError } = await supabase
+          .from('products')
+          .select('count')
+          .limit(1);
+        console.log('🔄 Test connection - data:', testData, 'error:', testError);
+      } catch (err) {
+        console.error('🔴 Connection test failed:', err);
+      }
 
       // Cargar productos unificados
       const { data: productsData, error: productsError } = await supabase
@@ -292,8 +307,11 @@ export function UnifiedProducts() {
 
   // Abrir modal para crear
   const handleCreate = () => {
+    console.log('🔵 handleCreate called');
     resetForm();
+    console.log('🔵 resetForm completed');
     modal.openCreateModal();
+    console.log('🔵 openCreateModal called, modal state:', modal.isOpen);
   };
 
   // Abrir modal para editar
@@ -328,7 +346,9 @@ export function UnifiedProducts() {
 
   // Enviar formulario
   const handleSubmit = async () => {
+    console.log('🔄 handleSubmit called, modal state:', modal.isOpen, modal.mode);
     console.log('🔄 Iniciando creación/edición de producto...', formData);
+    console.log('🔄 Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Configurado' : 'NO CONFIGURADO');
 
     // Validaciones básicas
     if (!formData.code || !formData.name || !formData.unit_measure) {
@@ -627,12 +647,13 @@ export function UnifiedProducts() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className={DESIGN_SYSTEM.containers.page}>
+        <div className={DESIGN_SYSTEM.spacing.pageSection}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Catálogo de Productos</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className={DESIGN_SYSTEM.typography.pageTitle}>Catálogo de Productos</h1>
+            <p className={DESIGN_SYSTEM.typography.pageSubtitle}>
               Gestión unificada de materias primas, empaques, gomas al granel y productos finales
             </p>
           </div>
@@ -640,7 +661,7 @@ export function UnifiedProducts() {
             <div className="flex gap-2">
               <button
                 onClick={() => importModal.openImportModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className={DESIGN_SYSTEM.buttons.success}
               >
                 <Upload className="w-4 h-4" />
                 <span>Importar</span>
@@ -648,7 +669,7 @@ export function UnifiedProducts() {
               <button
                 type="button"
                 onClick={handleCreate}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                className={DESIGN_SYSTEM.buttons.primary}
               >
                 <Plus className="w-4 h-4" />
                 <span>Nuevo Producto</span>
@@ -1228,6 +1249,7 @@ export function UnifiedProducts() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </ErrorBoundary>
   );

@@ -33,6 +33,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InventoryFallback } from '@/components/InventoryFallback';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { formatNumber } from '@/utils/formatters';
+import { DESIGN_SYSTEM, cn, getStatusStyle } from '@/styles/design-system';
 import { useFormModal } from '@/hooks/useModal';
 import { useSecurity } from '@/utils/security';
 
@@ -317,19 +318,19 @@ export function Inventory() {
 
   return (
     <ErrorBoundary>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className={DESIGN_SYSTEM.containers.page}>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Inventario Multi-Ubicación</h1>
-            <p className="text-gray-600 mt-1">Gestión integral de inventario por ubicación y categoría</p>
+            <h1 className={DESIGN_SYSTEM.typography.pageTitle}>Inventario Multi-Ubicación</h1>
+            <p className={DESIGN_SYSTEM.typography.pageSubtitle}>Gestión integral de inventario por ubicación y categoría</p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button className={DESIGN_SYSTEM.buttons.secondary}>
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Exportar</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+            <button className={DESIGN_SYSTEM.buttons.primary}>
               <Plus className="w-4 h-4" />
               <span>Nuevo Item</span>
             </button>
@@ -460,11 +461,14 @@ export function Inventory() {
 
         {/* Contenido condicional basado en pestaña activa */}
         {activeTab === 'inventory' ? (
-          <OptimizedInventoryTable 
-            searchQuery={searchQuery}
-            selectedLocation={selectedLocation}
-            selectedCategory={selectedCategory}
-          />
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="text-center">
+              <p className="text-gray-600">Inventario temporalmente deshabilitado para resolver errores</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Total items procesados: {processedInventory.length}
+              </p>
+            </div>
+          </div>
         ) : (
           <ExpiryManagement />
         )}

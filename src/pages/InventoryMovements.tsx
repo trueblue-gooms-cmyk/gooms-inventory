@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFormModal } from '@/hooks/useModal';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters';
+import { DESIGN_SYSTEM, cn, getStatusStyle } from '@/styles/design-system';
 import { useSecurity } from '@/utils/security';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCanEdit } from '@/hooks/useSecureAuth';
@@ -377,8 +378,11 @@ export function InventoryMovements() {
 
   // Crear nuevo movimiento
   const handleCreate = () => {
+    console.log('🔵 handleCreate called in InventoryMovements');
     resetForm();
+    console.log('🔵 resetForm completed');
     modal.openCreateModal();
+    console.log('🔵 openCreateModal called, modal state:', modal.isOpen);
   };
 
   // Enviar formulario
@@ -499,12 +503,12 @@ export function InventoryMovements() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className={DESIGN_SYSTEM.containers.page}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Movimientos de Inventario</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className={DESIGN_SYSTEM.typography.pageTitle}>Movimientos de Inventario</h1>
+            <p className={DESIGN_SYSTEM.typography.pageSubtitle}>
               Recepción, transferencias y despachos de productos
             </p>
           </div>
@@ -512,7 +516,7 @@ export function InventoryMovements() {
             <button
               type="button"
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              className={DESIGN_SYSTEM.buttons.primary}
             >
               <Plus className="w-4 h-4" />
               <span>Nuevo Movimiento</span>

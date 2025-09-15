@@ -184,13 +184,16 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                 </td>
               </tr>
             ) : (
-              filteredData.map((item) => {
-                try {
-                  const typedItem = item as { id: string; products: { name: string; sku: string; type: string; min_stock_units?: number; unit_cost?: number }; locations: { name: string }; quantity_available: number };
-                  const product = typedItem.products;
-                  const location = typedItem.locations;
-
-                  if (!product || !location || !typedItem.id) return null;
+              filteredData
+                .filter((item) => {
+                  const typedItem = item as { id: string; products: any; locations: any; quantity_available: number };
+                  return typedItem && typedItem.id && typedItem.products && typedItem.locations;
+                })
+                .map((item) => {
+                  try {
+                    const typedItem = item as { id: string; products: { name: string; sku: string; type: string; min_stock_units?: number; unit_cost?: number }; locations: { name: string }; quantity_available: number };
+                    const product = typedItem.products;
+                    const location = typedItem.locations;
 
                   const quantity = Number(typedItem.quantity_available) || 0;
                   const minStock = Number(product.min_stock_units) || 0;
@@ -251,11 +254,11 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                     </td>
                   </tr>
                   );
-                } catch (error) {
-                  console.error('Error rendering inventory item:', error, item);
-                  return null;
-                }
-              }).filter(Boolean)
+                  } catch (error) {
+                    console.error('Error rendering inventory item:', error, item);
+                    return null;
+                  }
+                })
             )}
           </tbody>
         </table>

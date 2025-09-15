@@ -72,19 +72,19 @@ export const useFormModal = <T = any>() => {
 
   const openCreateModal = useCallback(() => {
     modal.openModal('create');
-  }, [modal]);
+  }, [modal.openModal]);
 
   const openEditModal = useCallback((data: T) => {
     modal.openModal('edit', data);
-  }, [modal]);
+  }, [modal.openModal]);
 
   const openViewModal = useCallback((data: T) => {
     modal.openModal('view', data);
-  }, [modal]);
+  }, [modal.openModal]);
 
   const openDeleteModal = useCallback((data: T) => {
     modal.openModal('delete', data);
-  }, [modal]);
+  }, [modal.openModal]);
 
   return {
     ...modal,
