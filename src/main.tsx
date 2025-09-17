@@ -5,6 +5,8 @@ import App from "./App.tsx";
 import "./index.css";
 import { queryClient } from './lib/queryClient';
 
+console.log('🚀 Gooms Inventory - Starting app...');
+
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <App />

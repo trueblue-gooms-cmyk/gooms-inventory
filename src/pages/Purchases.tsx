@@ -29,7 +29,12 @@ import {
   TrendingDown,
   RefreshCw
 } from 'lucide-react';
-import { useSecureData } from '@/hooks/useSecureData';
+import { 
+  useProductsFull, 
+  useRawMaterialsFull, 
+  useSuppliersSafe, 
+  useInventorySafe 
+} from '@/hooks/useSecureDataDirect';
 import { supabase } from '@/integrations/supabase/client';
 
 // Tipos para órdenes de compra
@@ -142,11 +147,11 @@ export default function Purchases() {
   const [selectedSuggestions, setSelectedSuggestions] = useState<string[]>([]);
   const [analysisData, setAnalysisData] = useState<any>(null);
   
-  // Real data from Supabase using secure hooks
-  const { products, loading: loadingProducts } = useSecureData().useProductsFull();
-  const { rawMaterials, loading: loadingRawMaterials } = useSecureData().useRawMaterialsFull();
-  const { suppliers, loading: loadingSuppliers } = useSecureData().useSuppliersSafe();
-  const { inventory, loading: loadingInventory } = useSecureData().useInventorySafe();
+  // Real data from Supabase using direct hooks
+  const { products, loading: loadingProducts } = useProductsFull();
+  const { rawMaterials, loading: loadingRawMaterials } = useRawMaterialsFull();
+  const { suppliers, loading: loadingSuppliers } = useSuppliersSafe();
+  const { inventory, loading: loadingInventory } = useInventorySafe();
   
   const loading = loadingProducts || loadingRawMaterials || loadingSuppliers || loadingInventory;
   

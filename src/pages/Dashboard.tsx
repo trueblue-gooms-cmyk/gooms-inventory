@@ -17,7 +17,12 @@ import {
   Factory,
   Users
 } from 'lucide-react';
-import { useSecureData } from '@/hooks/useSecureData';
+import { 
+  useProductsSafe, 
+  useLocationsSafe, 
+  useInventorySafe, 
+  useRawMaterialsSafe 
+} from '@/hooks/useSecureDataDirect';
 import { supabase } from '@/integrations/supabase/client';
 
 // Tipos para el dashboard
@@ -94,11 +99,11 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   
-  // Real data from Supabase using secure hooks
-  const { products, loading: loadingProducts } = useSecureData().useProductsSafe();
-  const { inventory, loading: loadingInventory } = useSecureData().useInventorySafe();
-  const { locations, loading: loadingLocations } = useSecureData().useLocationsSafe();
-  const { rawMaterials, loading: loadingRawMaterials } = useSecureData().useRawMaterialsSafe();
+  // Real data from Supabase using direct hooks
+  const { products, loading: loadingProducts } = useProductsSafe();
+  const { inventory, loading: loadingInventory } = useInventorySafe();
+  const { locations, loading: loadingLocations } = useLocationsSafe();
+  const { rawMaterials, loading: loadingRawMaterials } = useRawMaterialsSafe();
   
   const loading = loadingProducts || loadingInventory || loadingLocations || loadingRawMaterials;
   
