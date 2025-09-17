@@ -31,30 +31,10 @@ export const useIsAdmin = () => {
 };
 
 export const useCanEdit = () => {
-  const [canEdit, setCanEdit] = useState(false);
   const { user } = useAppStore();
-  
-  useEffect(() => {
-    async function checkEditRole() {
-      if (!user) {
-        setCanEdit(false);
-        return;
-      }
-      
-      try {
-        const { data, error } = await supabase.rpc('get_my_role');
-        if (error) throw error;
-        setCanEdit(['admin', 'operator'].includes(data || ''));
-      } catch (error) {
-        console.error('Error checking edit role:', error);
-        setCanEdit(false);
-      }
-    }
-    
-    checkEditRole();
-  }, [user]);
-  
-  return canEdit;
+
+  // TEMPORAL: Permitir a todos los usuarios editar (sin restricciones de roles)
+  return !!user;
 };
 
 export const useUserRole = () => {

@@ -469,7 +469,7 @@ export function Inventory() {
                         </div>
                         <div className="text-right">
                           <p className="font-medium">{item.quantity} unidades</p>
-                          <p className="text-sm text-gray-500">Mín: {item.min_stock}</p>
+                          <p className="text-sm text-gray-500">Stock de seguridad: {item.min_stock}</p>
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
                             {getStatusLabel(item.status)}
                           </span>

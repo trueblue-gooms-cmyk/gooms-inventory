@@ -17,7 +17,7 @@ export function LoadingScreen() {
             Gooms Inventory
           </h1>
           <p className="text-muted-foreground text-lg">
-            Bienvenido a tu sistema de gestión
+            Sistema de control de inventario
           </p>
           <div className="w-16 h-1 bg-primary rounded-full mx-auto opacity-60" />
         </div>

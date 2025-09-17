@@ -3,23 +3,16 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
 import { NotificationProvider } from './components/ui/NotificationProvider';
-import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { GlobalErrorHandler } from './components/GlobalErrorHandler';
 import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import { Inventory } from './pages/Inventory';
-import { Production } from './pages/Production';
-import Purchases from './pages/Purchases';
-import { Projections } from './pages/Projections';
-import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { UnifiedProducts } from './pages/UnifiedProducts';
 import { InventoryMovements } from './pages/InventoryMovements';
-
-import { Financial } from './pages/Financial';
 import Laboratory from './pages/Laboratory';
 import { LoadingScreen } from './components/LoadingScreen';
 import { OfflineSyncStatus } from './components/OfflineSyncStatus';
@@ -56,44 +49,14 @@ function AppContent() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<UnifiedProducts />} />
           <Route path="movements" element={<InventoryMovements />} />
-          <Route path="laboratory" element={
-            <ProtectedRoute requiredRole="operator">
-              <Laboratory />
-            </ProtectedRoute>
-          } />
+          <Route path="laboratory" element={<Laboratory />} />
           <Route path="inventory" element={
             <ErrorBoundary>
               <Inventory />
             </ErrorBoundary>
           } />
-          {/* TEMPORALMENTE DESHABILITADAS */}
-          {/* <Route path="production" element={
-            <ProtectedRoute requiredRole="operator">
-              <Production />
-            </ProtectedRoute>
-          } />
-          <Route path="purchases" element={
-            <ProtectedRoute requiredRole="operator">
-              <Purchases />
-            </ProtectedRoute>
-          } /> */}
-          {/* <Route path="financial" element={
-            <ProtectedRoute requiredRole="operator">
-              <Financial />
-            </ProtectedRoute>
-          } /> */}
-          {/* <Route path="projections" element={<Projections />} /> */}
-          {/* <Route path="reports" element={<Reports />} /> */}
-          <Route path="settings" element={
-            <ProtectedRoute requiredRole="admin">
-              <Settings />
-            </ProtectedRoute>
-          } />
-          <Route path="users" element={
-            <ProtectedRoute requiredRole="admin">
-              <Users />
-            </ProtectedRoute>
-          } />
+          <Route path="settings" element={<Settings />} />
+          <Route path="users" element={<Users />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

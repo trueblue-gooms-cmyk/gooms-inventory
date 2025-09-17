@@ -342,20 +342,40 @@ export function UnifiedProducts() {
     console.log('🔄 Iniciando creación/edición de producto...', formData);
     console.log('🔄 Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Configurado' : 'NO CONFIGURADO');
 
-    // Validaciones básicas
-    if (!formData.code || !formData.name || !formData.unit_measure) {
+    // Validaciones mejoradas con campos específicos
+    const requiredFields: { field: keyof typeof formData; label: string }[] = [
+      { field: 'code', label: formData.type === 'producto_final' ? 'SKU' : 'Código' },
+      { field: 'name', label: 'Nombre' },
+      { field: 'unit_measure', label: 'Unidad de medida' }
+    ];
+
+    // Verificar campos obligatorios
+    for (const { field, label } of requiredFields) {
+      if (!formData[field] || formData[field].toString().trim() === '') {
+        toast({
+          title: "Campo obligatorio faltante",
+          description: `El campo "${label}" es obligatorio`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validar costo unitario
+    if (!formData.unit_cost || parseFloat(formData.unit_cost) <= 0) {
       toast({
-        title: "Campos requeridos",
-        description: "Por favor completa código, nombre y unidad de medida",
+        title: "Costo inválido",
+        description: "El costo unitario debe ser mayor a 0",
         variant: "destructive"
       });
       return;
     }
 
-    if (!formData.unit_cost || parseFloat(formData.unit_cost) <= 0) {
+    // Validar stock de seguridad
+    if (formData.min_stock_units && parseInt(formData.min_stock_units) < 0) {
       toast({
-        title: "Costo inválido",
-        description: "El costo unitario debe ser mayor a 0",
+        title: "Stock de seguridad inválido",
+        description: "El stock de seguridad no puede ser negativo",
         variant: "destructive"
       });
       return;
@@ -783,7 +803,7 @@ export function UnifiedProducts() {
                             <p className="text-sm font-medium text-gray-900">
                               {formatNumber(product.current_stock)} {product.unit_measure}
                             </p>
-                            <p className="text-xs text-gray-500">Mín: {product.min_stock_units}</p>
+                            <p className="text-xs text-gray-500">Stock de seguridad: {product.min_stock_units}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -877,7 +897,7 @@ export function UnifiedProducts() {
                   {/* Código/SKU */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {formData.type === 'producto_final' ? 'SKU' : 'Código'}
+                      {formData.type === 'producto_final' ? 'SKU' : 'Código'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -890,7 +910,7 @@ export function UnifiedProducts() {
 
                   {/* Nombre */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       value={formData.name}
@@ -912,7 +932,7 @@ export function UnifiedProducts() {
 
                   {/* Unidad de medida */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Unidad de Medida</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unidad de Medida <span className="text-red-500">*</span></label>
                     <select
                       value={formData.unit_measure}
                       onChange={(e) => setFormData(prev => ({ ...prev, unit_measure: e.target.value }))}

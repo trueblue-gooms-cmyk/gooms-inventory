@@ -234,7 +234,7 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                         <p className="text-sm font-medium text-gray-900">
                           {quantity.toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-500">Mín: {minStock}</p>
+                        <p className="text-xs text-gray-500">Stock de seguridad: {minStock}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
