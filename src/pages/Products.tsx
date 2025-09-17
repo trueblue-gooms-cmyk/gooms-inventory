@@ -344,7 +344,7 @@ export function Products() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso (g)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Min</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Seguridad</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                 {canEdit && (
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
@@ -384,7 +384,10 @@ export function Products() {
                         >
                           <Edit2 className="w-4 h-4 text-gray-600" />
                         </button>
-                        <button onClick={() => handleDelete(product.id)} className="p-1 hover:bg-gray-100 rounded">
+                        <button 
+                          onClick={() => handleDelete(product.id)} 
+                          className="p-1 hover:bg-gray-100 rounded"
+                        >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
                       </div>
@@ -550,6 +553,21 @@ export function Products() {
           onClose={() => setShowImporter(false)}
         />
       )}
+
+      {/* Product Form Modal */}
+      <ProductFormModal
+        isOpen={showProductModal}
+        onClose={() => {
+          setShowProductModal(false);
+          setEditingProduct(null);
+        }}
+        onSuccess={() => {
+          loadProducts();
+          setShowProductModal(false);
+          setEditingProduct(null);
+        }}
+        editingProduct={editingProduct}
+      />
     </div>
   );
 }

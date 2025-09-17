@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   // TEMPORALMENTE DESHABILITADAS
   // { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
   // { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },
-  { label: 'Recepción', href: '/reception', icon: Box, permission: 'edit' },
+  
   // { label: 'Finanzas', href: '/financial', icon: Box, permission: 'edit' },
   // { label: 'Proyecciones', href: '/projections', icon: Box, permission: 'all' },
   // { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
