@@ -221,7 +221,7 @@ export default function Dashboard() {
       {
         id: 'demo-alert-1',
         type: 'warning',
-        title: '12 productos bajo stock mínimo',
+        title: '12 productos bajo stock de seguridad',
         description: 'Materia prima crítica requiere reabastecimiento',
         action: 'Ver productos'
       },
@@ -390,7 +390,7 @@ export default function Dashboard() {
           realAlerts.push({
             id: 'low-stock',
             type: 'warning',
-            title: `${lowStockProducts.length} productos bajo stock mínimo`,
+            title: `${lowStockProducts.length} productos bajo stock de seguridad`,
             description: 'Requieren reabastecimiento urgente',
             action: 'Ver productos'
           });
@@ -674,25 +674,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Acciones rápidas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <button className="p-6 bg-orange-500/10 text-orange-600 rounded-3xl hover:bg-orange-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
-          <Package className="w-5 h-5" />
-          <span className="font-light">Nuevo Producto</span>
-        </button>
-        <button className="p-6 bg-blue-500/10 text-blue-600 rounded-3xl hover:bg-blue-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
-          <ShoppingCart className="w-5 h-5" />
-          <span className="font-light">Crear Orden</span>
-        </button>
-        <button className="p-6 bg-green-500/10 text-green-600 rounded-3xl hover:bg-green-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
-          <Truck className="w-5 h-5" />
-          <span className="font-light">Recibir Mercancía</span>
-        </button>
-        <button className="p-6 bg-purple-500/10 text-purple-600 rounded-3xl hover:bg-purple-500/20 hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-3">
-          <BarChart3 className="w-5 h-5" />
-          <span className="font-light">Ver Reportes</span>
-        </button>
-      </div>
     </div>
   );
 }

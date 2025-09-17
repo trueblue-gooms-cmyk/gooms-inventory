@@ -943,7 +943,7 @@ export function UnifiedProducts() {
 
                   {/* Stock mínimo */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock de Seguridad</label>
                     <input
                       type="number"
                       value={formData.min_stock_units}

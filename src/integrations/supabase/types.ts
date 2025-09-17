@@ -477,6 +477,53 @@ export type Database = {
           },
         ]
       }
+      product_recipes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          ingredient_id: string
+          ingredient_type: string
+          notes: string | null
+          product_id: string | null
+          quantity_needed: number
+          unit_measure: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ingredient_id: string
+          ingredient_type: string
+          notes?: string | null
+          product_id?: string | null
+          quantity_needed?: number
+          unit_measure?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ingredient_id?: string
+          ingredient_type?: string
+          notes?: string | null
+          product_id?: string | null
+          quantity_needed?: number
+          unit_measure?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recipes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_batches: {
         Row: {
           actual_quantity: number | null
@@ -560,6 +607,7 @@ export type Database = {
           is_active: boolean | null
           min_stock_units: number | null
           name: string
+          product_type: Database["public"]["Enums"]["product_type_enum"] | null
           safety_stock_units: number | null
           shelf_life_days: number | null
           sku: string
@@ -575,6 +623,7 @@ export type Database = {
           is_active?: boolean | null
           min_stock_units?: number | null
           name: string
+          product_type?: Database["public"]["Enums"]["product_type_enum"] | null
           safety_stock_units?: number | null
           shelf_life_days?: number | null
           sku: string
@@ -590,6 +639,7 @@ export type Database = {
           is_active?: boolean | null
           min_stock_units?: number | null
           name?: string
+          product_type?: Database["public"]["Enums"]["product_type_enum"] | null
           safety_stock_units?: number | null
           shelf_life_days?: number | null
           sku?: string
@@ -1272,6 +1322,11 @@ export type Database = {
         | "produccion"
         | "ajuste"
         | "devolucion"
+      movement_type_enum:
+        | "entrada"
+        | "transferencia"
+        | "reemplazo"
+        | "transformacion"
       order_status:
         | "draft"
         | "pending_approval"
@@ -1280,6 +1335,11 @@ export type Database = {
         | "sent"
         | "received"
         | "cancelled"
+      product_type_enum:
+        | "materia_prima"
+        | "empaques"
+        | "gomas_granel"
+        | "producto_final"
       user_role: "admin" | "user" | "operator"
     }
     CompositeTypes: {
@@ -1418,6 +1478,12 @@ export const Constants = {
         "ajuste",
         "devolucion",
       ],
+      movement_type_enum: [
+        "entrada",
+        "transferencia",
+        "reemplazo",
+        "transformacion",
+      ],
       order_status: [
         "draft",
         "pending_approval",
@@ -1426,6 +1492,12 @@ export const Constants = {
         "sent",
         "received",
         "cancelled",
+      ],
+      product_type_enum: [
+        "materia_prima",
+        "empaques",
+        "gomas_granel",
+        "producto_final",
       ],
       user_role: ["admin", "user", "operator"],
     },

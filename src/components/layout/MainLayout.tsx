@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
   { label: 'Catálogo', href: '/products', icon: Box, permission: 'all' },
   { label: 'Inventario', href: '/inventory', icon: Box, permission: 'all' },
   { label: 'Movimientos', href: '/movements', icon: Box, permission: 'edit' },
+  { label: 'Laboratorio', href: '/laboratory', icon: Box, permission: 'edit' },
   // TEMPORALMENTE DESHABILITADAS
   // { label: 'Producción', href: '/production', icon: Box, permission: 'edit' },
   // { label: 'Compras', href: '/purchases', icon: Box, permission: 'edit' },

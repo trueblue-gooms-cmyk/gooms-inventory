@@ -438,7 +438,7 @@ export function Products() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock mínimo</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock de Seguridad</label>
                   <input
                     type="number"
                     value={formData.min_stock_units}
@@ -500,7 +500,7 @@ export function Products() {
             { field: 'weight_grams', label: 'Peso (g)', type: 'number' },
             { field: 'units_per_box', label: 'Unidades por caja', type: 'number' },
             { field: 'shelf_life_days', label: 'Vida útil (días)', type: 'number' },
-            { field: 'min_stock_units', label: 'Stock mínimo', type: 'number' },
+            { field: 'min_stock_units', label: 'Stock de Seguridad', type: 'number' },
             { field: 'safety_stock_units', label: 'Stock seguridad', type: 'number' },
           ]}
           onSuccess={loadProducts}
