@@ -243,7 +243,7 @@ export function InventoryMovements() {
           product_id,
           from_location_id,
           to_location_id,
-          products!product_id(id, sku, name),
+          products!inner(id, sku, name),
           from_location:locations!from_location_id(id, name),
           to_location:locations!to_location_id(id, name)
         `)
@@ -717,8 +717,8 @@ export function InventoryMovements() {
                         </td>
                         <td className="px-6 py-4">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{movement.product?.name}</p>
-                            <p className="text-xs text-gray-500">{movement.product?.sku}</p>
+                            <p className="text-sm font-medium text-gray-900">{String(movement.product?.name || 'N/A')}</p>
+                            <p className="text-xs text-gray-500">{String(movement.product?.sku || 'N/A')}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -734,7 +734,7 @@ export function InventoryMovements() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2 text-sm">
                             {movement.from_location && (
-                              <span className="text-gray-600">{movement.from_location.code}</span>
+                              <span className="text-gray-600">{String(movement.from_location.code || movement.from_location.name || 'N/A')}</span>
                             )}
                             {movement.movement_type === 'ajuste' && (
                               <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -746,7 +746,7 @@ export function InventoryMovements() {
                               <ArrowUpRight className="w-4 h-4 text-red-500" />
                             )}
                             {movement.to_location && (
-                              <span className="text-gray-600">{movement.to_location.code}</span>
+                              <span className="text-gray-600">{String(movement.to_location.code || movement.to_location.name || 'N/A')}</span>
                             )}
                           </div>
                         </td>
@@ -763,7 +763,7 @@ export function InventoryMovements() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-sm text-gray-900">
-                            {movement.created_by_profile?.full_name || 'Usuario'}
+                            {String(movement.created_by_profile?.full_name || 'Usuario')}
                           </span>
                         </td>
                         <td className="px-6 py-4">

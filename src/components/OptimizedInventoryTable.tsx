@@ -211,8 +211,8 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                     <tr key={typedItem.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                        <p className="text-xs text-gray-500">{product.sku}</p>
+                        <p className="text-sm font-medium text-gray-900">{String(product.name || 'N/A')}</p>
+                        <p className="text-xs text-gray-500">{String(product.sku || 'N/A')}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -220,13 +220,13 @@ export const OptimizedInventoryTable: React.FC<OptimizedInventoryTableProps> = (
                         <div className={`w-8 h-8 ${categoryConfig.color} bg-opacity-20 rounded-lg flex items-center justify-center`}>
                           <CategoryIcon className="w-4 h-4 text-gray-700" />
                         </div>
-                        <span className="text-sm text-gray-700">{categoryConfig.label}</span>
+                        <span className="text-sm text-gray-700">{String(categoryConfig.label || 'Sin categoría')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-700">{location?.name || 'Sin ubicación'}</span>
+                        <span className="text-sm text-gray-700">{String(location?.name || 'Sin ubicación')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

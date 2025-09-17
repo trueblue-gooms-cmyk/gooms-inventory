@@ -205,8 +205,8 @@ export function Inventory() {
           quantity_reserved,
           last_movement_date,
           expiry_date,
-          product:products(id, name, sku, type, min_stock_units, unit_cost),
-          location:locations(id, name, code)
+          products!inner(id, name, sku, type, min_stock_units, unit_cost),
+          locations!inner(id, name, code)
         `)
         .gt('quantity_available', 0);
 
@@ -216,9 +216,11 @@ export function Inventory() {
         setRealInventory(getDemoInventory());
       } else {
         // Transformar datos reales con verificación de tipos
-        const transformedInventory: InventoryItem[] = (inventoryData || []).map(item => {
-          const product = item.product as any;
-          const location = item.location as any;
+        const transformedInventory: InventoryItem[] = (inventoryData || [])
+          .filter(item => item && typeof item === 'object')
+          .map(item => {
+          const product = item.products as any;
+          const location = item.locations as any;
           const quantity = item.quantity_available || 0;
           const minStock = product?.min_stock_units || 0;
           const unitCost = product?.unit_cost || 0;
@@ -238,14 +240,14 @@ export function Inventory() {
             location_id: String(location?.id || 'unknown'),
             sku: String(product?.sku || 'N/A'),
             name: String(product?.name || 'Producto sin nombre'),
-            type: String(product?.product_type || product?.type || 'producto_final') as any,
+            type: String(product?.type || 'producto_final') as any,
             location: String(location?.name || 'Ubicación desconocida'), // CRÍTICO: Asegurar que sea string
-            quantity: Number(quantity),
-            min_stock: Number(minStock),
-            max_stock: Number(minStock * 5), // Estimación
-            unit: String((product?.product_type || product?.type) === 'materia_prima' ? 'kg' : 'unidades'),
-            unit_cost: Number(unitCost),
-            total_value: Number(quantity * unitCost),
+            quantity: Number(quantity) || 0,
+            min_stock: Number(minStock) || 0,
+            max_stock: Number(minStock * 5) || 0, // Estimación
+            unit: String((product?.type) === 'materia_prima' ? 'kg' : 'unidades'),
+            unit_cost: Number(unitCost) || 0,
+            total_value: Number(quantity * unitCost) || 0,
             status: getStockStatus(quantity, minStock, minStock * 5) as 'optimal' | 'low' | 'critical' | 'overstock',
             last_movement: String(item.last_movement_date || new Date().toISOString().split('T')[0]),
             expiry_date: item.expiry_date ? String(item.expiry_date) : undefined

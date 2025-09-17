@@ -255,7 +255,7 @@ export default function Dashboard() {
     
     inventory.forEach((item: any) => {
       const location = locations.find((l: any) => l.id === item.location_id);
-      const locationName = (location as any)?.name || 'Ubicación Desconocida';
+      const locationName = String((location as any)?.name || 'Ubicación Desconocida');
       
       if (!locationStats[locationName]) {
         locationStats[locationName] = {

@@ -366,11 +366,11 @@ export function Products() {
             <tbody className="divide-y divide-gray-50">
               {filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-light text-gray-900">{product.sku}</td>
-                  <td className="px-6 py-4 text-sm font-light text-gray-900">{product.name}</td>
+                  <td className="px-6 py-4 text-sm font-light text-gray-900">{String(product.sku || 'N/A')}</td>
+                  <td className="px-6 py-4 text-sm font-light text-gray-900">{String(product.name || 'N/A')}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     <span className="status-badge bg-blue-50 text-blue-700 border-blue-200">
-                      {product.type}
+                      {String(product.type || 'N/A')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm font-light text-gray-600">{product.weight_grams ?? '-'}</td>
