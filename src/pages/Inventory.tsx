@@ -141,63 +141,19 @@ export function Inventory() {
 
   const isLoading = authLoading || inventoryLoading || operationLoading;
 
-  // Cargar datos reales usando el patrón exitoso del Laboratorio
-  useEffect(() => {
-    loadInventoryData();
-  }, []);
+  // Helper functions - MOVED BEFORE useEffect
+  const getStockStatus = (quantity: number, min: number, max: number) => {
+    if (quantity <= min * 0.5) return 'critical';
+    if (quantity <= min) return 'low';
+    if (quantity >= max) return 'overstock';
+    return 'optimal';
+  };
 
-  // Authentication guard - show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (!user) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-gray-600">Debes iniciar sesión para acceder al inventario.</p>
-      </div>
-    );
-  }
-
-  // Show loading while role is being determined
-  if (userRole === null) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
-
-  // Check permissions
-  if (!['admin', 'operator'].includes(userRole)) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-gray-600">No tienes permisos para acceder al inventario.</p>
-      </div>
-    );
-  }
-
-  // Handle inventory error with fallback
-  if (inventoryError) {
-    return (
-      <ErrorBoundary>
-        <InventoryFallback
-          error={inventoryError}
-          retry={() => window.location.reload()}
-        />
-      </ErrorBoundary>
-    );
-  }
-
+  // Función para cargar datos del inventario - MOVED BEFORE useEffect
   const loadInventoryData = async () => {
     try {
       setInventoryLoaded(false);
-      
+
       // Cargar inventario actual con productos y ubicaciones
       const { data: inventoryData, error: inventoryError } = await supabase
         .from('inventory_current')
@@ -282,7 +238,7 @@ export function Inventory() {
             return null;
           }
         }).filter(Boolean);
-        
+
         setRealInventory(transformedInventory);
       }
     } catch (error) {
@@ -335,6 +291,59 @@ export function Inventory() {
     // Serializar y deserializar para garantizar que sean objetos completamente limpios
     return JSON.parse(JSON.stringify(demoData));
   };
+
+  // Cargar datos reales usando el patrón exitoso del Laboratorio
+  useEffect(() => {
+    loadInventoryData();
+  }, []);
+
+  // Authentication guard - show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-gray-600">Debes iniciar sesión para acceder al inventario.</p>
+      </div>
+    );
+  }
+
+  // Show loading while role is being determined
+  if (userRole === null) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // Check permissions
+  if (!['admin', 'operator'].includes(userRole)) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-gray-600">No tienes permisos para acceder al inventario.</p>
+      </div>
+    );
+  }
+
+  // Handle inventory error with fallback
+  if (inventoryError) {
+    return (
+      <ErrorBoundary>
+        <InventoryFallback
+          error={inventoryError}
+          retry={() => window.location.reload()}
+        />
+      </ErrorBoundary>
+    );
+  }
 
   // Usar datos reales o demo
   const processedInventory = inventoryLoaded ? realInventory : getDemoInventory();
@@ -395,13 +404,6 @@ export function Inventory() {
       setTransferData({ from_location: '', to_location: '', quantity: 0, notes: '' });
       setSelectedItem(null);
     });
-  };
-
-  const getStockStatus = (quantity: number, min: number, max: number) => {
-    if (quantity <= min * 0.5) return 'critical';
-    if (quantity <= min) return 'low';
-    if (quantity >= max) return 'overstock';
-    return 'optimal';
   };
 
   const getStatusColor = (status: string) => {
