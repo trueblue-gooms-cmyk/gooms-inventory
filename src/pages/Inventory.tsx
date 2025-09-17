@@ -120,20 +120,20 @@ export function Inventory() {
   
   const isLoading = authLoading || inventoryLoading || operationLoading;
 
-  // Estados para el modal de movimiento
-  const [movementData, setMovementData] = useState({
+  // Estados para el modal de movimiento - inicialización limpia
+  const [movementData, setMovementData] = useState(() => ({
     type: 'entrada' as 'entrada' | 'salida' | 'ajuste',
     quantity: 0,
     notes: ''
-  });
+  }));
 
-  // Estados para el modal de transferencia
-  const [transferData, setTransferData] = useState({
+  // Estados para el modal de transferencia - inicialización limpia
+  const [transferData, setTransferData] = useState(() => ({
     from_location: '',
     to_location: '',
     quantity: 0,
     notes: ''
-  });
+  }));
 
   // Authentication guard - show loading while checking auth
   if (authLoading) {
@@ -183,9 +183,9 @@ export function Inventory() {
     );
   }
 
-  // Estados para datos reales
-  const [realInventory, setRealInventory] = useState<InventoryItem[]>([]);
-  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+  // Estados para datos reales - inicialización completamente limpia
+  const [realInventory, setRealInventory] = useState<InventoryItem[]>(() => []);
+  const [inventoryLoaded, setInventoryLoaded] = useState(() => false);
 
   // Cargar datos reales usando el patrón exitoso del Laboratorio
   useEffect(() => {
@@ -215,55 +215,71 @@ export function Inventory() {
         // Usar datos demo como fallback
         setRealInventory(getDemoInventory());
       } else {
-        // Transformar datos reales con verificación de tipos
+        // Función para limpiar completamente los objetos
+        const cleanObject = (obj: any): any => {
+          if (obj === null || obj === undefined) return obj;
+          if (typeof obj !== 'object') return obj;
+          if (Array.isArray(obj)) return obj.map(cleanObject);
+
+          const cleaned: any = {};
+          for (const [key, value] of Object.entries(obj)) {
+            if (value === null || value === undefined) {
+              cleaned[key] = value;
+            } else if (typeof value === 'object') {
+              // Convertir objetos anidados a strings o limpiarlos recursivamente
+              if (typeof value === 'object' && value.constructor === Object) {
+                cleaned[key] = cleanObject(value);
+              } else {
+                cleaned[key] = String(value);
+              }
+            } else {
+              cleaned[key] = value;
+            }
+          }
+          return cleaned;
+        };
+
+        // Transformar datos reales con limpieza extrema
         const transformedInventory: InventoryItem[] = (inventoryData || [])
           .filter(item => item && typeof item === 'object')
           .map(item => {
-          const product = item.products as any;
-          const location = item.locations as any;
-          const quantity = item.quantity_available || 0;
-          const minStock = product?.min_stock_units || 0;
-          const unitCost = product?.unit_cost || 0;
-          
-          // Debug logging para detectar objetos
-          console.log('Processing inventory item:', {
-            product: typeof product,
-            location: typeof location,
-            productData: product,
-            locationData: location
-          });
+          try {
+            const product = item.products as any;
+            const location = item.locations as any;
+            const quantity = Number(item.quantity_available) || 0;
+            const minStock = Number(product?.min_stock_units) || 0;
+            const unitCost = Number(product?.unit_cost) || 0;
 
-          // Asegurar que todos los campos sean primitivos (strings/numbers)
-          const transformedItem = {
-            id: String(item.id || 'unknown'),
-            product_id: String(product?.id || 'unknown'),
-            location_id: String(location?.id || 'unknown'),
-            sku: String(product?.sku || 'N/A'),
-            name: String(product?.name || 'Producto sin nombre'),
-            type: String(product?.type || 'producto_final') as any,
-            location: String(location?.name || 'Ubicación desconocida'), // CRÍTICO: Asegurar que sea string
-            quantity: Number(quantity) || 0,
-            min_stock: Number(minStock) || 0,
-            max_stock: Number(minStock * 5) || 0, // Estimación
-            unit: String((product?.type) === 'materia_prima' ? 'kg' : 'unidades'),
-            unit_cost: Number(unitCost) || 0,
-            total_value: Number(quantity * unitCost) || 0,
-            status: getStockStatus(quantity, minStock, minStock * 5) as 'optimal' | 'low' | 'critical' | 'overstock',
-            last_movement: String(item.last_movement_date || new Date().toISOString().split('T')[0]),
-            expiry_date: item.expiry_date ? String(item.expiry_date) : undefined
-          };
+            // Crear objeto completamente plano - sin anidación
+            const transformedItem: InventoryItem = {
+              id: String(item.id || 'unknown'),
+              product_id: String(product?.id || 'unknown'),
+              location_id: String(location?.id || 'unknown'),
+              sku: String(product?.sku || 'N/A'),
+              name: String(product?.name || 'Producto sin nombre'),
+              type: String(product?.type || 'producto_final') as any,
+              location: String(location?.name || 'Ubicación desconocida'),
+              quantity: quantity,
+              min_stock: minStock,
+              max_stock: minStock * 5,
+              unit: String((product?.type) === 'materia_prima' ? 'kg' : 'unidades'),
+              unit_cost: unitCost,
+              total_value: quantity * unitCost,
+              status: getStockStatus(quantity, minStock, minStock * 5) as 'optimal' | 'low' | 'critical' | 'overstock',
+              last_movement: String(item.last_movement_date || new Date().toISOString().split('T')[0]),
+              expiry_date: item.expiry_date ? String(item.expiry_date) : undefined
+            };
 
-          // Verificar que no hay objetos en el resultado
-          Object.keys(transformedItem).forEach(key => {
-            const value = (transformedItem as any)[key];
-            if (value !== null && value !== undefined && typeof value === 'object') {
-              console.error(`CRITICAL: Object found in field ${key}:`, value);
-              console.error('This will cause React error #310');
-            }
-          });
+            // Verificación final - serializar y deserializar para eliminar cualquier referencia
+            const serialized = JSON.stringify(transformedItem);
+            const finalItem = JSON.parse(serialized);
 
-          return transformedItem;
-        });
+            return finalItem;
+          } catch (error) {
+            console.error('Error transforming item:', error, item);
+            return null;
+          }
+        }).filter(Boolean);
         
         setRealInventory(transformedInventory);
       }
@@ -275,43 +291,48 @@ export function Inventory() {
     }
   };
 
-  // Función para datos demo de inventario
-  const getDemoInventory = (): InventoryItem[] => [
-    {
-      id: 'demo-1',
-      product_id: 'demo-prod-1',
-      location_id: 'demo-loc-1',
-      sku: 'DEMO-001',
-      name: 'Producto Demo 1',
-      type: 'producto_final',
-      location: 'Bodega Central',
-      quantity: 150,
-      min_stock: 50,
-      max_stock: 500,
-      unit: 'unidades',
-      unit_cost: 25000,
-      total_value: 3750000,
-      status: 'optimal',
-      last_movement: new Date().toISOString().split('T')[0]
-    },
-    {
-      id: 'demo-2',
-      product_id: 'demo-prod-2',
-      location_id: 'demo-loc-2',
-      sku: 'DEMO-002',
-      name: 'Materia Prima Demo',
-      type: 'materia_prima',
-      location: 'POS-Colina',
-      quantity: 25,
-      min_stock: 100,
-      max_stock: 1000,
-      unit: 'kg',
-      unit_cost: 15000,
-      total_value: 375000,
-      status: 'critical',
-      last_movement: new Date().toISOString().split('T')[0]
-    }
-  ];
+  // Función para datos demo de inventario - completamente limpios
+  const getDemoInventory = (): InventoryItem[] => {
+    const demoData = [
+      {
+        id: 'demo-1',
+        product_id: 'demo-prod-1',
+        location_id: 'demo-loc-1',
+        sku: 'DEMO-001',
+        name: 'Producto Demo 1',
+        type: 'producto_final',
+        location: 'Bodega Central',
+        quantity: 150,
+        min_stock: 50,
+        max_stock: 500,
+        unit: 'unidades',
+        unit_cost: 25000,
+        total_value: 3750000,
+        status: 'optimal',
+        last_movement: new Date().toISOString().split('T')[0]
+      },
+      {
+        id: 'demo-2',
+        product_id: 'demo-prod-2',
+        location_id: 'demo-loc-2',
+        sku: 'DEMO-002',
+        name: 'Materia Prima Demo',
+        type: 'materia_prima',
+        location: 'POS-Colina',
+        quantity: 25,
+        min_stock: 100,
+        max_stock: 1000,
+        unit: 'kg',
+        unit_cost: 15000,
+        total_value: 375000,
+        status: 'critical',
+        last_movement: new Date().toISOString().split('T')[0]
+      }
+    ];
+
+    // Serializar y deserializar para garantizar que sean objetos completamente limpios
+    return JSON.parse(JSON.stringify(demoData));
+  };
 
   // Usar datos reales o demo
   const processedInventory = inventoryLoaded ? realInventory : getDemoInventory();
@@ -593,35 +614,52 @@ export function Inventory() {
                   return (
                 <div className="grid gap-4">
                   {processedInventory.slice(0, 10).map((item) => {
-                    // CRITICAL: Defensive checks to prevent React #310 error
-                    const safeName = typeof item.name === 'string' ? item.name : String(item.name || 'N/A');
-                    const safeSku = typeof item.sku === 'string' ? item.sku : String(item.sku || 'N/A');
-                    const safeLocation = typeof item.location === 'string' ? item.location : String(item.location || 'N/A');
-                    const safeQuantity = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity || 0);
-                    const safeMinStock = typeof item.min_stock === 'number' ? item.min_stock : Number(item.min_stock || 0);
-                    
-                    return (
-                      <div key={item.id} className="p-6 bg-gray-50/30 rounded-2xl border border-gray-100">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                            <h4 className="font-light text-gray-900 text-lg">{safeName}</h4>
-                            <p className="text-sm text-gray-500 font-light">{safeSku}</p>
-                            <p className="text-sm text-gray-600 font-light flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {safeLocation}
-                            </p>
-                          </div>
-                          <div className="text-right space-y-1">
-                            <p className="font-thin text-2xl text-gray-900">{safeQuantity}</p>
-                            <p className="text-xs text-gray-500 font-light">Stock mínimo: {safeMinStock}</p>
-                            <span className={`status-badge ${getStatusColor(item.status).replace('bg-', 'status-').replace('-100', '').replace('text-', '').replace('-700', '')}`}>
-                              {getStatusLabel(item.status)}
-                            </span>
+                    try {
+                      // EXTRA SAFE: Verificar que el item no sea nulo y sea un objeto válido
+                      if (!item || typeof item !== 'object' || !item.id) {
+                        console.warn('Invalid inventory item skipped:', item);
+                        return null;
+                      }
+
+                      // CRITICAL: Defensive checks extremos para prevenir React #310 error
+                      const safeName = String(item.name || 'N/A');
+                      const safeSku = String(item.sku || 'N/A');
+                      const safeLocation = String(item.location || 'N/A');
+                      const safeQuantity = Number(item.quantity) || 0;
+                      const safeMinStock = Number(item.min_stock) || 0;
+                      const safeStatus = String(item.status || 'optimal');
+                      const safeId = String(item.id || Math.random());
+
+                      return (
+                        <div key={safeId} className="p-6 bg-gray-50/30 rounded-2xl border border-gray-100">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <h4 className="font-light text-gray-900 text-lg">{safeName}</h4>
+                              <p className="text-sm text-gray-500 font-light">{safeSku}</p>
+                              <p className="text-sm text-gray-600 font-light flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {safeLocation}
+                              </p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <p className="font-thin text-2xl text-gray-900">{safeQuantity}</p>
+                              <p className="text-xs text-gray-500 font-light">Stock mínimo: {safeMinStock}</p>
+                              <span className={`status-badge ${getStatusColor(safeStatus).replace('bg-', 'status-').replace('-100', '').replace('text-', '').replace('-700', '')}`}>
+                                {getStatusLabel(safeStatus)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    } catch (error) {
+                      console.error('Error rendering inventory item:', error, item);
+                      return (
+                        <div key={`error-${Math.random()}`} className="p-6 bg-red-50 rounded-2xl border border-red-200">
+                          <p className="text-red-600 text-sm">Error cargando item</p>
+                        </div>
+                      );
+                    }
+                  }).filter(Boolean)}
                   {processedInventory.length > 10 && (
                     <div className="text-center text-gray-400 text-sm font-light py-4">
                       Mostrando 10 de {processedInventory.length} items
