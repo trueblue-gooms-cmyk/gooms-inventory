@@ -305,25 +305,25 @@ export function Products() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       {/* Header - Dashboard style */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-thin text-gray-900 tracking-tight">Catálogo de Productos</h1>
-          <p className="text-gray-500 mt-2 font-light">Gestiona tu inventario de productos</p>
+          <h1 className="typography-page-title">Catálogo de Productos</h1>
+          <p className="typography-page-subtitle">Gestiona tu inventario de productos</p>
         </div>
         {canEdit && (
           <div className="flex gap-3">
             <button
               onClick={() => setShowImporter(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50"
+              className="button-secondary flex items-center gap-2"
             >
               <Upload className="w-4 h-4" />
               <span>Importar CSV</span>
             </button>
             <button
               onClick={() => setShowProductModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              className="button-primary flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Nuevo Producto</span>
@@ -333,50 +333,52 @@ export function Products() {
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar por nombre o SKU..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
+      <div className="card-modern p-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o SKU..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+          />
+        </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="card-modern overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso (g)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Mínimo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">SKU</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Nombre</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Tipo</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Peso (g)</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Stock Mínimo</th>
+                <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Estado</th>
                 {canEdit && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                  <th className="px-6 py-4 text-left text-xs font-light text-gray-500 uppercase tracking-wider">Acciones</th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-50">
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{product.sku}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{product.name}</td>
+                <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-light text-gray-900">{product.sku}</td>
+                  <td className="px-6 py-4 text-sm font-light text-gray-900">{product.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                    <span className="status-badge bg-blue-50 text-blue-700 border-blue-200">
                       {product.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{product.weight_grams ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{product.min_stock_units ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm font-light text-gray-600">{product.weight_grams ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm font-light text-gray-600">{product.min_stock_units ?? '-'}</td>
                   <td className="px-6 py-4 text-sm">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        product.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      className={`status-badge ${
+                        product.is_active ? 'status-success' : 'status-error'
                       }`}
                     >
                       {product.is_active ? 'Activo' : 'Inactivo'}
@@ -390,17 +392,17 @@ export function Products() {
                             setEditingProduct(product);
                             setShowProductModal(true);
                           }}
-                          className="p-1 hover:bg-gray-100 rounded"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                           title="Editar producto"
                         >
-                          <Edit2 className="w-4 h-4 text-gray-600" />
+                          <Edit2 className="w-4 h-4 text-gray-500" />
                         </button>
                         <button 
                           onClick={() => handleDelete(product.id)} 
-                          className="p-1 hover:bg-gray-100 rounded"
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                           title="Eliminar producto"
                         >
-                          <Trash2 className="w-4 h-4 text-red-600" />
+                          <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                       </div>
                     </td>

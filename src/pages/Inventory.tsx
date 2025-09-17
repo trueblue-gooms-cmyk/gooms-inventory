@@ -300,21 +300,21 @@ export function Inventory() {
 
   return (
     <ErrorBoundary>
-      <div className={DESIGN_SYSTEM.containers.page}>
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className={DESIGN_SYSTEM.typography.pageTitle}>Inventario Multi-Ubicación</h1>
-            <p className={DESIGN_SYSTEM.typography.pageSubtitle}>Gestión integral de inventario por ubicación y categoría</p>
+            <h1 className="typography-page-title">Inventario Multi-Ubicación</h1>
+            <p className="typography-page-subtitle">Gestión integral de inventario por ubicación y categoría</p>
           </div>
           <div className="flex gap-2">
-            <button className={DESIGN_SYSTEM.buttons.secondary}>
+            <button className="button-secondary flex items-center gap-2">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Exportar</span>
             </button>
             <button 
               onClick={() => setShowNewItemModal(true)}
-              className={DESIGN_SYSTEM.buttons.primary}
+              className="button-primary flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Nuevo Item</span>
@@ -323,13 +323,13 @@ export function Inventory() {
         </div>
 
         {/* Pestañas de navegación */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-gray-50/50 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2.5 rounded-lg font-light transition-all ${
               activeTab === 'inventory'
                 ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -339,10 +339,10 @@ export function Inventory() {
           </button>
           <button
             onClick={() => setActiveTab('expiry')}
-            className={`px-4 py-2 rounded-md transition-colors ${
+            className={`px-4 py-2.5 rounded-lg font-light transition-all ${
               activeTab === 'expiry'
                 ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -353,50 +353,46 @@ export function Inventory() {
         </div>
 
         {/* Métricas rápidas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics.totalItems}</p>
-              </div>
-              <Package className="w-8 h-8 text-blue-500" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="card-modern p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-500 font-light">Total Items</p>
+              <Package className="w-5 h-5 text-blue-500" />
             </div>
+            <p className="text-4xl font-thin text-gray-900">{metrics.totalItems}</p>
+            <p className="text-xs text-gray-400 mt-1">Items en inventario</p>
           </div>
           
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Valor Total</p>
-                <p className="text-xl font-bold text-gray-900">{formatCurrency(metrics.totalValue)}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+          <div className="card-modern p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-500 font-light">Valor Total</p>
+              <TrendingUp className="w-5 h-5 text-green-500" />
             </div>
+            <p className="text-2xl font-thin text-gray-900">{formatCurrency(metrics.totalValue)}</p>
+            <p className="text-xs text-gray-400 mt-1">Valor del inventario</p>
           </div>
 
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Stock Crítico</p>
-                <p className="text-2xl font-bold text-red-600">{metrics.criticalItems}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+          <div className="card-modern p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-500 font-light">Stock Crítico</p>
+              <AlertTriangle className="w-5 h-5 text-red-500" />
             </div>
+            <p className="text-4xl font-thin text-red-600">{metrics.criticalItems}</p>
+            <p className="text-xs text-gray-400 mt-1">Requieren atención</p>
           </div>
 
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Stock Bajo</p>
-                <p className="text-2xl font-bold text-yellow-600">{metrics.lowStockItems}</p>
-              </div>
-              <TrendingDown className="w-8 h-8 text-yellow-500" />
+          <div className="card-modern p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-500 font-light">Stock Bajo</p>
+              <TrendingDown className="w-5 h-5 text-yellow-500" />
             </div>
+            <p className="text-4xl font-thin text-yellow-600">{metrics.lowStockItems}</p>
+            <p className="text-xs text-gray-400 mt-1">Por debajo del mínimo</p>
           </div>
         </div>
 
         {/* Filtros */}
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="card-modern p-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -406,7 +402,7 @@ export function Inventory() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por nombre o SKU..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full pl-10 pr-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -414,7 +410,7 @@ export function Inventory() {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
             >
               <option value="all">Todas las ubicaciones</option>
               {LOCATIONS.map(loc => (
@@ -425,7 +421,7 @@ export function Inventory() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
             >
               <option value="all">Todas las categorías</option>
               {Object.entries(CATEGORIES).map(([key, cat]) => (
@@ -435,7 +431,7 @@ export function Inventory() {
 
             <button 
               onClick={() => invalidateInventory()}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              className="button-secondary flex items-center gap-2"
               disabled={isLoading}
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -446,31 +442,35 @@ export function Inventory() {
 
         {/* Contenido condicional basado en pestaña activa */}
         {activeTab === 'inventory' ? (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="card-modern overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="typography-section-title">
                 Inventario ({processedInventory.length} items)
               </h3>
             </div>
             <div className="p-6">
               {processedInventory.length === 0 ? (
-                <div className="text-center text-gray-500">
-                  No hay items de inventario disponibles
+                <div className="text-center py-12">
+                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-light">No hay items de inventario disponibles</p>
                 </div>
               ) : (
                 <div className="grid gap-4">
                   {processedInventory.slice(0, 10).map((item) => (
-                    <div key={item.id} className="p-4 border border-gray-200 rounded-lg">
+                    <div key={item.id} className="p-6 bg-gray-50/30 rounded-2xl border border-gray-100">
                       <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{item.name}</h4>
-                          <p className="text-sm text-gray-500">{item.sku}</p>
-                          <p className="text-sm text-gray-600">{item.location}</p>
+                        <div className="space-y-1">
+                          <h4 className="font-light text-gray-900 text-lg">{item.name}</h4>
+                          <p className="text-sm text-gray-500 font-light">{item.sku}</p>
+                          <p className="text-sm text-gray-600 font-light flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {item.location}
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{item.quantity} unidades</p>
-                          <p className="text-sm text-gray-500">Stock de seguridad: {item.min_stock}</p>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
+                        <div className="text-right space-y-1">
+                          <p className="font-thin text-2xl text-gray-900">{item.quantity}</p>
+                          <p className="text-xs text-gray-500 font-light">Stock mínimo: {item.min_stock}</p>
+                          <span className={`status-badge ${getStatusColor(item.status).replace('bg-', 'status-').replace('-100', '').replace('text-', '').replace('-700', '')}`}>
                             {getStatusLabel(item.status)}
                           </span>
                         </div>
@@ -478,7 +478,7 @@ export function Inventory() {
                     </div>
                   ))}
                   {processedInventory.length > 10 && (
-                    <div className="text-center text-gray-500 text-sm">
+                    <div className="text-center text-gray-400 text-sm font-light py-4">
                       Mostrando 10 de {processedInventory.length} items
                     </div>
                   )}

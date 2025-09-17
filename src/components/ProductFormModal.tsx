@@ -307,16 +307,16 @@ export function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }:
   const selectedTypeConfig = PRODUCT_TYPES.find(t => t.value === selectedType);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-2xl font-thin text-gray-900">
               {editingProduct ? 'Editar Producto' : 'Crear Nuevo Producto'}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100/50 rounded-xl transition-all"
             >
               <X className="w-5 h-5" />
             </button>
