@@ -566,7 +566,7 @@ export function Products() {
             { field: 'units_per_box', label: 'Unidades por caja', type: 'number' },
             { field: 'shelf_life_days', label: 'Vida útil (días)', type: 'number' },
             { field: 'min_stock_units', label: 'Stock de Seguridad', type: 'number' },
-            { field: 'safety_stock_units', label: 'Stock seguridad', type: 'number' },
+            
           ]}
           onSuccess={loadProducts}
           onClose={() => setShowImporter(false)}

@@ -43,7 +43,7 @@ interface InventoryItem {
   id: string;
   sku: string;
   name: string;
-  category: 'materia_prima' | 'empaques' | 'gomas_granel' | 'producto_final';
+  type: 'materia_prima' | 'empaques' | 'gomas_granel' | 'producto_final';
   location: string;
   quantity: number;
   min_stock: number;
@@ -186,7 +186,7 @@ export function Inventory() {
       id: 'demo-1',
       sku: 'DEMO-001',
       name: 'Producto Demo 1',
-      category: 'producto_final',
+      type: 'producto_final',
       location: 'Bodega Central',
       quantity: 150,
       min_stock: 50,
@@ -201,7 +201,7 @@ export function Inventory() {
       id: 'demo-2',
       sku: 'DEMO-002',
       name: 'Materia Prima Demo',
-      category: 'materia_prima',
+      type: 'materia_prima',
       location: 'POS-Colina',
       quantity: 25,
       min_stock: 100,
@@ -284,7 +284,7 @@ export function Inventory() {
   // Filter processed inventory for metrics
   const filteredInventory = processedInventory.filter(item => {
     const matchesLocation = selectedLocation === 'all' || item.location === selectedLocation;
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.type === selectedCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.sku.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesLocation && matchesCategory && matchesSearch;

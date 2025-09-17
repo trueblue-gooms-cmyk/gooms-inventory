@@ -43,7 +43,7 @@ export const assertProduct = (product: unknown) => ({
   type: safeGet(product, 'type'),
   unit_cost: assertNumber(safeGet(product, 'unit_cost')),
   min_stock_units: assertNumber(safeGet(product, 'min_stock_units')),
-  safety_stock_units: assertNumber(safeGet(product, 'safety_stock_units')),
+  
   shelf_life_days: assertNumber(safeGet(product, 'shelf_life_days')),
   weight_grams: assertNumber(safeGet(product, 'weight_grams')),
   units_per_box: assertNumber(safeGet(product, 'units_per_box')),

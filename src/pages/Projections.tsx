@@ -70,8 +70,7 @@ export function Projections() {
           id,
           sku,
           name,
-          min_stock_units,
-          safety_stock_units
+          min_stock_units
         `)
         .eq('is_active', true);
 
@@ -131,14 +130,14 @@ export function Projections() {
         : Number.POSITIVE_INFINITY;
       
       // Calcular necesidades de producción
-      const targetStock = projectedSales + (Number(product.safety_stock_units) || 0);
+      const targetStock = projectedSales + (Number(product.min_stock_units) || 0);
       const unitsToProduce = Math.max(0, targetStock - currentStock);
       
       // Determinar estado
       let status: ProductProjection['status'] = 'optimal';
       if (currentStock < (Number(product.min_stock_units) || 0)) {
         status = 'critical';
-      } else if (currentStock < (Number(product.safety_stock_units) || 0)) {
+      } else if (currentStock < (Number(product.min_stock_units) || 0)) {
         status = 'low';
       } else if (projectedSales > 0 && currentStock > projectedSales * 3) {
         status = 'overstock';
@@ -150,7 +149,7 @@ export function Projections() {
         sku: product.sku,
         current_stock: currentStock,
         min_stock: Number(product.min_stock_units) || 0,
-        safety_stock: Number(product.safety_stock_units) || 0,
+        safety_stock: Number(product.min_stock_units) || 0,
         avg_monthly_sales: Math.round(avgMonthlySales),
         growth_rate: growthPercentage,
         projected_sales: projectedSales,

@@ -644,18 +644,18 @@ export function UnifiedProducts() {
 
   return (
     <ErrorBoundary>
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="space-y-8">
+        {/* Header - Dashboard style */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
             <h1 className="text-3xl font-thin text-gray-900 tracking-tight">Catálogo de Productos</h1>
-            <p className="text-gray-500 mt-2 font-light">Gestión unificada de materias primas, empaques, gomas al granel y productos finales</p>
+            <p className="text-sm text-gray-500 font-light mt-2">Gestión unificada de materias primas, empaques, gomas al granel y productos finales</p>
           </div>
           {canEdit && (
             <div className="flex gap-3">
               <button
                 onClick={() => importModal.openImportModal()}
-                className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 transition-all duration-200 shadow-sm font-light"
+                className="flex items-center gap-2 px-5 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 text-gray-700 rounded-2xl hover:bg-white hover:shadow-sm transition-all duration-200 font-light"
               >
                 <Upload className="w-4 h-4" />
                 <span>Importar</span>
