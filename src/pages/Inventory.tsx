@@ -42,6 +42,8 @@ import { useSecurity } from '@/utils/security';
 // Tipos para el inventario
 interface InventoryItem {
   id: string;
+  product_id: string; // uuid del producto
+  location_id: string; // uuid de la ubicación
   sku: string;
   name: string;
   type: 'materia_prima' | 'empaques' | 'gomas_granel' | 'producto_final';
@@ -223,14 +225,16 @@ export function Inventory() {
           
           return {
             id: item.id,
+            product_id: product?.id || item.product_id,
+            location_id: location?.id || item.location_id,
             sku: product?.sku || 'N/A',
             name: product?.name || 'Producto sin nombre',
-            type: product?.type || 'producto_final',
+            type: (product?.product_type || product?.type || 'producto_final') as any,
             location: location?.name || 'Ubicación desconocida',
             quantity: quantity,
             min_stock: minStock,
             max_stock: minStock * 5, // Estimación
-            unit: product?.type === 'materia_prima' ? 'kg' : 'unidades',
+            unit: (product?.product_type || product?.type) === 'materia_prima' ? 'kg' : 'unidades',
             unit_cost: unitCost,
             total_value: quantity * unitCost,
             status: getStockStatus(quantity, minStock, minStock * 5),

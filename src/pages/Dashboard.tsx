@@ -278,10 +278,11 @@ export default function Dashboard() {
         locationStats[locationName].value += (item as any).quantity_available * ((product as any).unit_cost || 0);
         
         // Categorize by product type
-        if ((product as any).type) {
+        const pType = (product as any).product_type || (product as any).type;
+        if (pType) {
           const validTypes = ['materia_prima', 'empaques', 'gomas_granel', 'producto_final'];
-          if (validTypes.includes((product as any).type)) {
-            const typeKey = (product as any).type as keyof typeof locationStats[typeof locationName]['items'];
+          if (validTypes.includes(pType)) {
+            const typeKey = pType as keyof typeof locationStats[typeof locationName]['items'];
             locationStats[locationName].items[typeKey] += (item as any).quantity_available;
           }
         }

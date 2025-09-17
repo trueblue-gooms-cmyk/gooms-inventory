@@ -169,7 +169,7 @@ export function UnifiedProducts() {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
-          id, name, sku, type, unit_cost, min_stock_units,
+          id, name, sku, type, product_type, unit_cost, min_stock_units,
           is_active, weight_grams, shelf_life_days,
           units_per_box, created_at, updated_at
         `)
@@ -186,15 +186,29 @@ export function UnifiedProducts() {
           variant: "default"
         });
       } else {
+        // Cargar inventario actual para calcular existencias por producto
+        const { data: inventoryRows, error: invErr } = await supabase
+          .from('inventory_current')
+          .select('product_id, quantity_available');
+
+        const stockByProduct: Record<string, number> = {};
+        if (!invErr && Array.isArray(inventoryRows)) {
+          for (const row of inventoryRows) {
+            const pid = (row as any).product_id;
+            const qty = Number((row as any).quantity_available) || 0;
+            if (pid) stockByProduct[pid] = (stockByProduct[pid] || 0) + qty;
+          }
+        }
+
         // Transformar datos reales al formato UnifiedProduct
         const transformedProducts: UnifiedProduct[] = (productsData || []).map(product => ({
           id: product.id,
           sku: product.sku,
           name: product.name,
-          type: product.type as ProductType,
+          type: (product.product_type || product.type) as ProductType,
           unit_cost: product.unit_cost || 0,
           min_stock_units: product.min_stock_units || 0,
-          current_stock: 0, // Esto debería venir de inventory_current
+          current_stock: stockByProduct[product.id] || 0,
           is_active: product.is_active,
           created_at: product.created_at || new Date().toISOString(),
           updated_at: product.updated_at || new Date().toISOString(),
@@ -442,9 +456,12 @@ export function UnifiedProducts() {
       loadData(); // Recargar datos como en Laboratory
     } catch (error: any) {
       console.error('❌ Error al crear/editar producto:', error);
+      const isDuplicate = error?.code === '23505' || /duplicate key.*products_sku_key/i.test(error?.message || '');
       toast({
-        title: "Error",
-        description: error.message || 'Error desconocido al procesar el producto',
+        title: isDuplicate ? "SKU duplicado" : "Error",
+        description: isDuplicate
+          ? `El SKU "${formData.sku}" ya existe. Usa uno diferente o edita el producto existente.`
+          : (error.message || 'Error desconocido al procesar el producto'),
         variant: "destructive"
       });
     }
