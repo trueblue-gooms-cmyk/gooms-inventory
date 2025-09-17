@@ -345,7 +345,6 @@ export type Database = {
           moq_units: number | null
           name: string
           price_per_unit: number | null
-          safety_stock_units: number | null
           supplier_id: string | null
           type: string | null
           unit_measure: string | null
@@ -361,7 +360,6 @@ export type Database = {
           moq_units?: number | null
           name: string
           price_per_unit?: number | null
-          safety_stock_units?: number | null
           supplier_id?: string | null
           type?: string | null
           unit_measure?: string | null
@@ -377,7 +375,6 @@ export type Database = {
           moq_units?: number | null
           name?: string
           price_per_unit?: number | null
-          safety_stock_units?: number | null
           supplier_id?: string | null
           type?: string | null
           unit_measure?: string | null
@@ -608,7 +605,6 @@ export type Database = {
           min_stock_units: number | null
           name: string
           product_type: Database["public"]["Enums"]["product_type_enum"] | null
-          safety_stock_units: number | null
           shelf_life_days: number | null
           sku: string
           type: string
@@ -624,7 +620,6 @@ export type Database = {
           min_stock_units?: number | null
           name: string
           product_type?: Database["public"]["Enums"]["product_type_enum"] | null
-          safety_stock_units?: number | null
           shelf_life_days?: number | null
           sku: string
           type: string
@@ -640,7 +635,6 @@ export type Database = {
           min_stock_units?: number | null
           name?: string
           product_type?: Database["public"]["Enums"]["product_type_enum"] | null
-          safety_stock_units?: number | null
           shelf_life_days?: number | null
           sku?: string
           type?: string
@@ -823,7 +817,6 @@ export type Database = {
           moq_kg: number | null
           name: string
           price_per_unit: number | null
-          safety_stock_kg: number | null
           shelf_life_days: number | null
           supplier_code: string | null
           supplier_id: string | null
@@ -842,7 +835,6 @@ export type Database = {
           moq_kg?: number | null
           name: string
           price_per_unit?: number | null
-          safety_stock_kg?: number | null
           shelf_life_days?: number | null
           supplier_code?: string | null
           supplier_id?: string | null
@@ -861,7 +853,6 @@ export type Database = {
           moq_kg?: number | null
           name?: string
           price_per_unit?: number | null
-          safety_stock_kg?: number | null
           shelf_life_days?: number | null
           supplier_code?: string | null
           supplier_id?: string | null

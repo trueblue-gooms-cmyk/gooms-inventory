@@ -22,8 +22,8 @@ interface RawMaterial {
   moq_kg: number;
   shelf_life_days: number;
   lead_time_days: number;
-  safety_stock_kg: number;
   current_stock_kg: number;
+  min_stock_units: number;
   is_active: boolean;
   suppliers?: Supplier;
 }
@@ -49,7 +49,6 @@ export function RawMaterials() {
     moq_kg: '',
     shelf_life_days: '',
     lead_time_days: '',
-    safety_stock_kg: '',
     current_stock_kg: '0',
     is_active: true
   });
@@ -92,7 +91,7 @@ export function RawMaterials() {
         moq_kg: parseFloat(formData.moq_kg),
         shelf_life_days: parseInt(formData.shelf_life_days),
         lead_time_days: parseInt(formData.lead_time_days),
-        safety_stock_kg: parseFloat(formData.safety_stock_kg),
+        
         current_stock_kg: parseFloat(formData.current_stock_kg)
       };
 
@@ -133,7 +132,7 @@ export function RawMaterials() {
       moq_kg: material.moq_kg.toString(),
       shelf_life_days: material.shelf_life_days.toString(),
       lead_time_days: material.lead_time_days.toString(),
-      safety_stock_kg: material.safety_stock_kg.toString(),
+      
       current_stock_kg: material.current_stock_kg.toString(),
       is_active: material.is_active
     });
@@ -168,7 +167,7 @@ export function RawMaterials() {
       moq_kg: '',
       shelf_life_days: '',
       lead_time_days: '',
-      safety_stock_kg: '',
+      
       current_stock_kg: '0',
       is_active: true
     });
@@ -256,14 +255,10 @@ export function RawMaterials() {
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className={`font-medium ${
-                        material.current_stock_kg < material.safety_stock_kg
-                          ? 'text-red-600'
-                          : 'text-gray-900'
-                      }`}>
+                      <span className="font-medium text-gray-900">
                         {material.current_stock_kg}
                       </span>
-                      {material.current_stock_kg < material.safety_stock_kg && (
+                      {material.current_stock_kg < material.min_stock_units && (
                         <AlertTriangle className="w-4 h-4 text-red-600" />
                       )}
                     </div>
@@ -412,15 +407,6 @@ export function RawMaterials() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock de seguridad (kg)</label>
-                  <input
-                    type="number"
-                    value={formData.safety_stock_kg}
-                    onChange={(e) => setFormData({...formData, safety_stock_kg: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Stock actual (kg)</label>

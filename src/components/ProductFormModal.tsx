@@ -27,13 +27,13 @@ const PRODUCT_TYPES = [
     value: 'gomas_granel',
     label: 'Gomas al Granel',
     description: 'Producto semi-terminado a granel',
-    fields: ['sku', 'name', 'weight_grams', 'shelf_life_days', 'min_stock_units', 'safety_stock_units']
+    fields: ['sku', 'name', 'weight_grams', 'shelf_life_days', 'min_stock_units']
   },
   {
     value: 'producto_final',
     label: 'Producto Final',
     description: 'SKUs listos para venta',
-    fields: ['sku', 'name', 'type', 'weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'safety_stock_units', 'unit_cost']
+    fields: ['sku', 'name', 'type', 'weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'unit_cost']
   }
 ];
 
@@ -103,7 +103,7 @@ export function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }:
     }
 
     // Validaciones numéricas
-    const numericFields = ['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'safety_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'];
+    const numericFields = ['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'];
     numericFields.forEach(field => {
       if (typeConfig.fields.includes(field) && formData[field] && isNaN(Number(formData[field]))) {
         newErrors[field] = 'Debe ser un número válido';
@@ -142,7 +142,7 @@ export function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }:
       // Agregar campos específicos del tipo
       typeConfig.fields.forEach(field => {
         if (formData[field] !== undefined && formData[field] !== '') {
-          if (['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'safety_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'].includes(field)) {
+          if (['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'].includes(field)) {
             productData[field] = Number(formData[field]) || null;
           } else {
             productData[field] = formData[field];
@@ -207,8 +207,7 @@ export function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }:
         weight_grams: 'Peso (gramos)',
         units_per_box: 'Unidades por Caja',
         shelf_life_days: 'Vida Útil (días)',
-        min_stock_units: 'Stock de Seguridad',
-        safety_stock_units: 'Stock de Seguridad Extra',
+        min_stock_units: 'Stock Mínimo',
         price_per_unit: 'Precio por Unidad',
         moq_units: 'Cantidad Mínima de Orden',
         unit_cost: 'Costo Unitario',
@@ -274,7 +273,7 @@ export function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }:
       );
     }
 
-    const isNumeric = ['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'safety_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'].includes(field);
+    const isNumeric = ['weight_grams', 'units_per_box', 'shelf_life_days', 'min_stock_units', 'price_per_unit', 'moq_units', 'unit_cost'].includes(field);
 
     return (
       <div key={field} className="space-y-2">

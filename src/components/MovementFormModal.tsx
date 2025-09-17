@@ -18,6 +18,13 @@ const MOVEMENT_TYPES = [
     color: 'bg-green-500'
   },
   {
+    value: 'salida',
+    label: 'Salida',
+    description: 'Salida de inventario',
+    icon: <ArrowUpRight className="w-5 h-5" />,
+    color: 'bg-red-500'
+  },
+  {
     value: 'transferencia',
     label: 'Transferencia',
     description: 'Mover items entre ubicaciones',
@@ -25,18 +32,11 @@ const MOVEMENT_TYPES = [
     color: 'bg-blue-500'
   },
   {
-    value: 'reemplazo',
-    label: 'Reemplazo',
-    description: 'Corrección de SKU en órdenes',
+    value: 'ajuste',
+    label: 'Ajuste',
+    description: 'Ajuste de inventario',
     icon: <RefreshCw className="w-5 h-5" />,
     color: 'bg-purple-500'
-  },
-  {
-    value: 'transformacion',
-    label: 'Transformación',
-    description: 'Conversión de materias primas a producto final',
-    icon: <Package className="w-5 h-5" />,
-    color: 'bg-orange-500'
   }
 ];
 
@@ -188,6 +188,14 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
       if (!formData.to_location_id) {
         newErrors.to_location_id = 'Ubicación destino es obligatoria';
       }
+    } else if (formData.movement_type === 'salida') {
+      if (!formData.from_location_id) {
+        newErrors.from_location_id = 'Ubicación origen es obligatoria';
+      }
+    } else if (formData.movement_type === 'ajuste') {
+      if (!formData.to_location_id) {
+        newErrors.to_location_id = 'Ubicación es obligatoria para ajustes';
+      }
     }
 
     setErrors(newErrors);
@@ -219,15 +227,12 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
         created_at: formData.movement_datetime
       };
 
-      // Use the RPC function for better handling
-      const { data, error } = await supabase.rpc('register_inventory_movement', {
-        p_movement_type: movementData.movement_type,
-        p_product_id: movementData.product_id,
-        p_quantity: movementData.quantity,
-        p_from_location_id: movementData.from_location_id,
-        p_to_location_id: movementData.to_location_id,
-        p_notes: movementData.notes
-      });
+      // Use direct insert instead of RPC for better error handling
+      const { data, error } = await supabase
+        .from('inventory_movements')
+        .insert([movementData])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -402,9 +407,9 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
           </div>
 
           {/* Ubicaciones (condicional) */}
-          {(formData.movement_type === 'transferencia' || formData.movement_type === 'entrada') && (
+          {(formData.movement_type === 'transferencia' || formData.movement_type === 'entrada' || formData.movement_type === 'salida' || formData.movement_type === 'ajuste') && (
             <div className="space-y-4">
-              {formData.movement_type === 'transferencia' && (
+              {(formData.movement_type === 'transferencia' || formData.movement_type === 'salida') && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     Ubicación Origen <span className="text-red-500">*</span>
@@ -432,7 +437,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Ubicación Destino <span className="text-red-500">*</span>
+                  {formData.movement_type === 'ajuste' ? 'Ubicación' : 'Ubicación Destino'} <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.to_location_id}

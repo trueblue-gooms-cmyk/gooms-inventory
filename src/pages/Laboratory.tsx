@@ -157,6 +157,7 @@ export default function Laboratory() {
 
   const loadRecipes = async () => {
     try {
+      // Load recipes with proper ingredient data
       const { data, error } = await supabase
         .from('product_recipes')
         .select(`
@@ -169,32 +170,49 @@ export default function Laboratory() {
         `)
         .eq('product_id', selectedProduct);
 
-      if (error) {
-        console.error('Error loading recipes:', error);
-        // Usar datos de demostración
-        setRecipes([
-          {
-            id: 'recipe-1',
-            product_id: selectedProduct,
-            ingredient_type: 'materia_prima',
-            ingredient_id: 'rm-1',
-            quantity_needed: 0.5,
-            unit_measure: 'kg',
-            ingredient: { id: 'rm-1', name: 'Ácido Cítrico', code: 'MP-001' }
-          },
-          {
-            id: 'recipe-2', 
-            product_id: selectedProduct,
-            ingredient_type: 'empaques',
-            ingredient_id: 'pkg-1',
-            quantity_needed: 1,
-            unit_measure: 'unidad',
-            ingredient: { id: 'pkg-1', name: 'Bolsa Transparente 100g', code: 'EMP-001' }
+      if (error) throw error;
+
+      // For each recipe, fetch the ingredient details based on type
+      const recipesWithIngredients = await Promise.all(
+        (data || []).map(async (recipe: any) => {
+          let ingredientData = null;
+
+          try {
+            if (recipe.ingredient_type === 'materia_prima') {
+              const { data: ingredient } = await supabase
+                .from('raw_materials')
+                .select('id, name, code')
+                .eq('id', recipe.ingredient_id)
+                .single();
+              ingredientData = ingredient;
+            } else if (recipe.ingredient_type === 'empaques') {
+              const { data: ingredient } = await supabase
+                .from('packaging_materials')
+                .select('id, name, code')
+                .eq('id', recipe.ingredient_id)
+                .single();
+              ingredientData = ingredient;
+            } else if (recipe.ingredient_type === 'gomas_granel') {
+              const { data: ingredient } = await supabase
+                .from('products')
+                .select('id, name, sku as code')
+                .eq('id', recipe.ingredient_id)
+                .single();
+              ingredientData = ingredient;
+            }
+          } catch (err) {
+            console.error(`Error loading ingredient for recipe ${recipe.id}:`, err);
           }
-        ] as Recipe[]);
-      } else {
-        setRecipes(data as Recipe[] || []);
-      }
+
+          return {
+            ...recipe,
+            ingredient: ingredientData || { id: recipe.ingredient_id, name: 'Ingrediente desconocido', code: 'N/A' }
+          };
+        })
+      );
+
+      setRecipes(recipesWithIngredients);
+
     } catch (error) {
       console.error('Error loading recipes:', error);
       setRecipes([]);

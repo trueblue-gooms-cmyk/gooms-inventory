@@ -16,7 +16,6 @@ interface Product {
   units_per_box: number | null;
   shelf_life_days: number | null;
   min_stock_units: number | null;
-  safety_stock_units: number | null;
   is_active: boolean;
   created_at: string;
 }
@@ -41,7 +40,6 @@ export function Products() {
     units_per_box: '',
     shelf_life_days: '365',
     min_stock_units: '',
-    safety_stock_units: '',
     is_active: true,
   });
 
@@ -175,7 +173,6 @@ export function Products() {
         units_per_box: toNumOrNull(formData.units_per_box),
         shelf_life_days: toNumOrNull(formData.shelf_life_days),
         min_stock_units: toNumOrNull(formData.min_stock_units),
-        safety_stock_units: toNumOrNull(formData.safety_stock_units),
         is_active: formData.is_active,
       };
 
@@ -243,7 +240,7 @@ export function Products() {
       units_per_box: product.units_per_box?.toString() ?? '',
       shelf_life_days: product.shelf_life_days?.toString() ?? '365',
       min_stock_units: product.min_stock_units?.toString() ?? '',
-      safety_stock_units: product.safety_stock_units?.toString() ?? '',
+      
       is_active: product.is_active ?? true,
     });
     setSkuError('');
@@ -283,7 +280,7 @@ export function Products() {
       units_per_box: '',
       shelf_life_days: '365',
       min_stock_units: '',
-      safety_stock_units: '',
+      
       is_active: true,
     });
     setSkuError('');
@@ -357,7 +354,7 @@ export function Products() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso (g)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Seguridad</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Mínimo</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                 {canEdit && (
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
@@ -394,12 +391,14 @@ export function Products() {
                             setShowProductModal(true);
                           }}
                           className="p-1 hover:bg-gray-100 rounded"
+                          title="Editar producto"
                         >
                           <Edit2 className="w-4 h-4 text-gray-600" />
                         </button>
                         <button 
                           onClick={() => handleDelete(product.id)} 
                           className="p-1 hover:bg-gray-100 rounded"
+                          title="Eliminar producto"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
@@ -413,7 +412,21 @@ export function Products() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Product Form Modal */}
+      <ProductFormModal
+        isOpen={showProductModal}
+        onClose={() => {
+          setShowProductModal(false);
+          setEditingProduct(null);
+        }}
+        onSuccess={() => {
+          loadProducts();
+          setEditingProduct(null);
+        }}
+        editingProduct={editingProduct}
+      />
+
+      {/* Legacy Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -506,15 +519,6 @@ export function Products() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock de seguridad</label>
-                  <input
-                    type="number"
-                    value={formData.safety_stock_units}
-                    onChange={(e) => setFormData({ ...formData, safety_stock_units: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
               </div>
 
               <div className="flex items-center gap-2">
