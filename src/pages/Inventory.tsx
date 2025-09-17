@@ -95,6 +95,8 @@ const CATEGORIES = {
 };
 
 export function Inventory() {
+  // CRITICAL: ALL HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
+
   // UI State
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -105,20 +107,9 @@ export function Inventory() {
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  // Auth and data hooks
-  const { user, isLoading: authLoading } = useAppStore();
-  const userRole = useUserRole();
-  const { handleAsyncOperation, isLoading: operationLoading } = useAdvancedErrorHandler();
-  const { invalidateInventory } = useInvalidateQueries();
-  
-  // Optimized inventory data with pagination
-  const { 
-    data: inventoryData, 
-    isLoading: inventoryLoading, 
-    error: inventoryError 
-  } = useInventoryPaginated(1, 100); // Load first 100 items for metrics
-  
-  const isLoading = authLoading || inventoryLoading || operationLoading;
+  // Estados para datos reales - MOVED TO TOP
+  const [realInventory, setRealInventory] = useState<InventoryItem[]>(() => []);
+  const [inventoryLoaded, setInventoryLoaded] = useState(() => false);
 
   // Estados para el modal de movimiento - inicialización limpia
   const [movementData, setMovementData] = useState(() => ({
@@ -134,6 +125,26 @@ export function Inventory() {
     quantity: 0,
     notes: ''
   }));
+
+  // Auth and data hooks
+  const { user, isLoading: authLoading } = useAppStore();
+  const userRole = useUserRole();
+  const { handleAsyncOperation, isLoading: operationLoading } = useAdvancedErrorHandler();
+  const { invalidateInventory } = useInvalidateQueries();
+
+  // Optimized inventory data with pagination
+  const {
+    data: inventoryData,
+    isLoading: inventoryLoading,
+    error: inventoryError
+  } = useInventoryPaginated(1, 100); // Load first 100 items for metrics
+
+  const isLoading = authLoading || inventoryLoading || operationLoading;
+
+  // Cargar datos reales usando el patrón exitoso del Laboratorio
+  useEffect(() => {
+    loadInventoryData();
+  }, []);
 
   // Authentication guard - show loading while checking auth
   if (authLoading) {
@@ -182,15 +193,6 @@ export function Inventory() {
       </ErrorBoundary>
     );
   }
-
-  // Estados para datos reales - inicialización completamente limpia
-  const [realInventory, setRealInventory] = useState<InventoryItem[]>(() => []);
-  const [inventoryLoaded, setInventoryLoaded] = useState(() => false);
-
-  // Cargar datos reales usando el patrón exitoso del Laboratorio
-  useEffect(() => {
-    loadInventoryData();
-  }, []);
 
   const loadInventoryData = async () => {
     try {
