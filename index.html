@@ -2,35 +2,22 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <!-- 📱 PWA MANIFEST Y META TAGS -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#667eea">
-  <meta name="background-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Gooms">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="Gooms Inventory">
+  <!-- PWA manifest y Apple Touch Icons deshabilitados temporalmente para evitar errores de iconos inexistentes -->
   
-  <!-- Apple Touch Icons -->
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
-  
-  <!-- 🔒 CSP ENDURECIDA PARA PRODUCCIÓN -->
+  <!-- 🔒 CSP ajustada para permitir estilos inline necesarios en librerías UI y evitar warnings en iframe -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' https://cdnjs.cloudflare.com https://*.supabase.co;
-    style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: https://*.supabase.co https://lh3.googleusercontent.com;
     connect-src 'self' https://*.supabase.co https://api.alegra.com wss://*.supabase.co;
     object-src 'none';
     base-uri 'self';
     form-action 'self' https://*.supabase.co;
-    frame-ancestors https://lovable.app https://*.lovable.app;
   ">
   
   <!-- Opcional: Configuración más restrictiva para producción -->
