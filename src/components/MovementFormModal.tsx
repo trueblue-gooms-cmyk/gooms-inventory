@@ -47,10 +47,9 @@ const PRODUCT_TYPES = [
   { value: 'producto_final', label: 'Producto Final' }
 ];
 
-// Locations will be loaded dynamically from Supabase
-const [locations, setLocations] = useState<any[]>([]);
-
 export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormModalProps) {
+  // All hooks must be at the TOP of the component - never outside or conditionally
+  const [locations, setLocations] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     movement_type: '',
     product_type: '',
