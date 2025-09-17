@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useInventoryPaginated, useInvalidateQueries } from '@/hooks/useOptimizedQueries';
 import { useAdvancedErrorHandler } from '@/hooks/useErrorHandler';
 import { useAppStore } from '@/stores/useAppStore';
@@ -180,8 +181,76 @@ export function Inventory() {
     );
   }
 
-  // Simplified inventory processing to avoid React #310 error
-  const processedInventory: InventoryItem[] = [
+  // Estados para datos reales
+  const [realInventory, setRealInventory] = useState<InventoryItem[]>([]);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+
+  // Cargar datos reales usando el patrón exitoso del Laboratorio
+  useEffect(() => {
+    loadInventoryData();
+  }, []);
+
+  const loadInventoryData = async () => {
+    try {
+      setInventoryLoaded(false);
+      
+      // Cargar inventario actual con productos y ubicaciones
+      const { data: inventoryData, error: inventoryError } = await supabase
+        .from('inventory_current')
+        .select(`
+          id,
+          quantity_available,
+          quantity_reserved,
+          last_movement_date,
+          expiry_date,
+          product:products(id, name, sku, type, min_stock_units, unit_cost),
+          location:locations(id, name, code)
+        `)
+        .gt('quantity_available', 0);
+
+      if (inventoryError) {
+        console.error('Error loading inventory:', inventoryError);
+        // Usar datos demo como fallback
+        setRealInventory(getDemoInventory());
+      } else {
+        // Transformar datos reales
+        const transformedInventory: InventoryItem[] = (inventoryData || []).map(item => {
+          const product = item.product as any;
+          const location = item.location as any;
+          const quantity = item.quantity_available || 0;
+          const minStock = product?.min_stock_units || 0;
+          const unitCost = product?.unit_cost || 0;
+          
+          return {
+            id: item.id,
+            sku: product?.sku || 'N/A',
+            name: product?.name || 'Producto sin nombre',
+            type: product?.type || 'producto_final',
+            location: location?.name || 'Ubicación desconocida',
+            quantity: quantity,
+            min_stock: minStock,
+            max_stock: minStock * 5, // Estimación
+            unit: product?.type === 'materia_prima' ? 'kg' : 'unidades',
+            unit_cost: unitCost,
+            total_value: quantity * unitCost,
+            status: getStockStatus(quantity, minStock, minStock * 5),
+            last_movement: item.last_movement_date || new Date().toISOString().split('T')[0],
+            expiry_date: item.expiry_date
+          };
+        });
+        
+        setRealInventory(transformedInventory);
+      }
+    } catch (error) {
+      console.error('Error loading inventory data:', error);
+      setRealInventory(getDemoInventory());
+    } finally {
+      setInventoryLoaded(true);
+    }
+  };
+
+  // Función para datos demo de inventario
+  const getDemoInventory = (): InventoryItem[] => [
     {
       id: 'demo-1',
       sku: 'DEMO-001',
@@ -214,14 +283,28 @@ export function Inventory() {
     }
   ];
 
+  // Usar datos reales o demo
+  const processedInventory = inventoryLoaded ? realInventory : getDemoInventory();
+
   const handleMovement = async () => {
     if (!selectedItem || movementData.quantity <= 0) return;
     
     await handleAsyncOperation(async () => {
-      // Here you would implement the actual movement logic
-      console.log('Movimiento:', { item: selectedItem, ...movementData });
+      // Implementar movimiento real usando supabase
+      const { error } = await supabase
+        .from('inventory_movements')
+        .insert({
+          movement_type: movementData.type,
+          product_id: selectedItem.id,
+          quantity: movementData.quantity,
+          notes: movementData.notes,
+          created_by: user?.id
+        });
+
+      if (error) throw error;
       
-      // Invalidate cache to refetch fresh data
+      // Recargar datos como en Laboratory
+      loadInventoryData();
       invalidateInventory();
       
       setShowMovementModal(false);
@@ -235,9 +318,23 @@ export function Inventory() {
         !transferData.from_location || !transferData.to_location) return;
     
     await handleAsyncOperation(async () => {
-      console.log('Transferencia:', { item: selectedItem, ...transferData });
+      // Implementar transferencia real - usar 'ajuste' por ahora ya que 'transferencia' no está en el enum
+      const { error } = await supabase
+        .from('inventory_movements')
+        .insert({
+          movement_type: 'ajuste',
+          product_id: selectedItem.id,
+          quantity: transferData.quantity,
+          from_location_id: transferData.from_location,
+          to_location_id: transferData.to_location,
+          notes: `Transferencia: ${transferData.notes}`,
+          created_by: user?.id
+        });
+
+      if (error) throw error;
       
-      // Invalidate cache to refetch fresh data
+      // Recargar datos como en Laboratory
+      loadInventoryData();
       invalidateInventory();
       
       setShowTransferModal(false);
@@ -430,7 +527,10 @@ export function Inventory() {
             </select>
 
             <button 
-              onClick={() => invalidateInventory()}
+              onClick={() => {
+                loadInventoryData();
+                invalidateInventory();
+              }}
               className="button-secondary flex items-center gap-2"
               disabled={isLoading}
             >

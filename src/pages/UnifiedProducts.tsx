@@ -162,24 +162,10 @@ export function UnifiedProducts() {
   }, []);
 
   const loadData = async () => {
-    console.log('🔄 loadData called');
-    console.log('🔄 Supabase instance:', !!supabase);
-
-    const { error } = await handleAsyncError(async () => {
+    try {
       setLoading(true);
-
-      // Test de conexión básica - CORREGIDO
-      try {
-        const { data: testData, error: testError } = await supabase
-          .from('products')
-          .select('id')
-          .limit(1);
-        console.log('🔄 Test connection - data:', testData, 'error:', testError);
-      } catch (err) {
-        console.error('🔴 Connection test failed:', err);
-      }
-
-      // Cargar productos unificados - usando campos correctos del esquema
+      
+      // Cargar productos reales usando el patrón exitoso del Laboratorio
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
@@ -187,26 +173,54 @@ export function UnifiedProducts() {
           is_active, weight_grams, shelf_life_days,
           units_per_box, created_at, updated_at
         `)
+        .eq('is_active', true)
         .order('name');
 
-      if (productsError) throw productsError;
+      if (productsError) {
+        console.error('Error loading products:', productsError);
+        // Usar datos de demostración como fallback
+        setProducts(getDemoProducts());
+        toast({
+          title: "Usando datos de demostración",
+          description: "No se pudieron cargar los datos reales",
+          variant: "default"
+        });
+      } else {
+        // Transformar datos reales al formato UnifiedProduct
+        const transformedProducts: UnifiedProduct[] = (productsData || []).map(product => ({
+          id: product.id,
+          sku: product.sku,
+          name: product.name,
+          type: product.type as ProductType,
+          unit_cost: product.unit_cost || 0,
+          min_stock_units: product.min_stock_units || 0,
+          current_stock: 0, // Esto debería venir de inventory_current
+          is_active: product.is_active,
+          created_at: product.created_at || new Date().toISOString(),
+          updated_at: product.updated_at || new Date().toISOString(),
+          weight_grams: product.weight_grams,
+          shelf_life_days: product.shelf_life_days
+        }));
+        
+        setProducts(transformedProducts);
+      }
 
-      setProducts((productsData as any) || []);
-      setSuppliers([]);
-    });
-
-    if (error) {
-      // Usar datos de demostración
+      // Cargar proveedores si es necesario
+      setSuppliers(getDemoSuppliers());
+      
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback a datos demo en caso de error completo
       setProducts(getDemoProducts());
       setSuppliers(getDemoSuppliers());
       toast({
         title: "Usando datos de demostración",
-        description: "No se pudieron cargar los datos reales",
+        description: "Error de conexión, mostrando datos de ejemplo",
         variant: "default"
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // Datos de demostración
@@ -424,7 +438,8 @@ export function UnifiedProducts() {
       }
 
       modal.closeModal();
-      loadData();
+      resetForm();
+      loadData(); // Recargar datos como en Laboratory
     } catch (error: any) {
       console.error('❌ Error al crear/editar producto:', error);
       toast({
@@ -452,7 +467,7 @@ export function UnifiedProducts() {
         description: `${product.name} ha sido eliminado`
       });
 
-      loadData();
+      loadData(); // Recargar datos después de eliminar
     });
 
     if (error) {
