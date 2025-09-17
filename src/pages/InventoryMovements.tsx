@@ -207,7 +207,7 @@ export function InventoryMovements() {
         .from('inventory_movements')
         .select(`
           id, movement_type, quantity, created_at, notes, unit_cost, total_cost,
-          products!inventory_movements_product_id_fkey(id, sku, name, type),
+          products!inventory_movements_product_id_fkey(id, sku, name),
           from_location:locations!inventory_movements_from_location_id_fkey(id, name),
           to_location:locations!inventory_movements_to_location_id_fkey(id, name)
         `)
@@ -219,7 +219,7 @@ export function InventoryMovements() {
       // Cargar productos - CAMPOS CORREGIDOS
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, sku, name, type, unit_cost')
+        .select('id, sku, name, product_type, unit_cost')
         .eq('is_active', true)
         .order('name');
 
@@ -424,8 +424,7 @@ export function InventoryMovements() {
         to_location_id: formData.to_location_id || null,
         reference_type: formData.reference_type || null,
         reference_id: formData.reference_id || null,
-        notes: formData.notes,
-        created_by: user?.id || 'anonymous-user',
+        notes: formData.notes || null,
         unit_cost: 0,
         total_cost: 0
       };

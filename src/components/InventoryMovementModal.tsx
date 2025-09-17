@@ -129,19 +129,22 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
     setLoading(true);
     
     try {
-      // Use the new RPC function for transactional inventory movements
-      const { data: movementId, error } = await supabase.rpc('register_inventory_movement', {
-        p_movement_type: formData.movement_type as 'entrada' | 'salida' | 'produccion' | 'ajuste' | 'devolucion',
-        p_product_id: formData.product_id,
-        p_quantity: parseInt(formData.quantity),
-        p_batch_id: formData.batch_id || null,
-        p_from_location_id: formData.from_location_id || null,
-        p_to_location_id: formData.to_location_id || null,
-        p_unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
-        p_reference_type: formData.reference_type || null,
-        p_reference_id: formData.reference_id || null,
-        p_notes: formData.notes
-      });
+      // Use direct insert instead of RPC for better error handling
+      const movementData = {
+        movement_type: formData.movement_type as 'entrada' | 'salida' | 'produccion' | 'ajuste' | 'devolucion',
+        product_id: formData.product_id,
+        quantity: parseInt(formData.quantity),
+        from_location_id: formData.from_location_id || null,
+        to_location_id: formData.to_location_id || null,
+        unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
+        notes: formData.notes || null
+      };
+      
+      const { data: movementId, error } = await supabase
+        .from('inventory_movements')
+        .insert([movementData])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -195,7 +198,7 @@ export function InventoryMovementModal({ isOpen, onClose, onSuccess, productId }
               Tipo de Movimiento
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {['entrada', 'salida', 'produccion', 'ajuste'].map((type) => (
+              {['entrada', 'salida', 'produccion', 'ajuste', 'devolucion'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setFormData({...formData, movement_type: type})}

@@ -25,9 +25,9 @@ const MOVEMENT_TYPES = [
     color: 'bg-red-500'
   },
   {
-    value: 'transferencia',
-    label: 'Transferencia',
-    description: 'Mover items entre ubicaciones',
+    value: 'produccion',
+    label: 'Producción',
+    description: 'Movimiento por producción',
     icon: <ArrowRight className="w-5 h-5" />,
     color: 'bg-blue-500'
   },
@@ -37,6 +37,13 @@ const MOVEMENT_TYPES = [
     description: 'Ajuste de inventario',
     icon: <RefreshCw className="w-5 h-5" />,
     color: 'bg-purple-500'
+  },
+  {
+    value: 'devolucion',
+    label: 'Devolución',
+    description: 'Devolución de producto',
+    icon: <ArrowDownLeft className="w-5 h-5" />,
+    color: 'bg-yellow-500'
   }
 ];
 
@@ -103,23 +110,27 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
         .order('name');
 
       if (error) throw error;
-      setLocations(data || []);
+      
+      if (data && data.length > 0) {
+        setLocations(data);
+      } else {
+        throw new Error('No locations found');
+      }
     } catch (error) {
       console.error('Error loading locations:', error);
-      // Fallback locations
-      setLocations([
-        { id: 'demo-1', name: 'Bodega Central', code: 'BC001' },
-        { id: 'demo-2', name: 'POS-Colina', code: 'PC001' },
-        { id: 'demo-3', name: 'POS-Fontanar', code: 'PF001' },
-        { id: 'demo-4', name: 'POS-Eventos', code: 'PE001' }
-      ]);
+      toast({
+        title: "Error cargando ubicaciones",
+        description: "No se pudieron cargar las ubicaciones desde la base de datos",
+        variant: "destructive"
+      });
+      setLocations([]);
     }
   };
 
   const loadProducts = async () => {
     try {
-      // Load products by type using real Supabase data
-      let query = supabase.from('products').select('id, sku, name, type, product_type');
+      // Load products by type using real Supabase data - explicit column selection
+      let query = supabase.from('products').select('id, sku, name, product_type');
       
       // Map frontend types to database types
       const typeMapping: Record<string, string> = {
@@ -139,6 +150,11 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
 
       if (error) {
         console.error('Error loading products:', error);
+        toast({
+          title: "Error cargando productos",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
         setProducts([]);
         return;
       }
@@ -146,16 +162,14 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);
+      toast({
+        title: "Error cargando productos",
+        description: "No se pudieron cargar los productos",
+        variant: "destructive"
+      });
       setProducts([]);
     }
   };
-
-  const getDemoProducts = () => [
-    { id: 'demo-1', sku: 'MP-001', name: 'Ácido Cítrico 25kg', type: 'materia_prima', product_type: 'materia_prima' },
-    { id: 'demo-2', sku: 'EMP-001', name: 'Bolsas Transparentes 100g', type: 'empaque', product_type: 'empaques' },
-    { id: 'demo-3', sku: 'GB-001', name: 'Gomas Base Naranja', type: 'granel', product_type: 'gomas_granel' },
-    { id: 'demo-4', sku: 'PF-001', name: 'Gomas Ácidas Premium 100g', type: 'producto_final', product_type: 'producto_final' }
-  ];
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -174,7 +188,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
     }
 
     // Validaciones específicas por tipo de movimiento
-    if (formData.movement_type === 'transferencia') {
+    if (formData.movement_type === 'produccion') {
       if (!formData.from_location_id) {
         newErrors.from_location_id = 'Ubicación origen es obligatoria';
       }
@@ -195,6 +209,10 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
     } else if (formData.movement_type === 'ajuste') {
       if (!formData.to_location_id) {
         newErrors.to_location_id = 'Ubicación es obligatoria para ajustes';
+      }
+    } else if (formData.movement_type === 'devolucion') {
+      if (!formData.to_location_id) {
+        newErrors.to_location_id = 'Ubicación destino es obligatoria';
       }
     }
 
@@ -234,7 +252,10 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw new Error(`Error en base de datos: ${error.message}`);
+      }
 
       toast({
         title: "Movimiento registrado",
@@ -407,9 +428,9 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
           </div>
 
           {/* Ubicaciones (condicional) */}
-          {(formData.movement_type === 'transferencia' || formData.movement_type === 'entrada' || formData.movement_type === 'salida' || formData.movement_type === 'ajuste') && (
+          {(formData.movement_type === 'produccion' || formData.movement_type === 'entrada' || formData.movement_type === 'salida' || formData.movement_type === 'ajuste' || formData.movement_type === 'devolucion') && (
             <div className="space-y-4">
-              {(formData.movement_type === 'transferencia' || formData.movement_type === 'salida') && (
+              {(formData.movement_type === 'produccion' || formData.movement_type === 'salida') && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     Ubicación Origen <span className="text-red-500">*</span>
@@ -437,7 +458,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  {formData.movement_type === 'ajuste' ? 'Ubicación' : 'Ubicación Destino'} <span className="text-red-500">*</span>
+                  {(formData.movement_type === 'ajuste') ? 'Ubicación' : 'Ubicación Destino'} <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.to_location_id}
@@ -467,26 +488,25 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              rows={3}
+              placeholder="Observaciones adicionales (opcional)"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="Notas adicionales sobre el movimiento..."
+              rows={3}
             />
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={loading}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Registrando...' : 'Registrar Movimiento'}
             </button>
