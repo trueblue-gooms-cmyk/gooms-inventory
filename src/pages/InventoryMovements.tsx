@@ -108,12 +108,10 @@ const MOVEMENT_TYPES = [
   }
 ] as const;
 
-// Reemplazar datos hardcodeados por carga real de ubicaciones
-const [realLocations, setRealLocations] = useState<any[]>([]);
-const [locationsLoaded, setLocationsLoaded] = useState(false);
-
-
 export function InventoryMovements() {
+  // Reemplazar datos hardcodeados por carga real de ubicaciones
+  const [realLocations, setRealLocations] = useState<any[]>([]);
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -428,11 +426,25 @@ export function InventoryMovements() {
     const matchesType = selectedType === 'all' || movement.movement_type === selectedType;
 
     const matchesLocation = selectedLocation === 'all' ||
-                           movement.from_location_id === selectedLocation ||
-                           movement.to_location_id === selectedLocation;
+                           movement.from_location?.name === selectedLocation ||
+                           movement.to_location?.name === selectedLocation;
 
     return matchesSearch && matchesType && matchesLocation;
   });
+
+  // Reset form data
+  const resetForm = () => {
+    setFormData({
+      movement_type: 'entrada' as MovementType,
+      product_id: '',
+      quantity: '',
+      from_location_id: '',
+      to_location_id: '',
+      notes: '',
+      reference_type: '',
+      reference_id: ''
+    });
+  };
 
   // Crear nuevo movimiento
   const handleCreate = () => {
@@ -526,19 +538,6 @@ export function InventoryMovements() {
     }
   };
 
-  // Resetear formulario
-  const resetForm = () => {
-    setFormData({
-      movement_type: 'entrada',
-      product_id: '',
-      quantity: '',
-      from_location_id: '',
-      to_location_id: '',
-      notes: '',
-      reference_type: '',
-      reference_id: ''
-    });
-  };
 
   // Obtener configuración del tipo de movimiento
   const getMovementTypeConfig = (type: MovementType) => {
@@ -668,12 +667,12 @@ export function InventoryMovements() {
                 onChange={(e) => setSelectedLocation(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
-                <option value="all">Todas las ubicaciones</option>
-                {realLocations.map(location => (
-                  <option key={location.id} value={location.id}>
-                    {location.name}
-                  </option>
-                ))}
+                 <option value="all">Todas las ubicaciones</option>
+                  {realLocations.map(location => (
+                    <option key={location.id} value={location.name}>
+                      {location.name}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
