@@ -65,7 +65,7 @@ export default function Laboratory() {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('id, sku, name, type')
-        .eq('product_type', 'producto_final')
+        .eq('type', 'producto_final')
         .eq('is_active', true)
         .order('name');
 
@@ -133,7 +133,7 @@ export default function Laboratory() {
         const { data: gomas, error } = await supabase
           .from('products')
           .select('id, sku, name')
-          .eq('product_type', 'gomas_granel')
+          .eq('type', 'gomas_granel')
           .eq('is_active', true)
           .order('name');
 
@@ -195,7 +195,7 @@ export default function Laboratory() {
             } else if (recipe.ingredient_type === 'gomas_granel') {
               const { data: ingredient } = await supabase
                 .from('products')
-                .select('id, name, sku as code')
+                .select('id, name, sku')
                 .eq('id', recipe.ingredient_id)
                 .single();
               ingredientData = ingredient;
@@ -206,7 +206,7 @@ export default function Laboratory() {
 
           return {
             ...recipe,
-            ingredient: ingredientData || { id: recipe.ingredient_id, name: 'Ingrediente desconocido', code: 'N/A' }
+            ingredient: ingredientData || { id: recipe.ingredient_id, name: 'Ingrediente desconocido', sku: 'N/A' }
           };
         })
       );
@@ -409,7 +409,7 @@ export default function Laboratory() {
                           {recipe.ingredient?.name || 'Ingrediente desconocido'}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          {recipe.ingredient?.code || recipe.ingredient?.sku}
+                          {recipe.ingredient?.sku || 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -494,7 +494,7 @@ export default function Laboratory() {
                   <option value="">Seleccionar ingrediente</option>
                   {ingredients.map(ingredient => (
                     <option key={ingredient.id} value={ingredient.id}>
-                      {ingredient.name} ({ingredient.code || ingredient.sku})
+                      {ingredient.name} ({ingredient.sku || ingredient.code || 'N/A'})
                     </option>
                   ))}
                 </select>

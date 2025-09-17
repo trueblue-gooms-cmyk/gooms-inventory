@@ -144,25 +144,8 @@ export function GlobalHeader({
             </div>
           </div>
 
-          {/* Barra de búsqueda - Desktop */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-12">
-            <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearch();
-                  }
-                }}
-                placeholder="Buscar..."
-                className="w-full pl-12 pr-6 py-3 bg-gray-50/50 border-0 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:bg-gray-50 transition-all duration-200 text-sm font-light"
-              />
-            </div>
-          </div>
+          {/* Espaciador */}
+          <div className="flex-1"></div>
 
           {/* Controles de la derecha */}
           <div className="flex items-center gap-1 lg:gap-2">
@@ -301,25 +284,6 @@ export function GlobalHeader({
           </div>
         </div>
 
-        {/* Barra de búsqueda - Mobile */}
-        <div className="lg:hidden pb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSearch();
-                }
-              }}
-              placeholder="Buscar..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Menú móvil */}

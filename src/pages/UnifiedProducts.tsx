@@ -38,13 +38,12 @@ export type ProductType = 'materia_prima' | 'empaques' | 'gomas_granel' | 'produ
 
 export interface UnifiedProduct {
   id: string;
-  code: string; // SKU para productos finales, código para materias primas
+  sku: string; // SKU para todos los productos
   name: string;
   description?: string;
   type: ProductType;
 
   // Campos comunes
-  unit_measure: string;
   unit_cost: number;
   min_stock_units: number;
   current_stock: number;
@@ -132,7 +131,7 @@ export function UnifiedProducts() {
 
   // Formulario unificado con campos dinámicos
   const [formData, setFormData] = useState({
-    code: '',
+    sku: '',
     name: '',
     description: '',
     type: 'materia_prima' as ProductType,
@@ -180,13 +179,13 @@ export function UnifiedProducts() {
         console.error('🔴 Connection test failed:', err);
       }
 
-      // Cargar productos unificados
+      // Cargar productos unificados - usando campos correctos del esquema
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
           id, name, sku, type, unit_cost, min_stock_units,
           is_active, weight_grams, shelf_life_days,
-          safety_stock_units, units_per_box, created_at, updated_at
+          units_per_box, created_at, updated_at
         `)
         .order('name');
 
@@ -214,7 +213,7 @@ export function UnifiedProducts() {
   const getDemoProducts = (): UnifiedProduct[] => [
     {
       id: 'demo-mp-1',
-      code: 'MP-001',
+      sku: 'MP-001',
       name: 'Ácido Cítrico 25kg',
       description: 'Ácido cítrico anhidro grado alimentario',
       type: 'materia_prima',
@@ -235,7 +234,7 @@ export function UnifiedProducts() {
     },
     {
       id: 'demo-emp-1',
-      code: 'EMP-001',
+      sku: 'EMP-001',
       name: 'Bolsa Transparente 100g',
       description: 'Bolsa de polipropileno transparente',
       type: 'empaques',
@@ -251,7 +250,7 @@ export function UnifiedProducts() {
     },
     {
       id: 'demo-gg-1',
-      code: 'GG-001',
+      sku: 'GG-001',
       name: 'Gomas Surtidas Mix 5kg',
       description: 'Mezcla de gomas surtidas para empaque',
       type: 'gomas_granel',
@@ -265,7 +264,7 @@ export function UnifiedProducts() {
     },
     {
       id: 'demo-pf-1',
-      code: 'PF-001',
+      sku: 'PF-001',
       name: 'Gomas Ácidas Premium 100g',
       description: 'Gomas ácidas premium empacadas para venta',
       type: 'producto_final',
@@ -292,7 +291,7 @@ export function UnifiedProducts() {
   // Filtrar productos
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.code.toLowerCase().includes(searchTerm.toLowerCase());
+                         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || product.type === selectedType;
     return matchesSearch && matchesType;
   });
@@ -309,7 +308,7 @@ export function UnifiedProducts() {
   // Abrir modal para editar
   const handleEdit = (product: UnifiedProduct) => {
     setFormData({
-      code: product.code,
+      sku: product.sku,
       name: product.name,
       description: product.description || '',
       type: product.type,
@@ -344,7 +343,7 @@ export function UnifiedProducts() {
 
     // Validaciones mejoradas con campos específicos
     const requiredFields: { field: keyof typeof formData; label: string }[] = [
-      { field: 'code', label: formData.type === 'producto_final' ? 'SKU' : 'Código' },
+      { field: 'sku', label: formData.type === 'producto_final' ? 'SKU' : 'Código' },
       { field: 'name', label: 'Nombre' },
       { field: 'unit_measure', label: 'Unidad de medida' }
     ];
@@ -384,15 +383,12 @@ export function UnifiedProducts() {
     try {
       // Crear objeto base del producto según esquema real de la tabla
       const productData: any = {
-        sku: formData.code.toUpperCase(),
+        sku: formData.sku.toUpperCase(),
         name: formData.name,
         type: formData.type,
         unit_cost: parseFloat(formData.unit_cost) || 0,
         min_stock_units: parseInt(formData.min_stock_units) || 0,
         is_active: formData.is_active ?? true,
-        weight_grams: formData.weight_grams ? parseInt(formData.weight_grams) : null,
-        shelf_life_days: formData.shelf_life_days ? parseInt(formData.shelf_life_days) : null,
-        safety_stock_units: parseInt(formData.min_stock_units) || 0,
         units_per_box: 1
       };
 
@@ -585,7 +581,7 @@ export function UnifiedProducts() {
   // Resetear formulario
   const resetForm = () => {
     setFormData({
-      code: '',
+      sku: '',
       name: '',
       description: '',
       type: 'materia_prima',
@@ -652,21 +648,18 @@ export function UnifiedProducts() {
 
   return (
     <ErrorBoundary>
-      <div className={DESIGN_SYSTEM.containers.page}>
-        <div className={DESIGN_SYSTEM.spacing.pageSection}>
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className={DESIGN_SYSTEM.typography.pageTitle}>Catálogo de Productos</h1>
-            <p className={DESIGN_SYSTEM.typography.pageSubtitle}>
-              Gestión unificada de materias primas, empaques, gomas al granel y productos finales
-            </p>
+            <h1 className="text-3xl font-thin text-gray-900 tracking-tight">Catálogo de Productos</h1>
+            <p className="text-gray-500 mt-2 font-light">Gestión unificada de materias primas, empaques, gomas al granel y productos finales</p>
           </div>
           {canEdit && (
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => importModal.openImportModal()}
-                className={DESIGN_SYSTEM.buttons.success}
+                className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 transition-all duration-200 shadow-sm font-light"
               >
                 <Upload className="w-4 h-4" />
                 <span>Importar</span>
@@ -674,7 +667,7 @@ export function UnifiedProducts() {
               <button
                 type="button"
                 onClick={handleCreate}
-                className={DESIGN_SYSTEM.buttons.primary}
+                className="flex items-center gap-2 px-5 py-3 bg-orange-600 text-white rounded-2xl hover:bg-orange-700 transition-all duration-200 shadow-sm font-light"
               >
                 <Plus className="w-4 h-4" />
                 <span>Nuevo Producto</span>
@@ -684,39 +677,37 @@ export function UnifiedProducts() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl border-0 shadow-sm">
+          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Buscar por nombre o código..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full pl-10 pr-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-light"
                 />
               </div>
             </div>
-            <div className="flex gap-2">
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as ProductType | 'all')}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="all">Todos los tipos</option>
-                {PRODUCT_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as ProductType | 'all')}
+              className="px-4 py-3 border-0 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-light"
+            >
+              <option value="all">Todos los tipos</option>
+              {PRODUCT_TYPES.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         {/* Métricas rápidas por tipo */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {PRODUCT_TYPES.map(type => {
             const count = products.filter(p => p.type === type.value).length;
             const lowStock = products.filter(p =>
@@ -724,20 +715,20 @@ export function UnifiedProducts() {
             ).length;
 
             return (
-              <div key={type.value} className="bg-white p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div className={`w-10 h-10 ${type.color} bg-opacity-20 rounded-lg flex items-center justify-center`}>
+              <div key={type.value} className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`w-12 h-12 ${type.color} bg-opacity-10 rounded-2xl flex items-center justify-center`}>
                     {type.icon}
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">{count}</p>
-                    <p className="text-xs text-gray-500">productos</p>
+                    <p className="text-3xl font-thin text-gray-900">{count}</p>
+                    <p className="text-xs text-gray-400 font-light">productos</p>
                   </div>
                 </div>
-                <h3 className="font-medium text-gray-900 mb-1">{type.label}</h3>
-                <p className="text-xs text-gray-600">{type.description}</p>
+                <h3 className="font-light text-gray-900 mb-1 text-lg">{type.label}</h3>
+                <p className="text-xs text-gray-500 font-light mb-2">{type.description}</p>
                 {lowStock > 0 && (
-                  <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                  <div className="text-xs text-red-600 flex items-center gap-1 font-light">
                     <AlertTriangle className="w-3 h-3" />
                     {lowStock} con stock bajo
                   </div>
@@ -748,7 +739,7 @@ export function UnifiedProducts() {
         </div>
 
         {/* Tabla de productos */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -788,7 +779,7 @@ export function UnifiedProducts() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-sm font-mono text-gray-900">{product.code}</span>
+                          <span className="text-sm font-mono text-gray-900">{product.sku}</span>
                         </td>
                         <td className="px-6 py-4">
                           <div>
@@ -901,8 +892,8 @@ export function UnifiedProducts() {
                     </label>
                     <input
                       type="text"
-                      value={formData.code}
-                      onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                      value={formData.sku}
+                      onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       placeholder={formData.type === 'producto_final' ? 'PF-001' : 'MP-001'}
                     />
@@ -1254,7 +1245,6 @@ export function UnifiedProducts() {
             </div>
           </div>
         )}
-        </div>
       </div>
     </ErrorBoundary>
   );

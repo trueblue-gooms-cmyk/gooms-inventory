@@ -260,7 +260,7 @@ export function InventoryMovements() {
       completed_at: new Date().toISOString(),
       product: {
         id: 'demo-prod-1',
-        code: 'MP-001',
+        sku: 'MP-001',
         name: 'Ácido Cítrico 25kg',
         type: 'materia_prima',
         unit_measure: 'kg'
@@ -289,7 +289,7 @@ export function InventoryMovements() {
       completed_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
       product: {
         id: 'demo-prod-2',
-        code: 'PF-001',
+        sku: 'PF-001',
         name: 'Gomas Ácidas Premium 100g',
         type: 'producto_final',
         unit_measure: 'unidades'
@@ -324,7 +324,7 @@ export function InventoryMovements() {
       completed_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
       product: {
         id: 'demo-prod-2',
-        code: 'PF-001',
+        sku: 'PF-001',
         name: 'Gomas Ácidas Premium 100g',
         type: 'producto_final',
         unit_measure: 'unidades'
@@ -344,7 +344,7 @@ export function InventoryMovements() {
   const getDemoProducts = () => [
     {
       id: 'demo-prod-1',
-      code: 'MP-001',
+      sku: 'MP-001',
       name: 'Ácido Cítrico 25kg',
       type: 'materia_prima',
       unit_measure: 'kg',
@@ -352,7 +352,7 @@ export function InventoryMovements() {
     },
     {
       id: 'demo-prod-2',
-      code: 'PF-001',
+      sku: 'PF-001',
       name: 'Gomas Ácidas Premium 100g',
       type: 'producto_final',
       unit_measure: 'unidades',
@@ -363,7 +363,7 @@ export function InventoryMovements() {
   // Filtrar movimientos
   const filteredMovements = movements.filter(movement => {
     const matchesSearch = movement.product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         movement.product?.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         movement.product?.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          movement.notes?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType = selectedType === 'all' || movement.movement_type === selectedType;
@@ -434,9 +434,7 @@ export function InventoryMovements() {
       // Crear movimiento
       const { data: newMovement, error: movementError } = await supabase
         .from('inventory_movements')
-        .insert([movementData as any])
-        .select()
-        .single();
+        .insert([movementData]);
 
       if (movementError) throw movementError;
 
@@ -662,7 +660,7 @@ export function InventoryMovements() {
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{movement.product?.name}</p>
-                            <p className="text-xs text-gray-500">{movement.product?.code}</p>
+                            <p className="text-xs text-gray-500">{movement.product?.sku}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">

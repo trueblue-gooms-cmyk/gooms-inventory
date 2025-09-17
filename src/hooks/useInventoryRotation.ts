@@ -74,8 +74,8 @@ export const useInventoryRotation = () => {
           products!inner (
             id,
             name,
-            category,
-            unit_price
+            type,
+            unit_cost
           ),
           locations!inner (
             id,
@@ -224,7 +224,7 @@ export const useInventoryRotation = () => {
 
       // Sugerir acciones basadas en algoritmo FEFO
       if (daysUntilFirstExpiry <= 15 && sortedItems.length > 1) {
-        const totalValue = firstExpiring.current_quantity * (firstExpiring.products?.unit_price || firstExpiring.unit_cost || 0);
+        const totalValue = firstExpiring.current_quantity * (firstExpiring.products?.unit_cost || firstExpiring.unit_cost || 0);
         
         suggestions.push({
           product_id: firstExpiring.product_id,

@@ -242,15 +242,16 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
         from_location_id: formData.from_location_id || null,
         to_location_id: formData.to_location_id || null,
         notes: formData.notes || null,
-        created_at: formData.movement_datetime
+        // Solo incluir created_at si hay una fecha válida
+        ...(formData.movement_datetime && formData.movement_datetime.trim() !== '' ? {
+          created_at: new Date(formData.movement_datetime).toISOString()
+        } : {})
       };
 
       // Use direct insert instead of RPC for better error handling
       const { data, error } = await supabase
         .from('inventory_movements')
-        .insert([movementData])
-        .select()
-        .single();
+        .insert([movementData]);
 
       if (error) {
         console.error('Supabase error details:', error);
