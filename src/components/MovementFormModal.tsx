@@ -47,12 +47,8 @@ const PRODUCT_TYPES = [
   { value: 'producto_final', label: 'Producto Final' }
 ];
 
-const LOCATIONS = [
-  { id: 'bodega-central', name: 'Bodega Central' },
-  { id: 'pos-colina', name: 'POS-Colina' },
-  { id: 'pos-fontanar', name: 'POS-Fontanar' },
-  { id: 'pos-eventos', name: 'POS-Eventos' }
-];
+// Locations will be loaded dynamically from Supabase
+const [locations, setLocations] = useState<any[]>([]);
 
 export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormModalProps) {
   const [formData, setFormData] = useState({
@@ -74,6 +70,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      loadLocations();
     }
   }, [isOpen]);
 
@@ -98,13 +95,43 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
     setErrors({});
   };
 
+  const loadLocations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setLocations(data || []);
+    } catch (error) {
+      console.error('Error loading locations:', error);
+      // Fallback locations
+      setLocations([
+        { id: 'demo-1', name: 'Bodega Central', code: 'BC001' },
+        { id: 'demo-2', name: 'POS-Colina', code: 'PC001' },
+        { id: 'demo-3', name: 'POS-Fontanar', code: 'PF001' },
+        { id: 'demo-4', name: 'POS-Eventos', code: 'PE001' }
+      ]);
+    }
+  };
+
   const loadProducts = async () => {
     try {
-      // Cargar productos según el tipo seleccionado
+      // Load products by type using real Supabase data
       let query = supabase.from('products').select('id, sku, name, type, product_type');
       
-      if (formData.product_type !== 'all') {
-        query = query.eq('product_type', formData.product_type as any);
+      // Map frontend types to database types
+      const typeMapping: Record<string, string> = {
+        'materia_prima': 'materia_prima',
+        'empaques': 'empaques', 
+        'gomas_granel': 'gomas_granel',
+        'producto_final': 'producto_final'
+      };
+
+      if (formData.product_type && typeMapping[formData.product_type]) {
+        query = query.eq('product_type', typeMapping[formData.product_type] as any);
       }
       
       const { data, error } = await query
@@ -113,15 +140,14 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
 
       if (error) {
         console.error('Error loading products:', error);
-        // Usar productos de demostración
-        setProducts(getDemoProducts());
+        setProducts([]);
         return;
       }
 
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);
-      setProducts(getDemoProducts());
+      setProducts([]);
     }
   };
 
@@ -194,9 +220,15 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
         created_at: formData.movement_datetime
       };
 
-      const { error } = await supabase
-        .from('inventory_movements')
-        .insert([movementData as any]);
+      // Use the RPC function for better handling
+      const { data, error } = await supabase.rpc('register_inventory_movement', {
+        p_movement_type: movementData.movement_type,
+        p_product_id: movementData.product_id,
+        p_quantity: movementData.quantity,
+        p_from_location_id: movementData.from_location_id,
+        p_to_location_id: movementData.to_location_id,
+        p_notes: movementData.notes
+      });
 
       if (error) throw error;
 
@@ -386,7 +418,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
                     }`}
                   >
                     <option value="">Seleccionar ubicación origen</option>
-                    {LOCATIONS.map(location => (
+                    {locations.map(location => (
                       <option key={location.id} value={location.id}>{location.name}</option>
                     ))}
                   </select>
@@ -411,7 +443,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
                   }`}
                 >
                   <option value="">Seleccionar ubicación destino</option>
-                  {LOCATIONS.map(location => (
+                  {locations.map(location => (
                     <option key={location.id} value={location.id}>{location.name}</option>
                   ))}
                 </select>

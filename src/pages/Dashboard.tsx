@@ -57,12 +57,7 @@ interface TrendData {
   produccion: number;
 }
 
-const LOCATIONS = [
-  { id: 'bodega-central', name: 'Bodega Central', color: 'bg-blue-500' },
-  { id: 'pos-colina', name: 'POS-Colina', color: 'bg-green-500' },
-  { id: 'pos-fontanar', name: 'POS-Fontanar', color: 'bg-purple-500' },
-  { id: 'pos-eventos', name: 'POS-Eventos', color: 'bg-orange-500' }
-];
+// Real locations will be loaded from Supabase
 
 // Familias de productos actualizadas según especificaciones
 const PRODUCT_FAMILIES = {
@@ -131,7 +126,6 @@ export default function Dashboard() {
 
   // Función para generar datos de demostración
   const generateDemoData = () => {
-    console.log('Generando datos de demostración para dashboard');
 
     // Datos de inventario por ubicación (demo)
     const demoLocationData: InventoryByLocation[] = [
@@ -251,12 +245,12 @@ export default function Dashboard() {
       return;
     }
 
-    // Calculate inventory by location
+    // Calculate inventory by location using real location data
     const locationStats: { [key: string]: InventoryByLocation } = {};
     
     inventory.forEach((item: any) => {
       const location = locations.find((l: any) => l.id === item.location_id);
-      const locationName = (location as any)?.name || 'Unknown';
+      const locationName = (location as any)?.name || 'Ubicación Desconocida';
       
       if (!locationStats[locationName]) {
         locationStats[locationName] = {
@@ -433,6 +427,11 @@ export default function Dashboard() {
     }).format(value);
   };
 
+  const getLocationColor = (index: number) => {
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500'];
+    return colors[index % colors.length];
+  };
+
   const getAlertIcon = (type: string) => {
     switch (type) {
       case 'critical':
@@ -596,7 +595,7 @@ export default function Dashboard() {
                 {/* Barra de progreso */}
                 <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
                   <div
-                    className={`h-2 rounded-full ${LOCATIONS[index].color} transition-all duration-300`}
+                    className={`h-2 rounded-full ${getLocationColor(index)} transition-all duration-300`}
                     style={{ width: `${location.percentage}%` }}
                   ></div>
                 </div>

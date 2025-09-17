@@ -20,8 +20,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 30 94% 55%; /* Orange primary to match Dashboard */
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -39,7 +39,15 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 1.5rem; /* Increased border radius for modern look */
+
+    /* Dashboard-inspired design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(30 94% 55%), hsl(33 100% 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100% / 0.8), hsl(0 0% 98%));
+    --shadow-elegant: 0 4px 20px -4px hsl(0 0% 0% / 0.05);
+    --shadow-glow: 0 0 40px hsl(30 94% 55% / 0.15);
+    --backdrop-blur: blur(8px);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 

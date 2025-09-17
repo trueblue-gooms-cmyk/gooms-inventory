@@ -253,11 +253,24 @@ export function Products() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
     try {
-      const { error } = await supabase.from('products').update({ is_active: false }).eq('id', id);
+      const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;
-      loadProducts();
+      
+      // Update the products state immediately to reflect the change
+      setProducts(products.filter(p => p.id !== id));
+      
+      toast({
+        title: "Éxito",
+        description: "Producto eliminado correctamente",
+        variant: "default"
+      });
     } catch (error) {
       console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Error al eliminar el producto",
+        variant: "destructive"
+      });
     }
   };
 
@@ -295,15 +308,15 @@ export function Products() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header - Dashboard style */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Productos</h1>
-          <p className="text-gray-600 mt-1">Gestión de SKUs y referencias</p>
+          <h1 className="text-3xl font-thin text-gray-900 tracking-tight">Catálogo de Productos</h1>
+          <p className="text-gray-500 mt-2 font-light">Gestiona tu inventario de productos</p>
         </div>
         {canEdit && (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={() => setShowImporter(true)}
               className="flex items-center gap-2 px-4 py-2 border border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50"

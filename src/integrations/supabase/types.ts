@@ -1322,6 +1322,8 @@ export type Database = {
         | "produccion"
         | "ajuste"
         | "devolucion"
+        | "reemplazo"
+        | "transformacion"
       movement_type_enum:
         | "entrada"
         | "transferencia"
@@ -1477,6 +1479,8 @@ export const Constants = {
         "produccion",
         "ajuste",
         "devolucion",
+        "reemplazo",
+        "transformacion",
       ],
       movement_type_enum: [
         "entrada",
