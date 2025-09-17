@@ -215,7 +215,7 @@ export function Inventory() {
         // Usar datos demo como fallback
         setRealInventory(getDemoInventory());
       } else {
-        // Transformar datos reales
+        // Transformar datos reales con verificación de tipos
         const transformedInventory: InventoryItem[] = (inventoryData || []).map(item => {
           const product = item.product as any;
           const location = item.location as any;
@@ -223,24 +223,44 @@ export function Inventory() {
           const minStock = product?.min_stock_units || 0;
           const unitCost = product?.unit_cost || 0;
           
-          return {
-            id: item.id,
-            product_id: product?.id || 'unknown',
-            location_id: location?.id || 'unknown',
-            sku: product?.sku || 'N/A',
-            name: product?.name || 'Producto sin nombre',
-            type: (product?.product_type || product?.type || 'producto_final') as any,
-            location: location?.name || 'Ubicación desconocida',
-            quantity: quantity,
-            min_stock: minStock,
-            max_stock: minStock * 5, // Estimación
-            unit: (product?.product_type || product?.type) === 'materia_prima' ? 'kg' : 'unidades',
-            unit_cost: unitCost,
-            total_value: quantity * unitCost,
-            status: getStockStatus(quantity, minStock, minStock * 5),
-            last_movement: item.last_movement_date || new Date().toISOString().split('T')[0],
-            expiry_date: item.expiry_date
+          // Debug logging para detectar objetos
+          console.log('Processing inventory item:', {
+            product: typeof product,
+            location: typeof location,
+            productData: product,
+            locationData: location
+          });
+
+          // Asegurar que todos los campos sean primitivos (strings/numbers)
+          const transformedItem = {
+            id: String(item.id || 'unknown'),
+            product_id: String(product?.id || 'unknown'),
+            location_id: String(location?.id || 'unknown'),
+            sku: String(product?.sku || 'N/A'),
+            name: String(product?.name || 'Producto sin nombre'),
+            type: String(product?.product_type || product?.type || 'producto_final') as any,
+            location: String(location?.name || 'Ubicación desconocida'), // CRÍTICO: Asegurar que sea string
+            quantity: Number(quantity),
+            min_stock: Number(minStock),
+            max_stock: Number(minStock * 5), // Estimación
+            unit: String((product?.product_type || product?.type) === 'materia_prima' ? 'kg' : 'unidades'),
+            unit_cost: Number(unitCost),
+            total_value: Number(quantity * unitCost),
+            status: getStockStatus(quantity, minStock, minStock * 5) as 'optimal' | 'low' | 'critical' | 'overstock',
+            last_movement: String(item.last_movement_date || new Date().toISOString().split('T')[0]),
+            expiry_date: item.expiry_date ? String(item.expiry_date) : undefined
           };
+
+          // Verificar que no hay objetos en el resultado
+          Object.keys(transformedItem).forEach(key => {
+            const value = (transformedItem as any)[key];
+            if (value !== null && value !== undefined && typeof value === 'object') {
+              console.error(`CRITICAL: Object found in field ${key}:`, value);
+              console.error('This will cause React error #310');
+            }
+          });
+
+          return transformedItem;
         });
         
         setRealInventory(transformedInventory);
@@ -558,41 +578,74 @@ export function Inventory() {
               </h3>
             </div>
             <div className="p-6">
-              {processedInventory.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 font-light">No hay items de inventario disponibles</p>
-                </div>
-              ) : (
+              {(() => {
+                try {
+                  if (processedInventory.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-light">No hay items de inventario disponibles</p>
+                      </div>
+                    );
+                  }
+                  return (
                 <div className="grid gap-4">
-                  {processedInventory.slice(0, 10).map((item) => (
-                    <div key={item.id} className="p-6 bg-gray-50/30 rounded-2xl border border-gray-100">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <h4 className="font-light text-gray-900 text-lg">{item.name}</h4>
-                          <p className="text-sm text-gray-500 font-light">{item.sku}</p>
-                          <p className="text-sm text-gray-600 font-light flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {item.location}
-                          </p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="font-thin text-2xl text-gray-900">{item.quantity}</p>
-                          <p className="text-xs text-gray-500 font-light">Stock mínimo: {item.min_stock}</p>
-                          <span className={`status-badge ${getStatusColor(item.status).replace('bg-', 'status-').replace('-100', '').replace('text-', '').replace('-700', '')}`}>
-                            {getStatusLabel(item.status)}
-                          </span>
+                  {processedInventory.slice(0, 10).map((item) => {
+                    // CRITICAL: Defensive checks to prevent React #310 error
+                    const safeName = typeof item.name === 'string' ? item.name : String(item.name || 'N/A');
+                    const safeSku = typeof item.sku === 'string' ? item.sku : String(item.sku || 'N/A');
+                    const safeLocation = typeof item.location === 'string' ? item.location : String(item.location || 'N/A');
+                    const safeQuantity = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity || 0);
+                    const safeMinStock = typeof item.min_stock === 'number' ? item.min_stock : Number(item.min_stock || 0);
+                    
+                    return (
+                      <div key={item.id} className="p-6 bg-gray-50/30 rounded-2xl border border-gray-100">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <h4 className="font-light text-gray-900 text-lg">{safeName}</h4>
+                            <p className="text-sm text-gray-500 font-light">{safeSku}</p>
+                            <p className="text-sm text-gray-600 font-light flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {safeLocation}
+                            </p>
+                          </div>
+                          <div className="text-right space-y-1">
+                            <p className="font-thin text-2xl text-gray-900">{safeQuantity}</p>
+                            <p className="text-xs text-gray-500 font-light">Stock mínimo: {safeMinStock}</p>
+                            <span className={`status-badge ${getStatusColor(item.status).replace('bg-', 'status-').replace('-100', '').replace('text-', '').replace('-700', '')}`}>
+                              {getStatusLabel(item.status)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {processedInventory.length > 10 && (
                     <div className="text-center text-gray-400 text-sm font-light py-4">
                       Mostrando 10 de {processedInventory.length} items
                     </div>
                   )}
-                </div>
-              )}
+                  </div>
+                  );
+                } catch (error) {
+                  console.error('Inventory rendering error:', error);
+                  return (
+                    <div className="text-center py-12">
+                      <AlertTriangle className="w-12 h-12 text-red-300 mx-auto mb-4" />
+                      <p className="text-red-500 font-light">Error cargando inventario. Revisa la consola.</p>
+                      <button 
+                        onClick={() => {
+                          console.log('Current inventory data:', processedInventory);
+                          loadInventoryData();
+                        }}
+                        className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                      >
+                        Recargar
+                      </button>
+                    </div>
+                  );
+                }
+              })()}
             </div>
           </div>
         ) : (
