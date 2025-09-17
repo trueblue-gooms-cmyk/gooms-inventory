@@ -103,21 +103,25 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
 
   const loadLocations = async () => {
     try {
+      console.log('🔍 DEBUGGING - Loading locations...');
       const { data, error } = await supabase
         .from('locations')
         .select('id, name, code')
         .eq('is_active', true)
         .order('name');
 
+      console.log('📊 DEBUGGING - Locations query result:', { data, error });
+
       if (error) throw error;
       
       if (data && data.length > 0) {
         setLocations(data);
+        console.log('✅ Locations loaded:', data.length);
       } else {
         throw new Error('No locations found');
       }
     } catch (error) {
-      console.error('Error loading locations:', error);
+      console.error('❌ Error loading locations:', error);
       toast({
         title: "Error cargando ubicaciones",
         description: "No se pudieron cargar las ubicaciones desde la base de datos",
@@ -235,28 +239,50 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
     setLoading(true);
 
     try {
+      console.log('🔍 DEBUGGING - Form data:', formData);
+      
+      // Verificar que los UUIDs sean válidos
+      console.log('🔍 DEBUGGING - Checking UUIDs:');
+      console.log('  - product_id:', formData.product_id, typeof formData.product_id);
+      console.log('  - from_location_id:', formData.from_location_id, typeof formData.from_location_id);
+      console.log('  - to_location_id:', formData.to_location_id, typeof formData.to_location_id);
+      
       const movementData = {
         movement_type: formData.movement_type as any,
         product_id: formData.product_id,
         quantity: Number(formData.quantity),
         from_location_id: formData.from_location_id || null,
         to_location_id: formData.to_location_id || null,
-        notes: formData.notes || null,
-        // Solo incluir created_at si hay una fecha válida
-        ...(formData.movement_datetime && formData.movement_datetime.trim() !== '' ? {
-          created_at: new Date(formData.movement_datetime).toISOString()
-        } : {})
+        notes: formData.notes || null
       };
 
-      // Use direct insert instead of RPC for better error handling
+      console.log('🚀 DEBUGGING - Movement data to insert:', movementData);
+      console.log('🚀 DEBUGGING - Movement type valid values: entrada, salida, produccion, ajuste, devolucion');
+
+      // Use direct insert with debugging - fixed types
       const { data, error } = await supabase
         .from('inventory_movements')
-        .insert([movementData]);
+        .insert([movementData])
+        .select();
+
+      console.log('📊 DEBUGGING - Insert response:', { data, error });
 
       if (error) {
-        console.error('Supabase error details:', error);
-        throw new Error(`Error en base de datos: ${error.message}`);
+        console.error('❌ SUPABASE ERROR DETAILS:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        toast({
+          title: "Error de Base de Datos",
+          description: `${error.code}: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
       }
+
+      console.log('✅ Movement created successfully:', data);
 
       toast({
         title: "Movimiento registrado",
@@ -267,7 +293,7 @@ export function MovementFormModal({ isOpen, onClose, onSuccess }: MovementFormMo
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Error creating movement:', error);
+      console.error('💥 CATCH ERROR:', error);
       toast({
         title: "Error",
         description: error.message || "Error al registrar el movimiento",

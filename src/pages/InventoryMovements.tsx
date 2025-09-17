@@ -201,19 +201,39 @@ export function InventoryMovements() {
     const { error } = await handleAsyncError(async () => {
       setLoading(true);
 
-      // Cargar movimientos - QUERY CORREGIDA
+      console.log('🔍 DEBUGGING - Loading movements from database...');
+
+      // Cargar movimientos con query simplificada para debugging
       const { data: movementsData, error: movementsError } = await supabase
         .from('inventory_movements')
         .select(`
-          id, movement_type, quantity, created_at, notes, unit_cost, total_cost,
-          products!inventory_movements_product_id_fkey(id, sku, name),
-          from_location:locations!inventory_movements_from_location_id_fkey(id, name),
-          to_location:locations!inventory_movements_to_location_id_fkey(id, name)
+          id, 
+          movement_type, 
+          quantity, 
+          created_at, 
+          notes,
+          unit_cost,
+          total_cost,
+          product_id,
+          from_location_id,
+          to_location_id,
+          products!product_id(id, sku, name),
+          from_location:locations!from_location_id(id, name),
+          to_location:locations!to_location_id(id, name)
         `)
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (movementsError) throw movementsError;
+      console.log('📊 DEBUGGING - Movements query result:', { 
+        data: movementsData, 
+        error: movementsError,
+        count: movementsData?.length || 0
+      });
+
+      if (movementsError) {
+        console.error('❌ MOVEMENTS ERROR:', movementsError);
+        throw movementsError;
+      }
 
       // Cargar productos - CAMPOS CORREGIDOS
       const { data: productsData, error: productsError } = await supabase
@@ -222,19 +242,34 @@ export function InventoryMovements() {
         .eq('is_active', true)
         .order('name');
 
-      if (productsError) throw productsError;
+      console.log('📊 DEBUGGING - Products query result:', { 
+        data: productsData, 
+        error: productsError,
+        count: productsData?.length || 0
+      });
+
+      if (productsError) {
+        console.error('❌ PRODUCTS ERROR:', productsError);
+        throw productsError;
+      }
+
+      console.log('✅ Setting movements and products:', {
+        movementsCount: movementsData?.length || 0,
+        productsCount: productsData?.length || 0
+      });
 
       setMovements((movementsData || []) as any);
       setProducts(productsData || []);
     });
 
     if (error) {
+      console.log('⚠️ Using demo data due to error:', error);
       // Usar datos de demostración
       setMovements(getDemoMovements());
       setProducts(getDemoProducts());
       toast({
         title: "Usando datos de demostración",
-        description: "No se pudieron cargar los datos reales",
+        description: "No se pudieron cargar los datos reales: " + error.message,
         variant: "default"
       });
     }
