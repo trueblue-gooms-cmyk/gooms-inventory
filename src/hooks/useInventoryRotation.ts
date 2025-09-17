@@ -66,10 +66,9 @@ export const useInventoryRotation = () => {
           id,
           product_id,
           location_id,
-          current_quantity,
-          unit_cost,
+          quantity_available,
           expiry_date,
-          batch_number,
+          batch_id,
           last_movement_date,
           products!inner (
             id,
@@ -84,7 +83,7 @@ export const useInventoryRotation = () => {
           )
         `)
         .not('expiry_date', 'is', null)
-        .gt('current_quantity', 0)
+        .gt('quantity_available', 0)
         .order('expiry_date', { ascending: true });
 
       if (inventoryError) throw inventoryError;
@@ -154,8 +153,8 @@ export const useInventoryRotation = () => {
           product_id: typedItem.product_id,
           product_name: typedItem.products.name,
           location_name: typedItem.locations.name,
-          batch_number: typedItem.batch_number,
-          current_quantity: typedItem.current_quantity,
+          batch_number: typedItem.batch_id,
+          current_quantity: typedItem.quantity_available,
           expiry_date: typedItem.expiry_date,
           days_until_expiry: daysUntilExpiry,
           alert_level: alertLevel,
@@ -224,7 +223,7 @@ export const useInventoryRotation = () => {
 
       // Sugerir acciones basadas en algoritmo FEFO
       if (daysUntilFirstExpiry <= 15 && sortedItems.length > 1) {
-        const totalValue = firstExpiring.current_quantity * (firstExpiring.products?.unit_cost || firstExpiring.unit_cost || 0);
+        const totalValue = firstExpiring.quantity_available * (firstExpiring.products?.unit_cost || 0);
         
         suggestions.push({
           product_id: firstExpiring.product_id,
@@ -233,7 +232,7 @@ export const useInventoryRotation = () => {
           location_name: firstExpiring.locations.name,
           action: daysUntilFirstExpiry <= 7 ? 'discount' : 'promote',
           priority: daysUntilFirstExpiry <= 7 ? 'high' : 'medium',
-          quantity: firstExpiring.current_quantity,
+          quantity: firstExpiring.quantity_available,
           reason: `Lote vence en ${daysUntilFirstExpiry} días. Priorizar según FEFO.`,
           expiry_date: firstExpiring.expiry_date,
           financial_impact: totalValue
@@ -254,10 +253,10 @@ export const useInventoryRotation = () => {
             location_name: item.locations.name,
             action: 'transfer',
             priority: 'medium',
-            quantity: Math.floor(item.current_quantity * 0.5),
+            quantity: Math.floor(item.quantity_available * 0.5),
             reason: `Sin movimiento por ${daysSinceLastMovement} días. Considerar reubicación.`,
             expiry_date: item.expiry_date,
-            financial_impact: (item.current_quantity * 0.5) * (item.unit_cost || 0)
+            financial_impact: (item.quantity_available * 0.5) * (item.products?.unit_cost || 0)
           });
         }
       });
@@ -284,7 +283,7 @@ export const useInventoryRotation = () => {
       
       if (daysUntilExpiry <= 15) {
         totalExpiringSoon++;
-        totalValueAtRisk += typedItem.current_quantity * (typedItem.unit_cost || 0);
+        totalValueAtRisk += typedItem.quantity_available * (typedItem.products?.unit_cost || 0);
       }
 
       const daysSinceLastMovement = Math.ceil(

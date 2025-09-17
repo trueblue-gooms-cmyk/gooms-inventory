@@ -36,7 +36,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useCanEdit } from '@/hooks/useSecureAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-export type MovementType = 'entrada' | 'salida' | 'transferencia' | 'ajuste' | 'vencimiento';
+import { MovementType } from '@/types/movements';
 export type MovementStatus = 'pending' | 'in_transit' | 'completed' | 'cancelled';
 
 export interface InventoryMovement {
@@ -57,10 +57,9 @@ export interface InventoryMovement {
   // Relaciones
   product?: {
     id: string;
-    code: string;
+    sku: string;
     name: string;
     type: string;
-    unit_measure: string;
   };
   from_location?: {
     id: string;
@@ -94,11 +93,11 @@ const MOVEMENT_TYPES = [
     description: 'Despacho o venta'
   },
   {
-    value: 'transferencia',
-    label: 'Transferencia',
+    value: 'ajuste',
+    label: 'Ajuste/Transferencia',
     icon: <ArrowRight className="w-4 h-4" />,
     color: 'bg-blue-500',
-    description: 'Entre ubicaciones'
+    description: 'Ajustes y transferencias'
   },
   {
     value: 'ajuste',
@@ -262,8 +261,7 @@ export function InventoryMovements() {
         id: 'demo-prod-1',
         sku: 'MP-001',
         name: 'Ácido Cítrico 25kg',
-        type: 'materia_prima',
-        unit_measure: 'kg'
+        type: 'materia_prima'
       },
       to_location: {
         id: 'bodega-central',
@@ -277,7 +275,7 @@ export function InventoryMovements() {
     },
     {
       id: 'demo-mov-2',
-      movement_type: 'transferencia',
+      movement_type: 'ajuste',
       status: 'completed',
       product_id: 'demo-prod-2',
       quantity: 20,
@@ -292,7 +290,6 @@ export function InventoryMovements() {
         sku: 'PF-001',
         name: 'Gomas Ácidas Premium 100g',
         type: 'producto_final',
-        unit_measure: 'unidades'
       },
       from_location: {
         id: 'bodega-central',
@@ -327,7 +324,6 @@ export function InventoryMovements() {
         sku: 'PF-001',
         name: 'Gomas Ácidas Premium 100g',
         type: 'producto_final',
-        unit_measure: 'unidades'
       },
       from_location: {
         id: 'pos-fontanar',
@@ -398,7 +394,7 @@ export function InventoryMovements() {
         throw new Error('La cantidad debe ser mayor a 0');
       }
 
-      if (formData.movement_type === 'transferencia') {
+      if (formData.movement_type === 'ajuste') {
         if (!formData.from_location_id || !formData.to_location_id) {
           throw new Error('Para transferencias se requieren ubicación origen y destino');
         }
@@ -668,9 +664,9 @@ export function InventoryMovements() {
                             <span className="font-medium text-gray-900">
                               {formatNumber(movement.quantity)}
                             </span>
-                            <span className="text-gray-500 ml-1">
-                              {movement.product?.unit_measure}
-                            </span>
+                             <span className="text-gray-500 ml-1">
+                               {movement.product?.type === 'materia_prima' ? 'kg' : 'unidad'}
+                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -678,7 +674,7 @@ export function InventoryMovements() {
                             {movement.from_location && (
                               <span className="text-gray-600">{movement.from_location.code}</span>
                             )}
-                            {movement.movement_type === 'transferencia' && (
+                            {movement.movement_type === 'ajuste' && (
                               <ArrowRight className="w-4 h-4 text-gray-400" />
                             )}
                             {movement.movement_type === 'entrada' && (
@@ -883,7 +879,7 @@ export function InventoryMovements() {
                   </div>
 
                   {/* Ubicación origen (para salidas y transferencias) */}
-                  {(formData.movement_type === 'salida' || formData.movement_type === 'transferencia') && (
+                  {(formData.movement_type === 'salida' || formData.movement_type === 'ajuste') && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación Origen</label>
                       <select
@@ -903,7 +899,7 @@ export function InventoryMovements() {
                   )}
 
                   {/* Ubicación destino (para entradas y transferencias) */}
-                  {(formData.movement_type === 'entrada' || formData.movement_type === 'transferencia') && (
+                  {(formData.movement_type === 'entrada' || formData.movement_type === 'ajuste') && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación Destino</label>
                       <select
@@ -934,7 +930,7 @@ export function InventoryMovements() {
                       <option value="purchase_order">Orden de Compra</option>
                       <option value="sale">Venta</option>
                       <option value="production_batch">Lote de Producción</option>
-                      <option value="transfer_request">Solicitud de Transferencia</option>
+                      <option value="transfer_request">Solicitud de Ajuste</option>
                       <option value="adjustment">Ajuste de Inventario</option>
                     </select>
                   </div>

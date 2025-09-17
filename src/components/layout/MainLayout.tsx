@@ -183,9 +183,6 @@ export function MainLayout() {
           onRefresh={() => {
             window.location.reload();
           }}
-          onSearch={(query) => {
-            console.log('Buscar:', query);
-          }}
           notifications={0}
           isLoading={false}
         />

@@ -217,7 +217,6 @@ export function UnifiedProducts() {
       name: 'Ácido Cítrico 25kg',
       description: 'Ácido cítrico anhidro grado alimentario',
       type: 'materia_prima',
-      unit_measure: 'kg',
       unit_cost: 3500,
       min_stock_units: 50,
       current_stock: 150,
@@ -238,7 +237,6 @@ export function UnifiedProducts() {
       name: 'Bolsa Transparente 100g',
       description: 'Bolsa de polipropileno transparente',
       type: 'empaques',
-      unit_measure: 'unidades',
       unit_cost: 85,
       min_stock_units: 500,
       current_stock: 2000,
@@ -254,7 +252,6 @@ export function UnifiedProducts() {
       name: 'Gomas Surtidas Mix 5kg',
       description: 'Mezcla de gomas surtidas para empaque',
       type: 'gomas_granel',
-      unit_measure: 'kg',
       unit_cost: 28000,
       min_stock_units: 10,
       current_stock: 45,
@@ -268,7 +265,6 @@ export function UnifiedProducts() {
       name: 'Gomas Ácidas Premium 100g',
       description: 'Gomas ácidas premium empacadas para venta',
       type: 'producto_final',
-      unit_measure: 'unidades',
       unit_cost: 1200,
       min_stock_units: 100,
       current_stock: 350,
@@ -312,7 +308,7 @@ export function UnifiedProducts() {
       name: product.name,
       description: product.description || '',
       type: product.type,
-      unit_measure: product.unit_measure,
+      unit_measure: product.type === 'materia_prima' ? 'kg' : 'unidades',
       unit_cost: product.unit_cost.toString(),
       min_stock_units: product.min_stock_units.toString(),
       current_stock: product.current_stock.toString(),
@@ -792,7 +788,7 @@ export function UnifiedProducts() {
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {formatNumber(product.current_stock)} {product.unit_measure}
+                              {formatNumber(product.current_stock)} {product.type === 'materia_prima' ? 'kg' : 'unidad'}
                             </p>
                             <p className="text-xs text-gray-500">Stock de seguridad: {product.min_stock_units}</p>
                           </div>
@@ -802,7 +798,7 @@ export function UnifiedProducts() {
                             <p className="text-sm font-medium text-gray-900">
                               {formatCurrency(product.unit_cost)}
                             </p>
-                            <p className="text-xs text-gray-500">por {product.unit_measure}</p>
+                            <p className="text-xs text-gray-500">por {product.type === 'materia_prima' ? 'kg' : 'unidad'}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4">

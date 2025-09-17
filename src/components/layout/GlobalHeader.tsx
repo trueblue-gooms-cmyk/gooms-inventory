@@ -35,7 +35,7 @@ interface GlobalHeaderProps {
   user: UserProfile;
   onTimeFilterChange: (days: number) => void;
   onRefresh: () => void;
-  onSearch: (query: string) => void;
+  onSearch?: (query: string) => void;
   notifications: number;
   isLoading?: boolean;
   currentPath?: string;
@@ -102,7 +102,7 @@ export function GlobalHeader({
   };
 
   const handleSearch = () => {
-    onSearch(searchQuery);
+    onSearch?.(searchQuery);
   };
 
   const getRoleLabel = (role: string) => {
