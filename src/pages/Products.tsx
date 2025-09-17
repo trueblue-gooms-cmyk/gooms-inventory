@@ -1,10 +1,11 @@
 // src/pages/Products.tsx
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Edit2, Trash2, Upload } from 'lucide-react';
 import { useCanEdit } from '@/stores/useAppStore';
 import { CsvImporter } from '@/components/CsvImporter';
-import { toast } from 'sonner';
+import { ProductFormModal } from '@/components/ProductFormModal';
 
 interface Product {
   id: string;
@@ -27,8 +28,10 @@ export function Products() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const canEdit = useCanEdit();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     sku: '',
@@ -103,7 +106,11 @@ export function Products() {
         .maybeSingle();
 
       if (existingProduct) {
-        toast.error(`Ya existe un producto con el SKU "${(productData as any).sku}"`);
+        toast({
+          title: "Error",
+          description: `Ya existe un producto con el SKU "${(productData as any).sku}"`,
+          variant: "destructive"
+        });
         return;
       }
 
@@ -113,21 +120,36 @@ export function Products() {
       if (error) {
         // Manejar diferentes tipos de errores (por ejemplo, violación de clave única)
         if ((error as any).code === '23505') {
-          toast.error(`El SKU "${(productData as any).sku}" ya está en uso. Por favor usa un SKU diferente.`);
+          toast({
+            title: "Error",
+            description: `El SKU "${(productData as any).sku}" ya está en uso. Por favor usa un SKU diferente.`,
+            variant: "destructive"
+          });
         } else {
           console.error('Error creating product:', error);
-          toast.error('Error creando producto: ' + (error as any).message);
+          toast({
+            title: "Error",
+            description: 'Error creando producto: ' + (error as any).message,
+            variant: "destructive"
+          });
         }
         return;
       }
 
-      toast.success('Producto creado exitosamente');
+      toast({
+        title: "Éxito",
+        description: "Producto creado exitosamente"
+      });
       setShowModal(false);
       resetForm();
       loadProducts();
     } catch (error) {
       console.error('Unexpected error:', error);
-      toast.error('Error inesperado al crear producto');
+      toast({
+        title: "Error",
+        description: "Error inesperado al crear producto",
+        variant: "destructive"
+      });
     }
   };
 
@@ -166,7 +188,11 @@ export function Products() {
             .eq('sku', productData.sku)
             .maybeSingle();
           if (skuTaken) {
-            toast.error(`El SKU "${productData.sku}" ya está en uso.`);
+            toast({
+              title: "Error",
+              description: `El SKU "${productData.sku}" ya está en uso.`,
+              variant: "destructive"
+            });
             return;
           }
         }
@@ -174,15 +200,26 @@ export function Products() {
         const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
         if (error) {
           if ((error as any).code === '23505') {
-            toast.error(`El SKU "${productData.sku}" ya está en uso.`);
+            toast({
+              title: "Error",
+              description: `El SKU "${productData.sku}" ya está en uso.`,
+              variant: "destructive"
+            });
           } else {
             console.error('Error updating product:', error);
-            toast.error('Error actualizando producto');
+            toast({
+              title: "Error",
+              description: "Error actualizando producto",
+              variant: "destructive"
+            });
           }
           return;
         }
 
-        toast.success('Cambios guardados');
+        toast({
+          title: "Éxito",
+          description: "Cambios guardados"
+        });
         setShowModal(false);
         resetForm();
         loadProducts();
@@ -275,7 +312,7 @@ export function Products() {
               <span>Importar CSV</span>
             </button>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowProductModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
             >
               <Plus className="w-4 h-4" />
@@ -338,7 +375,13 @@ export function Products() {
                   {canEdit && (
                     <td className="px-6 py-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleEdit(product)} className="p-1 hover:bg-gray-100 rounded">
+                        <button 
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setShowProductModal(true);
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded"
+                        >
                           <Edit2 className="w-4 h-4 text-gray-600" />
                         </button>
                         <button onClick={() => handleDelete(product.id)} className="p-1 hover:bg-gray-100 rounded">

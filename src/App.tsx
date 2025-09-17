@@ -20,6 +20,7 @@ import { UnifiedProducts } from './pages/UnifiedProducts';
 import { InventoryMovements } from './pages/InventoryMovements';
 
 import { Financial } from './pages/Financial';
+import Laboratory from './pages/Laboratory';
 import { LoadingScreen } from './components/LoadingScreen';
 import { OfflineSyncStatus } from './components/OfflineSyncStatus';
 import { MobileBottomNavigation } from './components/MobileBottomNavigation';
@@ -55,6 +56,11 @@ function AppContent() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<UnifiedProducts />} />
           <Route path="movements" element={<InventoryMovements />} />
+          <Route path="laboratory" element={
+            <ProtectedRoute requiredRole="operator">
+              <Laboratory />
+            </ProtectedRoute>
+          } />
           <Route path="inventory" element={
             <ErrorBoundary>
               <Inventory />

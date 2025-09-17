@@ -28,6 +28,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useUserRole } from '@/hooks/useSecureAuth';
 import { OptimizedInventoryTable } from '@/components/OptimizedInventoryTable';
 import { InventoryMovementModal } from '@/components/InventoryMovementModal';
+import { MovementFormModal } from '@/components/MovementFormModal';
 import ExpiryManagement from '@/components/ExpiryManagement';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InventoryFallback } from '@/components/InventoryFallback';
@@ -98,6 +99,7 @@ export function Inventory() {
   const [activeTab, setActiveTab] = useState<'inventory' | 'expiry'>('inventory');
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // Auth and data hooks
@@ -310,7 +312,10 @@ export function Inventory() {
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Exportar</span>
             </button>
-            <button className={DESIGN_SYSTEM.buttons.primary}>
+            <button 
+              onClick={() => setShowNewItemModal(true)}
+              className={DESIGN_SYSTEM.buttons.primary}
+            >
               <Plus className="w-4 h-4" />
               <span>Nuevo Item</span>
             </button>
@@ -484,6 +489,17 @@ export function Inventory() {
         ) : (
           <ExpiryManagement />
         )}
+
+        {/* Movement Form Modal */}
+        <MovementFormModal
+          isOpen={showNewItemModal}
+          onClose={() => setShowNewItemModal(false)}
+          onSuccess={() => {
+            // Refresh inventory data
+            invalidateInventory();
+            setShowNewItemModal(false);
+          }}
+        />
 
         {/* Modal de movimiento */}
         {showMovementModal && selectedItem && (
