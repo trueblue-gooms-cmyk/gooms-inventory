@@ -313,8 +313,8 @@ export default function Dashboard() {
 
     inventory.forEach((item: any) => {
       const product = products.find((p: any) => p.id === item.product_id);
-      if (product && (product as any).type && typeStats[(product as any).type as keyof typeof typeStats]) {
-        const typeKey = (product as any).type as keyof typeof typeStats;
+      if (product && (product as any).product_type && typeStats[(product as any).product_type as keyof typeof typeStats]) {
+        const typeKey = (product as any).product_type as keyof typeof typeStats;
         typeStats[typeKey].quantity += (item as any).quantity_available;
         typeStats[typeKey].value += (item as any).quantity_available * ((product as any).unit_cost || 0);
       }

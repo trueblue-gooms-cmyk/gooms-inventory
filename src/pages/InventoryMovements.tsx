@@ -108,12 +108,10 @@ const MOVEMENT_TYPES = [
   }
 ] as const;
 
-const LOCATIONS = [
-  { id: 'bodega-central', name: 'Bodega Central', code: 'BC' },
-  { id: 'pos-colina', name: 'POS-Colina', code: 'PC' },
-  { id: 'pos-fontanar', name: 'POS-Fontanar', code: 'PF' },
-  { id: 'pos-eventos', name: 'POS-Eventos', code: 'PE' }
-];
+// Reemplazar datos hardcodeados por carga real de ubicaciones
+const [realLocations, setRealLocations] = useState<any[]>([]);
+const [locationsLoaded, setLocationsLoaded] = useState(false);
+
 
 export function InventoryMovements() {
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
@@ -149,6 +147,7 @@ export function InventoryMovements() {
   useEffect(() => {
     loadData();
     loadPendingOrders();
+    loadRealLocations();
   }, []);
 
   // Cargar datos
@@ -194,6 +193,35 @@ export function InventoryMovements() {
         description: "No se pudieron cargar las órdenes pendientes",
         variant: "destructive"
       });
+    }
+  };
+
+  // Cargar ubicaciones reales
+  const loadRealLocations = async () => {
+    try {
+      const { data: locationData, error: locationError } = await supabase
+        .from('locations')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name');
+
+      if (locationError) {
+        console.error('Error loading locations:', locationError);
+        // Usar datos hardcodeados como fallback
+        setRealLocations([
+          { id: 'bodega-central', name: 'Bodega Central', code: 'BC' },
+          { id: 'pos-colina', name: 'POS-Colina', code: 'PC' },
+          { id: 'pos-fontanar', name: 'POS-Fontanar', code: 'PF' },
+          { id: 'pos-eventos', name: 'POS-Eventos', code: 'PE' }
+        ]);
+      } else {
+        setRealLocations(locationData || []);
+      }
+    } catch (error) {
+      console.error('Error loading locations:', error);
+      setRealLocations([]);
+    } finally {
+      setLocationsLoaded(true);
     }
   };
 
@@ -517,9 +545,9 @@ export function InventoryMovements() {
     return MOVEMENT_TYPES.find(t => t.value === type) || MOVEMENT_TYPES[0];
   };
 
-  // Obtener ubicación por ID
+  // Obtener ubicación por ID usando datos reales
   const getLocationById = (id: string) => {
-    return LOCATIONS.find(loc => loc.id === id);
+    return realLocations.find(loc => loc.id === id) || realLocations.find(loc => loc.code === id);
   };
 
   if (loading) {
@@ -641,7 +669,7 @@ export function InventoryMovements() {
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value="all">Todas las ubicaciones</option>
-                {LOCATIONS.map(location => (
+                {realLocations.map(location => (
                   <option key={location.id} value={location.id}>
                     {location.name}
                   </option>
@@ -924,7 +952,7 @@ export function InventoryMovements() {
                         required
                       >
                         <option value="">Seleccionar origen</option>
-                        {LOCATIONS.map(location => (
+                        {realLocations.map(location => (
                           <option key={location.id} value={location.id}>
                             {location.name}
                           </option>
@@ -944,7 +972,7 @@ export function InventoryMovements() {
                         required
                       >
                         <option value="">Seleccionar destino</option>
-                        {LOCATIONS.filter(loc => loc.id !== formData.from_location_id).map(location => (
+                        {realLocations.filter(loc => loc.id !== formData.from_location_id).map(location => (
                           <option key={location.id} value={location.id}>
                             {location.name}
                           </option>

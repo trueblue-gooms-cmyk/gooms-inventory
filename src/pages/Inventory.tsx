@@ -225,8 +225,8 @@ export function Inventory() {
           
           return {
             id: item.id,
-            product_id: product?.id || item.product_id,
-            location_id: location?.id || item.location_id,
+            product_id: product?.id || 'unknown',
+            location_id: location?.id || 'unknown',
             sku: product?.sku || 'N/A',
             name: product?.name || 'Producto sin nombre',
             type: (product?.product_type || product?.type || 'producto_final') as any,
@@ -257,6 +257,8 @@ export function Inventory() {
   const getDemoInventory = (): InventoryItem[] => [
     {
       id: 'demo-1',
+      product_id: 'demo-prod-1',
+      location_id: 'demo-loc-1',
       sku: 'DEMO-001',
       name: 'Producto Demo 1',
       type: 'producto_final',
@@ -272,6 +274,8 @@ export function Inventory() {
     },
     {
       id: 'demo-2',
+      product_id: 'demo-prod-2',
+      location_id: 'demo-loc-2',
       sku: 'DEMO-002',
       name: 'Materia Prima Demo',
       type: 'materia_prima',
@@ -294,13 +298,14 @@ export function Inventory() {
     if (!selectedItem || movementData.quantity <= 0) return;
     
     await handleAsyncOperation(async () => {
-      // Implementar movimiento real usando supabase
+      // Implementar movimiento real usando supabase con UUIDs correctos
       const { error } = await supabase
         .from('inventory_movements')
         .insert({
           movement_type: movementData.type,
-          product_id: selectedItem.id,
+          product_id: selectedItem.product_id, // Usar UUID del producto
           quantity: movementData.quantity,
+          to_location_id: selectedItem.location_id, // Usar UUID de ubicación
           notes: movementData.notes,
           created_by: user?.id
         });
@@ -322,15 +327,15 @@ export function Inventory() {
         !transferData.from_location || !transferData.to_location) return;
     
     await handleAsyncOperation(async () => {
-      // Implementar transferencia real - usar 'ajuste' por ahora ya que 'transferencia' no está en el enum
+      // Implementar transferencia real usando UUIDs correctos
       const { error } = await supabase
         .from('inventory_movements')
         .insert({
           movement_type: 'ajuste',
-          product_id: selectedItem.id,
+          product_id: selectedItem.product_id, // UUID del producto
           quantity: transferData.quantity,
-          from_location_id: transferData.from_location,
-          to_location_id: transferData.to_location,
+          from_location_id: selectedItem.location_id, // UUID origen
+          to_location_id: selectedItem.location_id, // UUID destino (ajuste en misma ubicación)
           notes: `Transferencia: ${transferData.notes}`,
           created_by: user?.id
         });
