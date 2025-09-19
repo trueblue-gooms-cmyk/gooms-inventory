@@ -14,6 +14,7 @@ import { Users } from './pages/Users';
 import { UnifiedProducts } from './pages/UnifiedProducts';
 import { InventoryMovements } from './pages/InventoryMovements';
 import Laboratory from './pages/Laboratory';
+import DataImport from './pages/DataImport';
 import { LoadingScreen } from './components/LoadingScreen';
 import { OfflineSyncStatus } from './components/OfflineSyncStatus';
 import { MobileBottomNavigation } from './components/MobileBottomNavigation';
@@ -50,6 +51,7 @@ function AppContent() {
           <Route path="products" element={<UnifiedProducts />} />
           <Route path="movements" element={<InventoryMovements />} />
           <Route path="laboratory" element={<Laboratory />} />
+          <Route path="data-import" element={<DataImport />} />
           <Route path="inventory" element={
             <ErrorBoundary>
               <Inventory />

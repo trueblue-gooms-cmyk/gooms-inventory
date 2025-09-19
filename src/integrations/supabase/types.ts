@@ -190,6 +190,60 @@ export type Database = {
           },
         ]
       }
+      intermediate_products: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          current_stock_units: number | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          min_stock_units: number | null
+          name: string
+          shelf_life_days: number | null
+          unit_cost: number | null
+          unit_measure: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_stock_units?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_stock_units?: number | null
+          name: string
+          shelf_life_days?: number | null
+          unit_cost?: number | null
+          unit_measure?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_stock_units?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_stock_units?: number | null
+          name?: string
+          shelf_life_days?: number | null
+          unit_cost?: number | null
+          unit_measure?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_current: {
         Row: {
           batch_id: string | null
@@ -1425,6 +1479,19 @@ export type Database = {
           last_occurrence: string
           suspicious_activity: string
           user_id: string
+        }[]
+      }
+      get_intermediate_products_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          shelf_life_days: number
+          unit_measure: string
         }[]
       }
       get_inventory_safe: {

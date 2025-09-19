@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
   // { label: 'Reportes', href: '/reports', icon: Box, permission: 'all' },
   { label: 'Configuración', href: '/settings', icon: Box, permission: 'admin' },
   { label: 'Usuarios', href: '/users', icon: Box, permission: 'admin' },
+  { label: 'Importar Datos', href: '/data-import', icon: Box, permission: 'admin' },
 ];
 
 export function MainLayout() {
