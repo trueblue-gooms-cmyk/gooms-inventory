@@ -89,6 +89,26 @@ const ROLE_PERMISSIONS = {
   }
 } as const;
 
+const getRoleLabel = (role: string) => {
+  switch (role) {
+    case 'admin': return 'Administrador';
+    case 'operator': return 'Operador';
+    case 'user': return 'Usuario';
+    case 'viewer': return 'Visualizador';
+    default: return 'Desconocido';
+  }
+};
+
+const getRoleClasses = (role: string) => {
+  switch (role) {
+    case 'admin': return 'bg-purple-100 text-purple-700';
+    case 'operator': return 'bg-blue-100 text-blue-700';
+    case 'user': return 'bg-gray-100 text-gray-700';
+    case 'viewer': return 'bg-gray-100 text-gray-700';
+    default: return 'bg-gray-100 text-gray-700';
+  }
+};
+
 export function Users() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -459,8 +479,8 @@ export function Users() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS]?.color || 'bg-gray-100 text-gray-700'}`}>
-                            {ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS]?.label || user.role}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleClasses(user.role || 'viewer')}`}>
+                            {getRoleLabel(user.role || 'viewer')}
                           </span>
                           <button
                             onClick={() => setEditingUser(user.id)}
