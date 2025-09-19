@@ -158,10 +158,6 @@ export const DataImporter = () => {
     { productName: 'Mentas PEPPERMINT', packageSku: 'TMPP', intermediateCode: null }
   ];
 
-  const generateCode = (name: string, prefix: string = 'RM') => {
-    return prefix + name.substring(0, 6).toUpperCase().replace(/\s/g, '');
-  };
-
   const importData = async () => {
     try {
       setIsImporting(true);
@@ -179,11 +175,20 @@ export const DataImporter = () => {
       // 2. Import suppliers
       setProgress('Importando proveedores...');
       const uniqueSuppliers = [...new Set(rawMaterials.map(rm => rm.supplier))];
-      const suppliersToInsert = uniqueSuppliers.map(supplierName => ({
-        name: supplierName,
-        code: supplierName.substring(0, 10).toUpperCase().replace(/\s/g, ''),
-        is_active: true
-      }));
+      
+      // Generate unique codes for suppliers
+      const suppliersToInsert = uniqueSuppliers.map((supplierName, index) => {
+        // Create a base code from the supplier name
+        let baseCode = supplierName.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        // Add index to ensure uniqueness
+        const uniqueCode = `${baseCode}${(index + 1).toString().padStart(2, '0')}`;
+        
+        return {
+          name: supplierName,
+          code: uniqueCode,
+          is_active: true
+        };
+      });
 
       const { data: suppliersResult, error: suppliersError } = await supabase
         .from('suppliers')
@@ -194,11 +199,11 @@ export const DataImporter = () => {
 
       // 3. Import raw materials
       setProgress('Importando materias primas...');
-      const rawMaterialsToInsert = rawMaterials.map(rm => {
+      const rawMaterialsToInsert = rawMaterials.map((rm, index) => {
         const supplier = suppliersResult?.find(s => s.name === rm.supplier);
         return {
           name: rm.name,
-          code: generateCode(rm.name, 'RM'),
+          code: `RM${(index + 1).toString().padStart(3, '0')}`,
           description: `${rm.name} - ${rm.supplier}`,
           unit_measure: rm.unit.toLowerCase(),
           shelf_life_days: 365,
