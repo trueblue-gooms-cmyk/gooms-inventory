@@ -198,10 +198,10 @@ export function Users() {
       // Para 'viewer' usamos 'user' ya que son equivalentes en el sistema
       const dbRole = newRole === 'viewer' ? 'user' : newRole;
       
-      // Actualizar rol en Supabase usando activate_user_role con cast explícito
+      // Actualizar rol en Supabase usando activate_user_role
       const { error } = await supabase.rpc('activate_user_role', {
         p_user_id: userId,
-        p_new_role: dbRole as any, // Cast para compatibilidad entre user_role y app_role
+        p_new_role: dbRole, // Ahora funciona correctamente con app_role
         p_activated_by: null // Usar el usuario actual automáticamente
       });
 

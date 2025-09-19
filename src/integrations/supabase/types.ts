@@ -1412,7 +1412,7 @@ export type Database = {
       activate_user_role: {
         Args: {
           p_activated_by?: string
-          p_new_role: Database["public"]["Enums"]["user_role"]
+          p_new_role: Database["public"]["Enums"]["app_role"]
           p_user_id: string
         }
         Returns: boolean
