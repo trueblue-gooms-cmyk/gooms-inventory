@@ -240,7 +240,7 @@ export const DataImporter = () => {
 
       const { error: packagingError } = await supabase
         .from('packaging_materials')
-        .insert(packagingToInsert);
+        .upsert(packagingToInsert, { onConflict: 'code' });
 
       if (packagingError) throw packagingError;
 
@@ -257,7 +257,7 @@ export const DataImporter = () => {
 
       const { error: intermediateError } = await supabase
         .from('intermediate_products')
-        .insert(intermediateToInsert);
+        .upsert(intermediateToInsert, { onConflict: 'code' });
 
       if (intermediateError) throw intermediateError;
 
@@ -275,7 +275,7 @@ export const DataImporter = () => {
 
       const { error: productsError } = await supabase
         .from('products')
-        .insert(productsToInsert);
+        .upsert(productsToInsert, { onConflict: 'sku' });
 
       if (productsError) throw productsError;
 
