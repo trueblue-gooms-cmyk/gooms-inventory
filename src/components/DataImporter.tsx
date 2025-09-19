@@ -190,12 +190,19 @@ export const DataImporter = () => {
         };
       });
 
-      const { data: suppliersResult, error: suppliersError } = await supabase
+      const { error: suppliersError } = await supabase
         .from('suppliers')
-        .insert(suppliersToInsert)
+        .upsert(suppliersToInsert, { onConflict: 'code' })
         .select();
 
       if (suppliersError) throw suppliersError;
+
+      // Fetch all suppliers to map IDs reliably
+      const { data: suppliersResult, error: suppliersFetchError } = await supabase
+        .from('suppliers')
+        .select('id, name, code');
+
+      if (suppliersFetchError) throw suppliersFetchError;
 
       // 3. Import raw materials
       setProgress('Importando materias primas...');
