@@ -197,6 +197,7 @@ export type Database = {
           expiry_date: string | null
           id: string
           last_movement_date: string | null
+          last_updated: string | null
           location_id: string | null
           product_id: string | null
           quantity_available: number | null
@@ -210,6 +211,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           last_movement_date?: string | null
+          last_updated?: string | null
           location_id?: string | null
           product_id?: string | null
           quantity_available?: number | null
@@ -223,6 +225,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           last_movement_date?: string | null
+          last_updated?: string | null
           location_id?: string | null
           product_id?: string | null
           quantity_available?: number | null

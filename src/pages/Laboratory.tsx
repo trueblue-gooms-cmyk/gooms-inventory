@@ -64,8 +64,8 @@ export default function Laboratory() {
       // Cargar productos finales
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, sku, name, type')
-        .eq('type', 'producto_final')
+        .select('id, sku, name, type, product_type')
+        .or('type.eq.producto_final,product_type.eq.producto_final')
         .eq('is_active', true)
         .order('name');
 

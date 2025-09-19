@@ -66,7 +66,7 @@ export const useInventoryPaginated = (page: number = 1, limit: number = 50) => {
             locations:location_id(id, name, code)
           `)
           .range(offset, offset + limit - 1)
-          .order('last_updated', { ascending: false });
+          .order('updated_at', { ascending: false });
 
         if (error) throw error;
 

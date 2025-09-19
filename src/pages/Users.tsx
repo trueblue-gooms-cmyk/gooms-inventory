@@ -16,6 +16,7 @@ import {
   Eye,
   Building
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Tipos del sistema
 interface User {
@@ -100,34 +101,60 @@ export function Users() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Simulación de carga de datos
-      setTimeout(() => {
-        setUsers([
-          {
-            id: '1',
-            email: 'sebastian@trueblue.pet',
-            full_name: 'Sebastian Canal',
-            role: 'admin',
-            status: 'active',
-            created_at: '2025-01-01',
-            last_access: '2025-09-10',
-            locations: ['Bodega Central', 'POS-Colina']
-          },
-          {
-            id: '2',
-            email: 'sebastian.alape@trueblue.pet',
-            full_name: 'Sebastian Alape',
-            role: 'admin',
-            status: 'active',
-            created_at: '2025-01-01',
-            last_access: '2025-09-09',
-            locations: ['Bodega Central']
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
+      // Cargar usuarios reales de Supabase
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_active', true);
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError);
+        throw profilesError;
+      }
+
+      // Cargar roles de usuarios
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .eq('is_active', true);
+
+      if (rolesError) {
+        console.error('Error loading roles:', rolesError);
+        throw rolesError;
+      }
+
+      // Combinar perfiles con roles
+      const usersWithRoles = (profilesData || []).map(profile => {
+        const userRole = rolesData?.find(r => r.user_id === profile.id);
+        return {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name || profile.email,
+          role: userRole?.role || 'user',
+          status: profile.is_active ? 'active' : 'inactive',
+          created_at: profile.created_at?.split('T')[0] || '',
+          last_access: profile.last_login?.split('T')[0] || '-',
+          locations: [] // Por ahora vacío, se puede implementar después
+        };
+      });
+
+      setUsers(usersWithRoles as User[]);
     } catch (error) {
       console.error('Error loading users:', error);
+      // Fallback a datos de demo si falla
+      setUsers([
+        {
+          id: '1',
+          email: 'admin@example.com',
+          full_name: 'Administrador Demo',
+          role: 'admin',
+          status: 'active',
+          created_at: '2025-01-01',
+          last_access: '2025-09-10',
+          locations: ['Bodega Central']
+        }
+      ]);
+    } finally {
       setLoading(false);
     }
   };
