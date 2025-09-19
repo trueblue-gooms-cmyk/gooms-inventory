@@ -363,7 +363,7 @@ export function UnifiedProducts() {
   const handleSubmit = async () => {
     console.log('🔄 handleSubmit called, modal state:', modal.isOpen, modal.mode);
     console.log('🔄 Iniciando creación/edición de producto...', formData);
-    console.log('🔄 Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Configurado' : 'NO CONFIGURADO');
+    // Removed infrastructure logging for security
 
     // Validaciones mejoradas con campos específicos
     const requiredFields: { field: keyof typeof formData; label: string }[] = [

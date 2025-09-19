@@ -74,16 +74,7 @@ export class SecurityManager {
         return roleData as UserRole;
       }
 
-      // Fallback a consulta directa
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (!profileError && profileData?.role) {
-        return profileData.role as UserRole;
-      }
+      // Security: Role is now only stored in user_roles table, no fallback to profiles
 
       // Rol por defecto
       return 'user';

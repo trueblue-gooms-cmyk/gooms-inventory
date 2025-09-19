@@ -9,7 +9,7 @@ interface RealtimeNotification {
   type: string;
   title: string;
   message: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   created_at: string;
   data?: {
     product_id?: string;
@@ -63,7 +63,7 @@ export const useRealtimeNotifications = () => {
               toastConfig.title = `🚨 ${urgencyText}: ${newNotification.title}`;
             }
           } else {
-            toastConfig.variant = newNotification.priority === 'critical' ? 'destructive' as const : 'default' as const;
+            toastConfig.variant = newNotification.priority === 'urgent' ? 'destructive' as const : 'default' as const;
           }
 
           toast(toastConfig);
@@ -139,8 +139,8 @@ export const useRealtimeNotifications = () => {
 
   // Function to create stock alert notifications
   const createStockAlert = async (productName: string, currentStock: number, minStock: number) => {
-    const priority = currentStock <= minStock * 0.5 ? 'critical' : 'high';
-    const title = priority === 'critical' ? '🚨 Stock Crítico' : '⚠️ Stock Bajo';
+    const priority = currentStock <= minStock * 0.5 ? 'urgent' : 'high';
+    const title = priority === 'urgent' ? '🚨 Stock Crítico' : '⚠️ Stock Bajo';
     const message = `${productName}: ${currentStock} unidades (Mínimo: ${minStock})`;
 
     await createNotification({

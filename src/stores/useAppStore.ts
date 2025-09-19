@@ -188,11 +188,9 @@ export const useAppStore = create<AppState>()(
               const { data: roleData, error: roleError } = await supabase
                 .rpc('get_my_role');
               
-              if (!roleError && roleData) {
-                profileData.role = roleData as 'admin' | 'operator' | 'user';
-              }
+              const role = (!roleError && roleData) ? roleData as 'admin' | 'operator' | 'user' : 'user';
               
-              set({ profile: profileData as Profile });
+              set({ profile: { ...profileData, role } as Profile });
               
               // Update last login
               await supabase
@@ -220,12 +218,16 @@ export const useAppStore = create<AppState>()(
         
         updateProfile: async (updates) => {
           const user = get().user;
-          if (!user) return;
+          const currentProfile = get().profile;
+          if (!user || !currentProfile) return;
           
           try {
+            // Remove role from updates since it's no longer in profiles table
+            const { role, ...allowedUpdates } = updates;
+            
             const { data, error } = await supabase
               .from('profiles')
-              .update(updates)
+              .update(allowedUpdates)
               .eq('id', user.id)
               .select()
               .single();
@@ -233,13 +235,8 @@ export const useAppStore = create<AppState>()(
             if (error) throw error;
             
             if (data) {
-              // Obtener rol actualizado desde RPC
-              const { data: roleData } = await supabase.rpc('get_my_role');
-              if (roleData) {
-                data.role = roleData as 'admin' | 'operator' | 'user';
-              }
-              
-              set({ profile: data as Profile });
+              // Preserve current role since it's now managed separately
+              set({ profile: { ...data, role: currentProfile.role } as Profile });
               get().addNotification({
                 type: 'success',
                 title: 'Perfil actualizado',

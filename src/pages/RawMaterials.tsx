@@ -74,7 +74,12 @@ export function RawMaterials() {
       if (materialsRes.error) throw materialsRes.error;
       if (suppliersRes.error) throw suppliersRes.error;
 
-      setMaterials(materialsRes.data || []);
+      setMaterials((materialsRes.data || []).map(material => ({
+        ...material,
+        suppliers: material.suppliers && typeof material.suppliers === 'object' && material.suppliers !== null && 'id' in (material.suppliers as object) 
+          ? material.suppliers as Supplier
+          : undefined
+      })));
       setSuppliers(suppliersRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);

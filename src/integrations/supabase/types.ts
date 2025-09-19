@@ -837,7 +837,6 @@ export type Database = {
           is_active: boolean
           last_login: string | null
           phone: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
         }
         Insert: {
@@ -851,7 +850,6 @@ export type Database = {
           is_active?: boolean
           last_login?: string | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Update: {
@@ -865,7 +863,6 @@ export type Database = {
           is_active?: boolean
           last_login?: string | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Relationships: [
@@ -1553,6 +1550,15 @@ export type Database = {
           lead_time_days: number
           name: string
           phone: string
+        }[]
+      }
+      get_user_accessible_locations: {
+        Args: { p_user_id: string }
+        Returns: {
+          code: string
+          id: string
+          name: string
+          type: Database["public"]["Enums"]["location_type"]
         }[]
       }
       has_role: {

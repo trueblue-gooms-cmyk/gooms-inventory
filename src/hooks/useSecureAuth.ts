@@ -55,21 +55,9 @@ export const useUserRole = () => {
         if (error) {
           console.warn('RPC get_my_role failed, trying fallback:', error);
 
-          // Fallback: get role from profiles table
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Profile fallback also failed:', profileError);
-            // Default to 'user' role if everything fails
-            setRole('user');
-            return;
-          }
-
-          setRole(profileData?.role || 'user');
+          // Security: Role is now only stored in user_roles table
+          console.error('RPC get_my_role failed, defaulting to user role:', error);
+          setRole('user');
           return;
         }
 
