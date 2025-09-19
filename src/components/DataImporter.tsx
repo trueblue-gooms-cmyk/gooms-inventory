@@ -186,7 +186,7 @@ export const DataImporter = () => {
       const nameMap = new Map((existingSuppliers || []).map(s => [s.name, s]));
 
       // Función para crear un código determinístico a partir del nombre
-      const makeBaseCode = (name: string) => name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'SUPPLIER';
+      const makeBaseCode = (name: string) => name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16) || 'SUPPLIER';
 
       const newSuppliers = [] as { name: string; code: string; is_active: boolean }[];
       for (const supplierName of uniqueSuppliers) {
@@ -195,8 +195,8 @@ export const DataImporter = () => {
         let candidate = base;
         let i = 1;
         while (codeSet.has(candidate)) {
-          const suffix = String(i).padStart(2, '0');
-          candidate = (base + suffix).slice(0, 12);
+          const suffix = String(i).padStart(3, '0');
+          candidate = (base + suffix).slice(0, 20);
           i++;
         }
         codeSet.add(candidate);
@@ -206,7 +206,7 @@ export const DataImporter = () => {
       if (newSuppliers.length) {
         const { error: suppliersInsertError } = await supabase
           .from('suppliers')
-          .insert(newSuppliers);
+          .upsert(newSuppliers, { onConflict: 'code', ignoreDuplicates: true });
         if (suppliersInsertError) throw suppliersInsertError;
       }
 
