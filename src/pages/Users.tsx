@@ -23,7 +23,7 @@ interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'operator' | 'viewer';
+  role: 'admin' | 'operator' | 'user' | 'viewer';
   status: 'active' | 'inactive' | 'pending';
   created_at: string;
   last_access: string;
@@ -33,7 +33,7 @@ interface User {
 interface InviteUserData {
   email: string;
   full_name: string;
-  role: 'admin' | 'operator' | 'viewer';
+  role: 'admin' | 'operator' | 'user' | 'viewer';
   locations: string[];
 }
 
@@ -67,6 +67,16 @@ const ROLE_PERMISSIONS = {
       'Reportes básicos'
     ]
   },
+  user: {
+    label: 'Usuario',
+    color: 'bg-gray-100 text-gray-700',
+    permissions: [
+      'Ver dashboard',
+      'Ver inventario',
+      'Ver reportes básicos',
+      'Acceso de solo lectura'
+    ]
+  },
   viewer: {
     label: 'Visualizador',
     color: 'bg-gray-100 text-gray-700',
@@ -77,7 +87,7 @@ const ROLE_PERMISSIONS = {
       'Acceso de solo lectura'
     ]
   }
-};
+} as const;
 
 export function Users() {
   const [users, setUsers] = useState<User[]>([]);
@@ -126,11 +136,15 @@ export function Users() {
       // Combinar perfiles con roles
       const usersWithRoles = (profilesData || []).map(profile => {
         const userRole = rolesData?.find(r => r.user_id === profile.id);
+        const dbRole = userRole?.role || 'user';
+        // Mapear 'user' de DB a 'viewer' en UI para compatibilidad
+        const uiRole = dbRole === 'user' ? 'viewer' : dbRole;
+        
         return {
           id: profile.id,
           email: profile.email,
           full_name: profile.full_name || profile.email,
-          role: userRole?.role || 'user',
+          role: uiRole,
           status: profile.is_active ? 'active' : 'inactive',
           created_at: profile.created_at?.split('T')[0] || '',
           last_access: profile.last_login?.split('T')[0] || '-',
@@ -159,8 +173,20 @@ export function Users() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'operator' | 'viewer') => {
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'operator' | 'user' | 'viewer') => {
     try {
+      // Para 'viewer' usamos 'user' ya que son equivalentes en el sistema
+      const dbRole = newRole === 'viewer' ? 'user' : newRole;
+      
+      // Actualizar rol en Supabase usando activate_user_role
+      const { error } = await supabase.rpc('activate_user_role', {
+        p_user_id: userId,
+        p_new_role: dbRole,
+        p_activated_by: null // Usar el usuario actual automáticamente
+      });
+
+      if (error) throw error;
+
       // Actualizar en el estado local
       setUsers(prev => prev.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
@@ -169,12 +195,10 @@ export function Users() {
       setMessage({ type: 'success', text: 'Rol actualizado correctamente' });
       setEditingUser(null);
       
-      // Aquí iría la llamada a la API
-      // await updateUserRole(userId, newRole);
-      
       setTimeout(() => setMessage(null), 3000);
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Error al actualizar el rol' });
+    } catch (error: any) {
+      console.error('Error updating role:', error);
+      setMessage({ type: 'error', text: error.message || 'Error al actualizar el rol' });
       setTimeout(() => setMessage(null), 3000);
     }
   };
@@ -254,6 +278,7 @@ export function Users() {
     active: users.filter(u => u.status === 'active').length,
     admins: users.filter(u => u.role === 'admin').length,
     operators: users.filter(u => u.role === 'operator').length,
+    users: users.filter(u => u.role === 'user').length,
     viewers: users.filter(u => u.role === 'viewer').length
   };
 
@@ -314,6 +339,16 @@ export function Users() {
               <p className="text-2xl font-bold text-blue-600">{stats.operators}</p>
             </div>
             <Edit2 className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Usuarios</p>
+              <p className="text-2xl font-bold text-gray-600">{stats.users}</p>
+            </div>
+            <Eye className="w-8 h-8 text-gray-500" />
           </div>
         </div>
 
@@ -410,6 +445,7 @@ export function Users() {
                             onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
                             className="border border-gray-300 rounded px-2 py-1 text-sm"
                           >
+                            <option value="user">Usuario</option>
                             <option value="viewer">Visualizador</option>
                             <option value="operator">Operador</option>
                             <option value="admin">Administrador</option>
@@ -423,8 +459,8 @@ export function Users() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${ROLE_PERMISSIONS[user.role].color}`}>
-                            {ROLE_PERMISSIONS[user.role].label}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS]?.color || 'bg-gray-100 text-gray-700'}`}>
+                            {ROLE_PERMISSIONS[user.role as keyof typeof ROLE_PERMISSIONS]?.label || user.role}
                           </span>
                           <button
                             onClick={() => setEditingUser(user.id)}

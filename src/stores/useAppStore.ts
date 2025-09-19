@@ -192,7 +192,7 @@ export const useAppStore = create<AppState>()(
               
               set({ profile: { ...profileData, role } as Profile });
               
-              // Update last login
+              // Update last login without trying to update role
               await supabase
                 .from('profiles')
                 .update({ last_login: new Date().toISOString() })
