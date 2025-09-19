@@ -170,38 +170,50 @@ export const DataImporter = () => {
       await supabase.from('raw_materials').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('packaging_materials').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('intermediate_products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('suppliers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      // await supabase.from('suppliers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
-      // 2. Import suppliers
+      // 2. Import suppliers (deterministic, sin colisiones)
       setProgress('Importando proveedores...');
       const uniqueSuppliers = [...new Set(rawMaterials.map(rm => rm.supplier))];
-      
-      // Generate unique codes for suppliers
-      const suppliersToInsert = uniqueSuppliers.map((supplierName, index) => {
-        // Create a base code from the supplier name
-        let baseCode = supplierName.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, '');
-        // Add index to ensure uniqueness
-        const uniqueCode = `${baseCode}${(index + 1).toString().padStart(2, '0')}`;
-        
-        return {
-          name: supplierName,
-          code: uniqueCode,
-          is_active: true
-        };
-      });
 
-      const { error: suppliersError } = await supabase
+      // Obtener existentes para mantener códigos y evitar conflictos
+      const { data: existingSuppliers, error: existingSuppliersError } = await supabase
         .from('suppliers')
-        .upsert(suppliersToInsert, { onConflict: 'code' })
-        .select();
+        .select('id, name, code');
+      if (existingSuppliersError) throw existingSuppliersError;
 
-      if (suppliersError) throw suppliersError;
+      const codeSet = new Set((existingSuppliers || []).map(s => s.code));
+      const nameMap = new Map((existingSuppliers || []).map(s => [s.name, s]));
 
-      // Fetch all suppliers to map IDs reliably
+      // Función para crear un código determinístico a partir del nombre
+      const makeBaseCode = (name: string) => name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'SUPPLIER';
+
+      const newSuppliers = [] as { name: string; code: string; is_active: boolean }[];
+      for (const supplierName of uniqueSuppliers) {
+        if (nameMap.has(supplierName)) continue; // Ya existe, no insertar
+        let base = makeBaseCode(supplierName);
+        let candidate = base;
+        let i = 1;
+        while (codeSet.has(candidate)) {
+          const suffix = String(i).padStart(2, '0');
+          candidate = (base + suffix).slice(0, 12);
+          i++;
+        }
+        codeSet.add(candidate);
+        newSuppliers.push({ name: supplierName, code: candidate, is_active: true });
+      }
+
+      if (newSuppliers.length) {
+        const { error: suppliersInsertError } = await supabase
+          .from('suppliers')
+          .insert(newSuppliers);
+        if (suppliersInsertError) throw suppliersInsertError;
+      }
+
+      // Volver a leer proveedores ya consolidados
       const { data: suppliersResult, error: suppliersFetchError } = await supabase
         .from('suppliers')
         .select('id, name, code');
-
       if (suppliersFetchError) throw suppliersFetchError;
 
       // 3. Import raw materials
